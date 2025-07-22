@@ -1,0 +1,28 @@
+[
+  {
+    "title": "EPFL",
+    "caption": "epfl.ch",
+    "icon": "school",
+    "link": "https://epfl.ch"
+  },
+  {
+    "title": "HOBEL",
+    "caption": "epfl.ch/labs/hobel",
+    "icon": "engineering",
+    "contribution": "The Human-Oriented Built Environment Lab",
+    "link": "https://www.epfl.ch/labs/hobel"
+  },
+  {
+    "title": "ENAC IT4R",
+    "caption": "go.epfl.ch/it4r",
+    "icon": "construction",
+    "contribution": "it4r_contrib",
+    "link": "https://www.epfl.ch/schools/enac/about/data-at-enac/enac-it4research/"
+  },
+  {
+    "title": "source_code",
+    "caption": "EPFL-ENAC/hobel-iaqdb",
+    "icon": "code",
+    "link": "https://github.com/EPFL-ENAC/hobel-iaqdb"
+  }
+]

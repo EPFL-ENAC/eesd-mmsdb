@@ -1,0 +1,107 @@
+// app global css in SCSS form
+a {
+  text-decoration: none;
+  color: black;
+}
+
+a.q-markdown--link,
+a.epfl {
+  text-decoration: underline;
+  text-decoration-color: red;
+  text-decoration-thickness: min(0.08em, 0.1rem);
+  text-underline-offset: 0.14em;
+  color: black;
+}
+
+a:hover.q-markdown--link,
+a:hover.epfl {
+  text-decoration: underline;
+  text-decoration-color: black;
+  color: red;
+}
+
+.text-help {
+  color: $grey-6;
+}
+
+.text-hint {
+  color: $grey-8;
+  font-size: smaller;
+}
+
+li + li {
+  margin-top: 10px;
+}
+
+p:last-child {
+  margin-bottom: 0;
+}
+
+.text-logo {
+  color: red;
+  font-family: 'Helvetica';
+  font-weight: bold;
+}
+
+.app-md {
+  blockquote.q-markdown--note {
+    border-width: 0px 0px 0px 8px;
+    border-radius: 0;
+    border-style: solid;
+    border-color: #9e9e9e #009688;
+    background-color: white;
+  }
+
+  table.q-markdown--table ul {
+    padding-left: 20px;
+  }
+}
+
+.stepper-nav {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  margin: auto;
+  width: 320px;
+  text-align: center;
+}
+
+.q-popup-edit__buttons {
+  button {
+    font-size: smaller;
+  }
+}
+
+.filters .q-tab {
+  padding-left: 0;
+  padding-right: 0;
+}
+
+.circle-letter {
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  width: 15px;
+  height: 15px;
+  border-radius: 50%;
+  border: 1px solid black;
+  color: black;
+  background-color: white;
+}
+
+.grid-dl {
+  tr:nth-child(odd) {
+    background-color: #eeeeee;
+  }
+
+  tr:nth-child(even) {
+    background-color: #f9f9f9;
+  }
+
+  tr {
+    td {
+      padding: 5px;
+    }
+  }
+}
