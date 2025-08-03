@@ -17,7 +17,7 @@ jobs:
       token: ${{ secrets.CD_TOKEN }}
     with:
       # Optional inputs can be passed here
-      org: EPFL-ENAC
+      org: epfl-enac
       repo: eesd-mms-db
       lfs: true
       build_context: '["./backend", "./frontend"]' # Optional"
