@@ -15,7 +15,8 @@ class PersonBase(SQLModel):
     email_public: bool = Field(default=False)
     institution: Optional[str] = Field(default=None)
     study_id: Optional[int] = Field(
-        default=None, foreign_key="study.id", ondelete="CASCADE")
+        default=None, foreign_key="study.id", ondelete="CASCADE"
+    )
 
 
 class Person(PersonBase, table=True):
@@ -58,13 +59,17 @@ class Study(StudyBase, table=True):
     )
     # relationships
     buildings: List["Building"] = Relationship(
-        back_populates="study", cascade_delete=True)
+        back_populates="study", cascade_delete=True
+    )
     instruments: List["Instrument"] = Relationship(
-        back_populates="study", cascade_delete=True)
+        back_populates="study", cascade_delete=True
+    )
     datasets: List["Dataset"] = Relationship(
-        back_populates="study", cascade_delete=True)
+        back_populates="study", cascade_delete=True
+    )
     contributors: List["Person"] = Relationship(
-        back_populates="study", cascade_delete=True)
+        back_populates="study", cascade_delete=True
+    )
 
 
 class StudyRead(StudyBase):
@@ -91,6 +96,7 @@ class StudySummary(BaseModel):
     countries: List[str] = Field(default_factory=list)
     cities: List[str] = Field(default_factory=list)
 
+
 # Buildings
 
 
@@ -98,7 +104,8 @@ class CertificationBase(SQLModel):
     program: Optional[str] = Field(default=None)
     level: Optional[str] = Field(default=None)
     building_id: Optional[int] = Field(
-        default=None, foreign_key="building.id", ondelete="CASCADE")
+        default=None, foreign_key="building.id", ondelete="CASCADE"
+    )
 
 
 class Certification(CertificationBase, table=True):
@@ -110,8 +117,7 @@ class Certification(CertificationBase, table=True):
         index=True,
     )
     # relationships
-    building: Optional["Building"] = Relationship(
-        back_populates="certifications")
+    building: Optional["Building"] = Relationship(back_populates="certifications")
 
 
 class BuildingBase(SQLModel):
@@ -143,7 +149,8 @@ class BuildingBase(SQLModel):
     smoking: Optional[str] = Field(default=None)
 
     study_id: Optional[int] = Field(
-        default=None, foreign_key="study.id", ondelete="CASCADE")
+        default=None, foreign_key="study.id", ondelete="CASCADE"
+    )
 
 
 class Building(BuildingBase, table=True):
@@ -156,11 +163,10 @@ class Building(BuildingBase, table=True):
     )
     # relationships
     certifications: List[Certification] = Relationship(
-        back_populates="building", cascade_delete=True)
-    study: Optional["Study"] = Relationship(
-        back_populates="buildings")
-    spaces: List["Space"] = Relationship(
-        back_populates="building", cascade_delete=True)
+        back_populates="building", cascade_delete=True
+    )
+    study: Optional["Study"] = Relationship(back_populates="buildings")
+    spaces: List["Space"] = Relationship(back_populates="building", cascade_delete=True)
 
 
 class BuildingRead(BuildingBase):
@@ -202,9 +208,11 @@ class SpaceBase(SQLModel):
     detergents: Optional[str] = Field(default=None)
 
     study_id: Optional[int] = Field(
-        default=None, foreign_key="study.id", ondelete="CASCADE")
+        default=None, foreign_key="study.id", ondelete="CASCADE"
+    )
     building_id: Optional[int] = Field(
-        default=None, foreign_key="building.id", ondelete="CASCADE")
+        default=None, foreign_key="building.id", ondelete="CASCADE"
+    )
 
 
 class Space(SpaceBase, table=True):
@@ -218,6 +226,7 @@ class Space(SpaceBase, table=True):
     # relationships
     building: Optional[Building] = Relationship(back_populates="spaces")
 
+
 # Instruments
 
 
@@ -228,7 +237,8 @@ class InstrumentParameterBase(SQLModel):
     note: Optional[str] = Field(default=None)
 
     instrument_id: Optional[int] = Field(
-        default=None, foreign_key="instrument.id", ondelete="CASCADE")
+        default=None, foreign_key="instrument.id", ondelete="CASCADE"
+    )
 
 
 class InstrumentParameter(InstrumentParameterBase, table=True):
@@ -240,8 +250,7 @@ class InstrumentParameter(InstrumentParameterBase, table=True):
         index=True,
     )
     # relationships
-    instrument: Optional["Instrument"] = Relationship(
-        back_populates="parameters")
+    instrument: Optional["Instrument"] = Relationship(back_populates="parameters")
 
 
 class InstrumentBase(SQLModel):
@@ -252,7 +261,8 @@ class InstrumentBase(SQLModel):
     placement: Optional[str] = Field(default=None)
 
     study_id: Optional[int] = Field(
-        default=None, foreign_key="study.id", ondelete="CASCADE")
+        default=None, foreign_key="study.id", ondelete="CASCADE"
+    )
 
 
 class Instrument(InstrumentBase, table=True):
@@ -264,10 +274,10 @@ class Instrument(InstrumentBase, table=True):
         index=True,
     )
     # relationships
-    study: Optional["Study"] = Relationship(
-        back_populates="instruments")
+    study: Optional["Study"] = Relationship(back_populates="instruments")
     parameters: List[InstrumentParameter] = Relationship(
-        back_populates="instrument", cascade_delete=True)
+        back_populates="instrument", cascade_delete=True
+    )
 
 
 class InstrumentRead(InstrumentBase):
@@ -278,16 +288,19 @@ class InstrumentRead(InstrumentBase):
 class InstrumentDraft(InstrumentRead):
     id: Optional[int] = Field(default=None)
 
+
 # Datasets
 
 
 class DatasetBase(SQLModel):
     name: str
     description: str
-    folder: Dict | None = Field(sa_column=Column(
-        JSON), default=None)  # file store node object
+    folder: Dict | None = Field(
+        sa_column=Column(JSON), default=None
+    )  # file store node object
     study_id: Optional[int] = Field(
-        default=None, foreign_key="study.id", ondelete="CASCADE")
+        default=None, foreign_key="study.id", ondelete="CASCADE"
+    )
 
 
 class Dataset(DatasetBase, table=True):
@@ -299,10 +312,10 @@ class Dataset(DatasetBase, table=True):
         index=True,
     )
     # relationships
-    study: Optional[Study] = Relationship(
-        back_populates="datasets")
+    study: Optional[Study] = Relationship(back_populates="datasets")
     variables: List["Variable"] = Relationship(
-        back_populates="dataset", cascade_delete=True)
+        back_populates="dataset", cascade_delete=True
+    )
 
 
 class VariableBase(SQLModel):
@@ -314,9 +327,11 @@ class VariableBase(SQLModel):
     reference: Optional[str] = Field(default=None)
 
     study_id: Optional[int] = Field(
-        default=None, foreign_key="study.id", ondelete="CASCADE")
+        default=None, foreign_key="study.id", ondelete="CASCADE"
+    )
     dataset_id: Optional[int] = Field(
-        default=None, foreign_key="dataset.id", ondelete="CASCADE")
+        default=None, foreign_key="dataset.id", ondelete="CASCADE"
+    )
 
 
 class Variable(VariableBase, table=True):
@@ -339,18 +354,18 @@ class DatasetRead(DatasetBase):
 class DatasetDraft(DatasetRead):
     id: Optional[int] = Field(default=None)
 
+
 #
 # Contribution
 #
 
 
 class ContributionBase(SQLModel):
-    created_at: datetime = Field(
-        sa_column=TIMESTAMP(timezone=True), default=None)
-    updated_at: datetime = Field(
-        sa_column=TIMESTAMP(timezone=True), default=None)
+    created_at: datetime = Field(sa_column=TIMESTAMP(timezone=True), default=None)
+    updated_at: datetime = Field(sa_column=TIMESTAMP(timezone=True), default=None)
     published_at: Optional[datetime] = Field(
-        sa_column=TIMESTAMP(timezone=True), default=None)
+        sa_column=TIMESTAMP(timezone=True), default=None
+    )
     created_by: Optional[str] = Field(default=None)
     updated_by: Optional[str] = Field(default=None)
     published_by: Optional[str] = Field(default=None)
@@ -371,6 +386,7 @@ class Contribution(ContributionBase, table=True):
 class StudyBundle(BaseModel):
     study: Optional[StudyDraft] = Field(default=None)
     contribution: Optional[Contribution] = Field(default=None)
+
 
 #
 # Results

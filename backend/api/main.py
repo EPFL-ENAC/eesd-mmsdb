@@ -1,10 +1,8 @@
-from fastapi import FastAPI, Depends, status, HTTPException
+from fastapi import FastAPI, status
 from fastapi.middleware.cors import CORSMiddleware
 from api.config import config
-from api.db import get_session, AsyncSession
 from logging import basicConfig, INFO
 from pydantic import BaseModel
-from sqlalchemy.sql import text
 from api.views.files import router as files_router
 
 basicConfig(level=INFO)
@@ -24,6 +22,7 @@ app.add_middleware(
 
 class HealthCheck(BaseModel):
     """Response model to validate and return when performing a health check."""
+
     status: str = "OK"
 
 
@@ -35,20 +34,11 @@ class HealthCheck(BaseModel):
     status_code=status.HTTP_200_OK,
     response_model=HealthCheck,
 )
-async def get_health(
-    session: AsyncSession = Depends(get_session),
-) -> HealthCheck:
-    """
-    Endpoint to perform a healthcheck on for kubenernetes liveness and
-    readiness probes.
-    """
-    # Check DB connection
-    try:
-        await session.exec(text("SELECT 1"))
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"DB Error: {e}")
+async def get_health() -> HealthCheck:
+    """Endpoint to perform an API healthcheck."""
 
     return HealthCheck(status="OK")
+
 
 app.include_router(
     files_router,
