@@ -117,8 +117,6 @@ declare module 'vue' {
     readonly $ref: UnwrapRef<typeof import('vue/macros')['$ref']>
     readonly $shallowRef: UnwrapRef<typeof import('vue/macros')['$shallowRef']>
     readonly $toRef: UnwrapRef<typeof import('vue/macros')['$toRef']>
-    readonly DEFAULT_ALTITUDES: UnwrapRef<typeof import('./stores/filters')['DEFAULT_ALTITUDES']>
-    readonly DEFAULT_CONSTRUCTION_YEARS: UnwrapRef<typeof import('./stores/filters')['DEFAULT_CONSTRUCTION_YEARS']>
     readonly EffectScope: UnwrapRef<typeof import('vue')['EffectScope']>
     readonly acceptHMRUpdate: UnwrapRef<typeof import('pinia')['acceptHMRUpdate']>
     readonly computed: UnwrapRef<typeof import('vue')['computed']>
@@ -180,17 +178,11 @@ declare module 'vue' {
     readonly triggerRef: UnwrapRef<typeof import('vue')['triggerRef']>
     readonly unref: UnwrapRef<typeof import('vue')['unref']>
     readonly useAttrs: UnwrapRef<typeof import('vue')['useAttrs']>
-    readonly useAuthStore: UnwrapRef<typeof import('./stores/auth')['useAuthStore']>
-    readonly useCatalogStore: UnwrapRef<typeof import('./stores/catalog')['useCatalogStore']>
-    readonly useContributeStore: UnwrapRef<typeof import('./stores/contribute')['useContributeStore']>
     readonly useCssModule: UnwrapRef<typeof import('vue')['useCssModule']>
     readonly useCssVars: UnwrapRef<typeof import('vue')['useCssVars']>
-    readonly useFiltersStore: UnwrapRef<typeof import('./stores/filters')['useFiltersStore']>
-    readonly useHelpStore: UnwrapRef<typeof import('./stores/help')['useHelpStore']>
     readonly useI18n: UnwrapRef<typeof import('vue-i18n')['useI18n']>
     readonly useId: UnwrapRef<typeof import('vue')['useId']>
     readonly useLink: UnwrapRef<typeof import('vue-router')['useLink']>
-    readonly useMapStore: UnwrapRef<typeof import('./stores/map')['useMapStore']>
     readonly useModel: UnwrapRef<typeof import('vue')['useModel']>
     readonly useRoute: UnwrapRef<typeof import('vue-router')['useRoute']>
     readonly useRouter: UnwrapRef<typeof import('vue-router')['useRouter']>

@@ -4,7 +4,7 @@ from pydantic import BaseModel
 
 class Geometry(BaseModel):
     coordinates: List[float]
-    type: Literal['Point']
+    type: Literal["Point"]
 
 
 class BuildingProperties(BaseModel):
@@ -30,12 +30,12 @@ class BuildingProperties(BaseModel):
 class BuildingFeature(BaseModel):
     geometry: Geometry
     properties: BuildingProperties
-    type: Literal['Feature']
+    type: Literal["Feature"]
 
 
 class BuildingFeatures(BaseModel):
     features: List[BuildingFeature]
-    type: Literal['FeatureCollection']
+    type: Literal["FeatureCollection"]
 
 
 class ClimateZone(BaseModel):

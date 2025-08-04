@@ -3,7 +3,7 @@ from functools import lru_cache
 
 
 class Config(BaseSettings):
-
+    PATH_PREFIX: str
     S3_ENDPOINT_PROTOCOL: str
     S3_ENDPOINT_HOSTNAME: str
     S3_ACCESS_KEY_ID: str
@@ -11,7 +11,6 @@ class Config(BaseSettings):
     S3_REGION: str
     S3_BUCKET: str
     S3_PATH_PREFIX: str
-
 
 
 @lru_cache()
