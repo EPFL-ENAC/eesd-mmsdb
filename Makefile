@@ -1,45 +1,19 @@
-.PHONY: backup-dump
-
 install:
-	pnpm install
-	npx husky install
-	$(MAKE) -C frontend install
-
-run-frontend:
-	$(MAKE) -C frontend dev
-
-test:
-	$(MAKE) -C frontend test
+	pip install pre-commit
+	pre-commit install --install-hooks
+	cd backend && make install
+	cd frontend && npm install
+	touch .env
 
 lint:
-	$(MAKE) -C frontend lint
+	pre-commit run --all-files
+	cd frontend && npm run lint && npm run format
 
-lint-staged:
-	$(MAKE) -C frontend lint-staged
+run-backend:
+	cd backend && make run
 
-run-db:
-	docker compose up -d --pull=always postgres
+run-frontend:
+	cd frontend && npm run dev
 
-stop-db:
-	docker compose stop postgres
-
-down-db:
-	docker compose down postgres
-
-# setup and run when deploying on server
-setup:
-	echo "nothing to see here"
-
-run:
-	docker compose -f docker-compose.yml pull
-	docker compose -f docker-compose.yml build --parallel --no-cache
-	docker compose -f docker-compose.yml up -d --remove-orphans
-
-stop:
-	docker compose -f docker-compose.yml stop
-
-logs:
-	docker compose logs -f $(service)
-
-psql:
-	psql -h localhost -p 5432 -U postgres
+test:
+	cd backend && make test

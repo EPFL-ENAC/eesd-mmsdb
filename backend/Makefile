@@ -1,22 +1,14 @@
 env_path=../.env
 
 install:
-	poetry install
+	uv venv
+	uv pip install -e .[dev]
 
 run:
-	poetry run dotenv -f "$(env_path)" run uvicorn api.main:app
+	uv run dotenv -f "$(env_path)" run uvicorn api.main:app --reload
+
+test:
+	uv run dotenv -f "$(env_path)" run pytest
 
 lint:
-	poetry run pre-commit run --all-files
-
-db-upgrade:
-	poetry run dotenv -f "$(env_path)" run alembic upgrade head
-
-db-downgrade:
-	poetry run dotenv -f "$(env_path)" run alembic downgrade -1
-
-db-revision:
-	poetry run dotenv -f "$(env_path)" run alembic revision --autogenerate -m "$(name)"
-
-seed:
-	curl -X PUT 'http://localhost:8000/seed' -H 'accept: application/json'
+	uv run pre-commit run --all-files
