@@ -12,12 +12,14 @@ readme = "README.md"
 requires-python = ">=3.13"
 
 dependencies = [
-    "fastapi>=0.116.1",
+    "fastapi>=0.115.14",
     "networkx>=3.5",
     "numpy>=2.3.1",
     "pydantic>=2.11.7",
     "pydantic-settings>=2.10.1",
     "scipy>=1.16.0",
+    "enacit4r-files@git+https://github.com/EPFL-ENAC/enacit4r-files@0.6.1",
+    "python-multipart>=0.0.20",
 ]
 
 [project.optional-dependencies]
