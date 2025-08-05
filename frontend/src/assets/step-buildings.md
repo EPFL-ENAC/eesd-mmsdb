@@ -1,1 +1,0 @@
-In this step, you will describe each building and spaces where the IAQ was measured. At a minimum, for each building you will provide its approximate location and all the associated spaces/spaces where measurement devices were in operation.

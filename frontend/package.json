@@ -1,8 +1,8 @@
 {
-  "name": "iaqdb",
-  "version": "0.0.1",
-  "description": "EPFL HOBEL indoor Air Quality Database",
-  "productName": "iAQ DB",
+  "name": "mms-db",
+  "version": "0.1.0",
+  "description": "Masonry MicroStructure Database",
+  "productName": "MMS DB",
   "author": "ENAC IT4R <enacit4research@epfl.ch>",
   "type": "module",
   "private": true,

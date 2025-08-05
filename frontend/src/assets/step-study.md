@@ -1,1 +1,0 @@
-The IAQ data were collected in the context of a study. In this step you will provide as much as possible information about the motivation of this study, its time frame, an information contact, the license to use the data and the research publication details for further reference.
