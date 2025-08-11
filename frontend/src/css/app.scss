@@ -1,4 +1,8 @@
 // app global css in SCSS form
+html {
+  overflow-y: scroll;  // Always show vertical scrollbar to prevent layout shifting
+}
+
 a {
   text-decoration: none;
   color: black;

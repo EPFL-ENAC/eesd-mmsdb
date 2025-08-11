@@ -1,6 +1,5 @@
 <template>
   <q-page>
-    <app-header url="interior-1.jpg" />
     <div class="row">
       <div class="col"></div>
       <div class="col-8">
@@ -19,7 +18,6 @@
 
 <script setup lang="ts">
 import IntroductionMd from 'src/assets/introduction.md';
-import AppHeader from 'src/components/AppHeader.vue';
 
 const { t } = useI18n();
 </script>
