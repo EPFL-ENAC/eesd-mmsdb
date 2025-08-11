@@ -1,0 +1,26 @@
+[
+  {
+    "title": "EPFL",
+    "caption": "eplf.ch",
+    "link": "https://www.epfl.ch",
+    "icon": "school"
+  },
+  {
+    "title": "EESD",
+    "caption": "epfl.ch/labs/eesd",
+    "link": "https://www.epfl.ch/labs/eesd/",
+    "icon": "engineering"
+  },
+  {
+    "title": "ENAC-IT4R",
+    "caption": "go.epfl.ch/it4r",
+    "link": "https://go.epfl.ch/it4r",
+    "icon": "construction"
+  },
+  {
+    "title": "Source Code",
+    "caption": "epfl-enac/eesd-mms-db",
+    "link": "https://github.com/EPFL-ENAC/eesd-mms-db",
+    "icon": "code"
+  }
+]

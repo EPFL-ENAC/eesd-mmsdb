@@ -83,22 +83,9 @@
     </div>
     <q-list separator class="q-mt-md">
       <essential-link
-        title="Mati Ullah Shah"
-        caption="people.epfl.ch/mati.shah"
-        link="https://people.epfl.ch/mati.shah?lang=en"
-        icon="person"
-      />
-      <essential-link
-        title="Savvas Saloustros"
-        caption="people.epfl.ch/savvas.saloustros"
-        link="https://people.epfl.ch/savvas.saloustros?lang=en"
-        icon="person"
-      />
-      <essential-link
-        title="Katrin Beyer"
-        caption="people.epfl.ch/katrin.beyer"
-        link="https://people.epfl.ch/katrin.beyer?lang=en"
-        icon="person"
+        v-for="link in contactLinks"
+        :key="link.title"
+        v-bind="link"
       />
     </q-list>
   </simple-dialog>
@@ -111,29 +98,12 @@
 
   <simple-dialog v-model="showAknowledgements" :title="t('aknowledgements')">
     <q-list separator class="q-mt-md">
+    </q-list>
+    <q-list separator class="q-mt-md">
       <essential-link
-        title="EPFL"
-        caption="eplf.ch"
-        link="https://www.epfl.ch"
-        icon="school"
-      />
-      <essential-link
-        title="EESD"
-        caption="epfl.ch/labs/eesd"
-        link="https://www.epfl.ch/labs/eesd/"
-        icon="engineering"
-      />
-      <essential-link
-        title="ENAC-IT4R"
-        caption="go.epfl.ch/it4r"
-        link="https://go.epfl.ch/it4r"
-        icon="construction"
-      />
-      <essential-link
-        :title="t('source_code')"
-        caption="epfl-enac/eesd-mms-db"
-        link="https://github.com/EPFL-ENAC/eesd-mms-db"
-        icon="code"
+        v-for="link in aknowledgementsLinks"
+        :key="link.title"
+        v-bind="link"
       />
     </q-list>
   </simple-dialog>
@@ -142,6 +112,8 @@
 <script setup lang="ts">
 import SimpleDialog from 'src/components/SimpleDialog.vue';
 import EssentialLink from 'src/components/EssentialLink.vue';
+import contactLinks from 'src/assets/contact_links.json';
+import aknowledgementsLinks from 'src/assets/aknowledgements_links.json';
 
 const { t } = useI18n();
 const showCitation = ref(false);
