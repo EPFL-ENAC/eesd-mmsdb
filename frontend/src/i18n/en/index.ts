@@ -1,6 +1,11 @@
 export default {
   about: 'About',
   about_info: 'Information about the project',
+  aknowledgements: 'Acknowledgements',
+  citation: 'How to cite',
+  citation_text: 'Please cite the database as follow:',
+  contact: 'Contact information',
+  contact_text: 'For more information, please contact:',
   correlations: 'Correlations',
   correlations_info: 'Correlation analysis of the data',
   database: 'Database',
@@ -11,4 +16,8 @@ export default {
   others_info: 'Related links and resources',
   quality_index: 'Quality Index',
   quality_index_info: 'Compute quality index from your data',
+  source_code: 'Source code',
+  title: 'Masonry Microstructure Database',
+  upload: 'Data upload',
+  upload_text: 'IN DEVELOPMENT',
 };
