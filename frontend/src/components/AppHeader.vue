@@ -47,34 +47,13 @@
   </div>
 
   <simple-dialog v-model="showCitation" :title="t('citation')">
-    <div>
-      {{ t('citation_text') }}
-    </div>
-    <q-card class="q-mt-md">
-      <q-card-section>
-        <div>
-          <q-icon name="article" class="q-mr-xs" />
-          <span>
-            Shah, M. U., Saloustros, S., Wang, Q., Shaqfa, M., Ortega, J., & Beyer, K. (2024).
-            <b>Database and geometrical characterization of 3D stone masonry wall microstructures (Version 1)</b> [Dataset].
-            <a href="https://doi.org/10.5281/zenodo.15044436" target="_blank">
-              https://doi.org/10.5281/zenodo.15044436
-            </a>.
-          </span>
-        </div>
-      </q-card-section>
-
-      <q-card-section>
-        <div>
-          <q-icon name="article" class="q-mr-xs" />
-          <span>
-            Shah M.U., Saloustros S., Wang Q., Shaqfa M., Ortega J., Beyer K.
-            <b>Database and geometrical characterization of 3D stone masonry wall microstructures.</b>
-            Earthquake Spectra. [Manuscript submitted for publication].
-          </span>
-        </div>
-      </q-card-section>
-    </q-card>
+    {{ t('citation_text') }}
+    <citation-item
+      v-for="item in citationItems"
+      :key="item.title"
+      v-bind="item"
+      class="q-mt-sm q-mb-sm"
+    />
   </simple-dialog>
 
   <simple-dialog v-model="showContact" :title="t('contact')">
@@ -112,8 +91,10 @@
 <script setup lang="ts">
 import SimpleDialog from 'src/components/SimpleDialog.vue';
 import EssentialLink from 'src/components/EssentialLink.vue';
+import CitationItem from 'src/components/CitationItem.vue';
 import contactLinks from 'src/assets/contact_links.json';
 import aknowledgementsLinks from 'src/assets/aknowledgements_links.json';
+import citationItems from 'src/assets/citation_items.json';
 
 const { t } = useI18n();
 const showCitation = ref(false);
