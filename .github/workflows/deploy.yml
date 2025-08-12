@@ -12,12 +12,11 @@ env:
   IMAGE_NAME: ${{github.repository}}
 jobs:
   deploy:
-    uses: EPFL-ENAC/epfl-enac-build-push-deploy-action/.github/workflows/deploy.yml@v2.4.0
+    uses: EPFL-ENAC/epfl-enac-build-push-deploy-action/.github/workflows/deploy.yml@v2.5.0
     secrets:
       token: ${{ secrets.CD_TOKEN }}
     with:
       # Optional inputs can be passed here
       org: epfl-enac
       repo: eesd-mmsdb
-      lfs: true
       build_context: '["./backend", "./frontend"]' # Optional"
