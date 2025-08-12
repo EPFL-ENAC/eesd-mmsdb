@@ -18,6 +18,6 @@ jobs:
     with:
       # Optional inputs can be passed here
       org: epfl-enac
-      repo: eesd-mms-db
+      repo: eesd-mmsdb
       lfs: true
       build_context: '["./backend", "./frontend"]' # Optional"

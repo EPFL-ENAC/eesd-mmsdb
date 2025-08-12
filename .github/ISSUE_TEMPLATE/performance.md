@@ -20,4 +20,4 @@ Please describe the performance issue.
 
 ## Benchmarks
 
-How poorly does `mms-db` perform? To find out, we recommend you to use the [`lighthouse`](https://developer.chrome.com/docs/lighthouse/overview/) and take screenshots of the results displayed in your browser.
+How poorly does `mmsdb` perform? To find out, we recommend you to use the [`lighthouse`](https://developer.chrome.com/docs/lighthouse/overview/) and take screenshots of the results displayed in your browser.
