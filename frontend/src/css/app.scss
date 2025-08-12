@@ -3,11 +3,6 @@ html {
   overflow-y: scroll;  // Always show vertical scrollbar to prevent layout shifting
 }
 
-a {
-  text-decoration: none;
-  color: black;
-}
-
 a.q-markdown--link,
 a.epfl {
   text-decoration: underline;
