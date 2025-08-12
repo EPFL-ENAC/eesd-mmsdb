@@ -1,18 +1,13 @@
-FROM python:3.11.7-bookworm
-ENV POETRY_VERSION=2.1.3
-RUN pip install "poetry==$POETRY_VERSION"
-ENV PYTHONPATH="$PYTHONPATH:/app"
+FROM python:3.13.6-bookworm
+ENV UV_VERSION=0.8.9
+RUN pip install "uv==$UV_VERSION"
 
 WORKDIR /app
 
-COPY poetry.lock pyproject.toml /app/
-RUN poetry config installer.max-workers 10 && \
-  poetry config virtualenvs.create false && \
-  apt-get update && apt-get install -y g++ libpq-dev libgl1 gdal-bin libgdal-dev  && \
-  poetry install --no-interaction --no-root
-
-COPY alembic.ini start.sh /app/
-COPY migrations /app/migrations
+COPY uv.lock pyproject.toml /app/
+COPY start.sh /app/
 COPY api /app/api
 
-ENTRYPOINT sh start.sh
+RUN uv pip install --system --no-cache-dir -e /app
+
+ENTRYPOINT ["sh", "start.sh"]
