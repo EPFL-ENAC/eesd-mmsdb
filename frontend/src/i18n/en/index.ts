@@ -4,6 +4,7 @@ export default {
   aknowledgements: 'Acknowledgements',
   citation: 'How to cite',
   citation_text: 'Please cite the database as follow:',
+  close: 'Close',
   contact: 'Contact information',
   contact_text: 'For more information, please contact:',
   correlations: 'Correlations',
