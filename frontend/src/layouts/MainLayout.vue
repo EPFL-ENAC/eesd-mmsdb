@@ -1,13 +1,12 @@
 <template>
   <q-layout view="hHh lpR fFf">
     <q-header bordered class="bg-white text-grey-10">
-      <app-toolbar/>
+      <app-toolbar @toggle-left="toggleLeftDrawer" :has-drawer="hasDrawer" />
     </q-header>
 
     <q-drawer
-      v-model="leftDrawerOpen"
-      :mini="!leftDrawerOpen || miniStateLeft"
-      show-if-above
+      v-model="leftDrawerVisible"
+      :mini="!leftDrawerOpen"
       bordered
     >
       <div
@@ -19,8 +18,8 @@
           dense
           round
           unelevated
-          :icon="miniStateLeft ? 'chevron_right' : 'chevron_left'"
-          @click="miniStateLeft = !miniStateLeft"
+          :icon="leftDrawerOpen ? 'chevron_left' : 'chevron_right'"
+          @click="leftDrawerOpen = !leftDrawerOpen"
         />
       </div>
     </q-drawer>
@@ -38,10 +37,31 @@ import AppToolbar from 'src/components/AppToolbar.vue';
 const $q = useQuasar();
 const route = useRoute();
 
-const leftDrawerOpen = ref(false);
-const miniStateLeft = ref(false);
-watch(() => route.meta.hasDrawer, (newValue) => {
-  leftDrawerOpen.value = (newValue === true);
+const hasDrawer = computed(() => {
+  return route.meta.hasDrawer === true;
+});
+const leftDrawerVisible = ref(hasDrawer.value && !$q.screen.lt.md);
+const leftDrawerOpen = ref(hasDrawer.value);
+
+watch(hasDrawer, (value) => {
+  leftDrawerVisible.value = value && !$q.screen.lt.md;
+  leftDrawerOpen.value = value;
 });
 
+watch(
+  () => $q.screen.lt.md,
+  (isLargeScreen) => {
+    leftDrawerVisible.value = hasDrawer.value && isLargeScreen;
+  }
+);
+
+function toggleLeftDrawer() {
+  leftDrawerVisible.value = !leftDrawerVisible.value;
+}
 </script>
+
+<style lang="scss" scoped>
+.q-page {
+  padding: 0.7rem;
+}
+</style>

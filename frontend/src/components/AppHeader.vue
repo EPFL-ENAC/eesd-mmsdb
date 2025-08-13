@@ -104,12 +104,13 @@ const showAknowledgements = ref(false);
 </script>
 
 <style scoped lang="scss">
-$header-height: 50px;
+$header-height: 3.125rem;
 
 .secondary-header {
   min-height: $header-height;
   background-color: black;
   display: flex;
+  align-items: center;
 }
 
 .logo {
@@ -119,9 +120,9 @@ $header-height: 50px;
 .title {
   color: white;
   font-size: 1.5rem;
-  margin-top: 0;
-  margin-bottom: 0;
-  line-height: $header-height;
+  margin-top: 0.6rem;
+  margin-bottom: 0.6rem;
+  line-height: 1.8rem;
 }
 
 .icons {

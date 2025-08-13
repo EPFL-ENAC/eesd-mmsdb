@@ -1,10 +1,20 @@
 <template>
   <q-toolbar>
+    <q-btn
+      v-if="$q.screen.lt.md && hasDrawer"
+      flat
+      dense
+      round
+      icon="menu"
+      class="on-left"
+      @click="toggleLeftDrawer"
+    />
+
     <a href="https://epfl.ch" target="_blank" class="q-mt-sm">
-      <img src="/EPFL_logo.png" :style="`height: ${$q.screen.lt.md ? '15px' : '25px'}`" />
+      <img src="/EPFL_logo.png" :style="`height: ${$q.screen.lt.sm ? '15px' : '25px'}`" />
     </a>
+
     <q-tabs
-      v-if="!$q.screen.lt.sm"
       shrink
       stretch
       active-color="primary"
@@ -23,7 +33,7 @@
     <a href="https://www.epfl.ch/labs/eesd/" target="_blank" class="q-mt-sm">
       <img
         src="/EESD_logo.png"
-        style="height: 25px"
+        :style="`height: ${$q.screen.lt.sm ? '15px' : '25px'}`"
         class="float-right q-mb-xs"
       />
     </a>
@@ -37,14 +47,19 @@ import { useQuasar } from 'quasar';
 import AppHeader from 'src/components/AppHeader.vue';
 
 interface Props {
-  noMenu?: boolean;
+  hasDrawer?: boolean;
 }
 
 withDefaults(defineProps<Props>(), {
-  noMenu: false,
+  hasDrawer: false,
 });
+const emit = defineEmits(['toggle-left']);
 
 const $q = useQuasar();
 const { t } = useI18n();
+
+function toggleLeftDrawer() {
+  emit('toggle-left');
+}
 
 </script>
