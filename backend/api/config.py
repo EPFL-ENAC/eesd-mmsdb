@@ -12,6 +12,9 @@ class Config(BaseSettings):
     S3_BUCKET: str
     S3_PATH_PREFIX: str
 
+    PROPERTIES_PATH: str = "original/04_StoneMasonryMicrostructureDatabase.xlsx"
+    PROPERTIES_SHEET: str = "Database_summary"
+
 
 @lru_cache()
 def get_config():

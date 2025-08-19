@@ -4,6 +4,7 @@ from api.config import config
 from logging import basicConfig, INFO
 from pydantic import BaseModel
 from api.views.files import router as files_router
+from api.views.properties import router as properties_router
 
 basicConfig(level=INFO)
 
@@ -44,4 +45,10 @@ app.include_router(
     files_router,
     prefix="/files",
     tags=["Files"],
+)
+
+app.include_router(
+    properties_router,
+    prefix="/properties",
+    tags=["Properties"],
 )
