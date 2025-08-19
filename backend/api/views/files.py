@@ -2,13 +2,14 @@
 Handle / uploads
 """
 
-from api.services.s3 import s3_client
+from pathlib import Path
 
 from fastapi import Query, APIRouter, HTTPException
 from fastapi.responses import Response
-
-
 from pydantic import BaseModel
+
+from api.config import config
+from api.services.s3 import s3_client
 
 
 class FilePath(BaseModel):
@@ -29,7 +30,8 @@ async def get_file(
         False, alias="d", description="Download file instead of inline display"
     ),
 ):
-    (body, content_type) = await s3_client.get_file(file_path)
+    full_file_path = Path(config.S3_PATH_PREFIX) / file_path
+    (body, content_type) = await s3_client.get_file(str(full_file_path))
     if body:
         if download:
             # download file
@@ -38,7 +40,7 @@ async def get_file(
                 media_type=content_type,
                 headers={
                     "Content-Disposition": "attachment; filename="
-                    + file_path.split("/")[-1]
+                    + Path(file_path).name
                 },
             )
         else:
@@ -57,7 +59,11 @@ async def list_files(
     directory_path: str,
 ):
     try:
-        files = await s3_client.list_files(directory_path)
+        full_directory_path = Path(config.S3_PATH_PREFIX) / directory_path
+        files = await s3_client.list_files(str(full_directory_path))
+        files = [
+            Path(path).relative_to(full_directory_path).as_posix() for path in files
+        ]
         return {"files": files}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
