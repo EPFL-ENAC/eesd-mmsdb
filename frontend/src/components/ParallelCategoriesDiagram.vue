@@ -8,7 +8,6 @@ import { usePropertiesStore } from 'stores/properties'
 
 const plotlyChart = ref(null)
 const columns = ["Microstructure type", "Typology based on Italian Code", "No of leaves", "Average vertical LMT", "Average horizontal LMT", "Average shape factor", "Vertical loading_GMQI_class"]
-const column_labels = ["Microstructure type", "Typology", "Number of leaves", "Vertical LMT", "Horizontal LMT", "Shape factor", "MQI masonry class"]
 
 const propertiesStore = usePropertiesStore()
 const properties = computed(() => propertiesStore.properties)
@@ -18,7 +17,7 @@ async function createChart() {
     return
   }
 
-  const dimensions = columns.map((col, index) => {
+  const dimensions = columns.map((col) => {
     const values = properties.value.map(propertyEntry => {
       const property = propertyEntry.properties.find(p => p.name === col)
       let value = property?.value
@@ -31,7 +30,7 @@ async function createChart() {
     const sortedValues = [...new Set(values)].sort()
 
     return {
-      label: column_labels[index],
+      label: propertiesStore.columnLabels[col],
       values: values,
       categoryorder: 'array',
       categoryarray: sortedValues,
@@ -43,7 +42,7 @@ async function createChart() {
       type: 'parcats',
       dimensions: dimensions,
       line: {
-        color: "grey",
+        color: "lightsteelblue",
         shape: 'hspline'
       },
     }
