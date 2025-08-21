@@ -89,6 +89,7 @@ declare global {
   const useLink: typeof import('vue-router')['useLink']
   const useMapStore: typeof import('./stores/map')['useMapStore']
   const useModel: typeof import('vue')['useModel']
+  const usePropertiesStore: typeof import('./stores/properties')['usePropertiesStore']
   const useRoute: typeof import('vue-router')['useRoute']
   const useRouter: typeof import('vue-router')['useRouter']
   const useSettingsStore: typeof import('./stores/settings')['useSettingsStore']
@@ -184,6 +185,7 @@ declare module 'vue' {
     readonly useId: UnwrapRef<typeof import('vue')['useId']>
     readonly useLink: UnwrapRef<typeof import('vue-router')['useLink']>
     readonly useModel: UnwrapRef<typeof import('vue')['useModel']>
+    readonly usePropertiesStore: UnwrapRef<typeof import('./stores/properties')['usePropertiesStore']>
     readonly useRoute: UnwrapRef<typeof import('vue-router')['useRoute']>
     readonly useRouter: UnwrapRef<typeof import('vue-router')['useRouter']>
     readonly useSettingsStore: UnwrapRef<typeof import('./stores/settings')['useSettingsStore']>
