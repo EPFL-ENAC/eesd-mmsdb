@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia';
-import axios from 'axios';
 import type { PropertyEntry } from '../models';
+import { api } from 'src/boot/api';
 
 export const usePropertiesStore = defineStore('properties', () => {
   const properties = ref<PropertyEntry[] | null>(null);
@@ -12,7 +12,7 @@ export const usePropertiesStore = defineStore('properties', () => {
     error.value = null;
 
     try {
-      const response = await axios.get('/properties');
+      const response = await api.get('/properties');
       properties.value = response.data;
     } catch (err) {
       error.value = err instanceof Error ? err.message : 'An unknown error occurred';
