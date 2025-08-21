@@ -6,6 +6,15 @@ export const usePropertiesStore = defineStore('properties', () => {
   const properties = ref<PropertyEntry[] | null>(null);
   const loading = ref(false);
   const error = ref<string | null>(null);
+  const columnLabels: Record<string, string> = {
+    "Microstructure type": "Microstructure type",
+    "Typology based on Italian Code": "Typology",
+    "No of leaves": "Number of leaves",
+    "Average vertical LMT": "Vertical LMT",
+    "Average horizontal LMT": "Horizontal LMT",
+    "Average shape factor": "Shape factor",
+    "Vertical loading_GMQI_class": "MQI masonry class",
+  };
 
   const fetchProperties = async () => {
     loading.value = true;
@@ -26,5 +35,6 @@ export const usePropertiesStore = defineStore('properties', () => {
     loading,
     error,
     fetchProperties,
+    columnLabels,
   };
 });
