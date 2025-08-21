@@ -4,7 +4,7 @@
 
     <donut-charts/>
 
-    <sankey-diagram/>
+    <parallel-categories-diagram/>
 
     <div>
       {{ t('citation_text') }}
@@ -22,7 +22,7 @@
 import CitationItem from 'src/components/CitationItem.vue';
 import MicrostructureView from 'src/components/MicrostructureView.vue';
 import DonutCharts from 'src/components/DonutCharts.vue';
-import SankeyDiagram from 'src/components/SankeyDiagram.vue';
+import ParallelCategoriesDiagram from 'src/components/ParallelCategoriesDiagram.vue';
 import citationItems from 'src/assets/citation_items.json';
 
 const { t } = useI18n();

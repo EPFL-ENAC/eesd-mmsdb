@@ -1,6 +1,5 @@
 import { defineBoot } from '#q-app/wrappers';
 import axios, { type AxiosInstance } from 'axios';
-import Keycloak from 'keycloak-js';
 
 declare module '@vue/runtime-core' {
   interface ComponentCustomProperties {
@@ -18,13 +17,6 @@ interface CustomWindow extends Window {
 }
 
 const appEnv = (window as unknown as CustomWindow).env
-
-const keycloak = new Keycloak({
-  url: 'https://enac-it-sso.epfl.ch/',
-  realm: 'HOBEL',
-  clientId: appEnv.AUTH_CLIENT_ID,
-});
-
 const cdnUrl = 'https://enacit4r-cdn.epfl.ch/';
 const baseUrl = `${appEnv.API_URL}${appEnv.API_PATH}`
 const api = axios.create({
@@ -43,4 +35,4 @@ export default defineBoot(({ app }) => {
   //       so you can easily perform requests against your app's API
 });
 
-export { api, baseUrl, cdnUrl, keycloak };
+export { api, baseUrl, cdnUrl };
