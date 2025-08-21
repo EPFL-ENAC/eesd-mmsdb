@@ -3,47 +3,77 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, ref } from 'vue'
 import Plotly from 'plotly.js-dist'
+import { usePropertiesStore } from 'stores/properties'
 
 const plotlyChart = ref(null)
+const columns = ["Microstructure type", "Typology based on Italian Code", "No of leaves", "Average vertical LMT", "Average horizontal LMT", "Average shape factor", "Vertical loading_GMQI_class"]
+const column_labels = ["Microstructure type", "Typology", "Number of leaves", "Vertical LMT", "Horizontal LMT", "Shape factor", "MQI masonry class"]
 
-onMounted(async () => {
+const propertiesStore = usePropertiesStore()
+const properties = computed(() => propertiesStore.properties)
+
+async function createChart() {
+  if (!Array.isArray(properties.value) || plotlyChart.value === null) {
+    return
+  }
+
+  const dimensions = columns.map((col, index) => {
+    const values = properties.value.map(propertyEntry => {
+      const property = propertyEntry.properties.find(p => p.name === col)
+      let value = property?.value
+      if (!isNaN(Number(value)) && col != "No of leaves") {
+        value = Number(value).toFixed(1)
+      }
+      return value
+    })
+
+    const sortedValues = [...new Set(values)].sort()
+
+    return {
+      label: column_labels[index],
+      values: values,
+      categoryorder: 'array',
+      categoryarray: sortedValues,
+    }
+  })
+
   const data = [
     {
       type: 'parcats',
-      dimensions: [
-        {
-          label: 'Region',
-          values: ['North', 'North', 'South', 'South', 'East', 'East']
-        },
-        {
-          label: 'Product',
-          values: ['A', 'B', 'A', 'C', 'B', 'C']
-        },
-        {
-          label: 'Outcome',
-          values: ['Win', 'Lose', 'Win', 'Win', 'Lose', 'Lose']
-        }
-      ],
+      dimensions: dimensions,
       line: {
-        color: 'grey',
+        color: "grey",
         shape: 'hspline'
-      }
+      },
     }
   ]
 
   const layout = {
     title: 'Parallel Categories Diagram',
-    width: 800,
+    autosize: true,
     height: 500,
     font: {
-      family: "Roboto, -apple-system, Helvetica Neue, Helvetica, Arial, sans-serif"
+      family: "Roboto, -apple-system, Helvetica Neue, Helvetica, Arial, sans-serif",
+      size: 14,
     },
   }
 
-  if (plotlyChart.value) {
-    await Plotly.newPlot(plotlyChart.value, data, layout)
+  const config = {
+    responsive: true
   }
+
+  await Plotly.newPlot(plotlyChart.value, data, layout, config)
+}
+
+onMounted(async () => {
+  await createChart()
 })
+
+watch(properties, async (newVal) => {
+  if (plotlyChart.value && newVal) {
+    await createChart()
+  }
+}, { deep: true, immediate: true })
+
 </script>
