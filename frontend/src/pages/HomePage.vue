@@ -1,6 +1,11 @@
 <template>
   <q-page>
-    <microstructure-view/>
+    <microstructure-view
+      :ply-data="result"
+      :width="Math.min(600, q.screen.width)"
+      :height="400"
+      background-color="#f0f0f0"
+    />
 
     <donut-charts/>
 
@@ -19,11 +24,21 @@
 </template>
 
 <script setup lang="ts">
+import { useQuasar } from 'quasar'
 import CitationItem from 'src/components/CitationItem.vue';
 import MicrostructureView from 'src/components/MicrostructureView.vue';
 import DonutCharts from 'src/components/DonutCharts.vue';
 import ParallelCategoriesDiagram from 'src/components/ParallelCategoriesDiagram.vue';
 import citationItems from 'src/assets/citation_items.json';
+import { useWallsStore } from 'src/stores/walls';
+
+const q = useQuasar();
+const wallsStore = useWallsStore();
+const result = ref<ArrayBuffer | null>(null)
+
+onMounted(async () => {
+  result.value = await wallsStore.getWall(true, "real", "OC01");
+});
 
 const { t } = useI18n();
 </script>
