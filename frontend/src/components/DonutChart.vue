@@ -15,7 +15,6 @@ import * as echarts from 'echarts'
 const propertiesStore = usePropertiesStore()
 const properties = computed(() => propertiesStore.properties)
 
-// Props
 interface Props {
   title: string
   columnName: string
@@ -24,22 +23,18 @@ interface Props {
 
 const props = defineProps<Props>()
 
-// Emits
 const emit = defineEmits<{
   sectorClick: [payload: { columnName: string; sectorLabel: string }]
 }>()
 
-// Refs
 const chartContainer = ref<HTMLDivElement>()
 let chartInstance: echarts.ECharts | null = null
 
-// Computed data from properties store
 const chartData = computed(() => {
   if (!properties.value || !Array.isArray(properties.value)) {
     return []
   }
 
-  // Filter properties based on filters prop
   const filteredProperties = properties.value.filter(propertyEntry => {
     return Object.entries(props.filters).every(([filterColumn, filterValue]) => {
       const property = propertyEntry.properties.find(p => p.name === filterColumn)
@@ -58,21 +53,19 @@ const chartData = computed(() => {
     }
   })
 
-  // Convert to chart format
   return Object.entries(columnData)
     .map(([name, count]) => ({
       name,
       value: count,
       count
     }))
-    .sort((a, b) => b.count - a.count) // Sort by count descending
+    .sort((a, b) => b.count - a.count)
 })
 
-// Chart options
 const getChartOptions = () => ({
   tooltip: {
     trigger: 'item',
-    formatter: (params: any) => {
+    formatter: (params: { data: { name: string, count: number } }) => {
       const percentage = ((params.data.count / chartData.value.reduce((sum, item) => sum + item.count, 0)) * 100).toFixed(1)
       return `${params.data.name}<br/>Count: ${params.data.count}<br/>Percentage: ${percentage}%`
     }
@@ -113,13 +106,12 @@ const getChartOptions = () => ({
   ]
 })
 
-// Initialize chart
 const initChart = () => {
   if (chartContainer.value) {
     chartInstance = echarts.init(chartContainer.value)
     chartInstance.setOption(getChartOptions())
 
-    // Add click event listener
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     chartInstance.on('click', (params: any) => {
       if (params.data) {
         emit('sectorClick', {
@@ -131,21 +123,18 @@ const initChart = () => {
   }
 }
 
-// Resize chart
 const resizeChart = () => {
   if (chartInstance) {
     chartInstance.resize()
   }
 }
 
-// Watch for prop changes and data changes
 watch(() => [props.title, props.columnName, props.filters, chartData.value], () => {
   if (chartInstance) {
     chartInstance.setOption(getChartOptions())
   }
 }, { deep: true })
 
-// Lifecycle hooks
 onMounted(() => {
   initChart()
   window.addEventListener('resize', resizeChart)
