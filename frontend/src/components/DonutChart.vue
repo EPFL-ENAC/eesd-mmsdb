@@ -4,7 +4,7 @@
     <div
       ref="chartContainer"
       class="chart-wrapper"
-      style="width: 100%; height: 400px;"
+      style="width: 100%; height: 300px;"
     ></div>
   </div>
 </template>
@@ -82,7 +82,7 @@ const getChartOptions = () => ({
     {
       name: props.columnName,
       type: 'pie',
-      radius: ['40%', '70%'],
+      radius: ['30%', '60%'],
       center: ['50%', '50%'],
       avoidLabelOverlap: false,
       itemStyle: {
@@ -162,7 +162,7 @@ onUnmounted(() => {
 <style scoped>
 .donut-chart-container {
   width: 100%;
-  padding: 16px;
+  padding: 8px;
 }
 
 .chart-title {
