@@ -10,8 +10,10 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted, watch } from 'vue'
 import * as echarts from 'echarts'
+
+const propertiesStore = usePropertiesStore()
+const properties = computed(() => propertiesStore.properties)
 
 // Props
 interface Props {
@@ -31,21 +33,48 @@ const emit = defineEmits<{
 const chartContainer = ref<HTMLDivElement>()
 let chartInstance: echarts.ECharts | null = null
 
-// Template data for demonstration
-const templateData = [
-  { name: 'Category A', value: 335, count: 335 },
-  { name: 'Category B', value: 234, count: 234 },
-  { name: 'Category C', value: 148, count: 148 },
-  { name: 'Category D', value: 310, count: 310 },
-  { name: 'Category E', value: 251, count: 251 }
-]
+// Computed data from properties store
+const chartData = computed(() => {
+  if (!properties.value || !Array.isArray(properties.value)) {
+    return []
+  }
+
+  // Filter properties based on filters prop
+  const filteredProperties = properties.value.filter(propertyEntry => {
+    return Object.entries(props.filters).every(([filterColumn, filterValue]) => {
+      const property = propertyEntry.properties.find(p => p.name === filterColumn)
+      return !filterValue || property?.value === filterValue
+    })
+  })
+
+  // Aggregate data for the specified column
+  const columnData: Record<string, number> = {}
+
+  filteredProperties.forEach(propertyEntry => {
+    const property = propertyEntry.properties.find(p => p.name === props.columnName)
+    if (property?.value) {
+      const value = property.value
+      columnData[value] = (columnData[value] || 0) + 1
+    }
+  })
+
+  // Convert to chart format
+  return Object.entries(columnData)
+    .map(([name, count]) => ({
+      name,
+      value: count,
+      count
+    }))
+    .sort((a, b) => b.count - a.count) // Sort by count descending
+})
 
 // Chart options
 const getChartOptions = () => ({
   tooltip: {
     trigger: 'item',
     formatter: (params: any) => {
-      return `Count: ${params.data.count}`
+      const percentage = ((params.data.count / chartData.value.reduce((sum, item) => sum + item.count, 0)) * 100).toFixed(1)
+      return `${params.data.name}<br/>Count: ${params.data.count}<br/>Percentage: ${percentage}%`
     }
   },
 
@@ -79,7 +108,7 @@ const getChartOptions = () => ({
         length: 15,
         length2: 10
       },
-      data: templateData
+      data: chartData.value
     }
   ]
 })
@@ -109,8 +138,8 @@ const resizeChart = () => {
   }
 }
 
-// Watch for prop changes
-watch(() => [props.title, props.columnName, props.filters], () => {
+// Watch for prop changes and data changes
+watch(() => [props.title, props.columnName, props.filters, chartData.value], () => {
   if (chartInstance) {
     chartInstance.setOption(getChartOptions())
   }
@@ -138,8 +167,7 @@ onUnmounted(() => {
 
 .chart-title {
   text-align: center;
-  margin-bottom: 16px;
-  font-weight: 500;
+  font-weight: bold;
 }
 
 .chart-wrapper {
