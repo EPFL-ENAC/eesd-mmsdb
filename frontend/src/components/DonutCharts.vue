@@ -27,7 +27,7 @@
     </div>
 
     <!-- Donut charts -->
-    <div class="row q-col-gutter-md">
+    <div class="row q-col-gutter-md justify-center">
       <div
         v-for="column in columns"
         :key="column"
