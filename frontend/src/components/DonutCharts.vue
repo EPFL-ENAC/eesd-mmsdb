@@ -1,7 +1,7 @@
 <template>
   <div>
     <!-- Filter chips -->
-    <div class="q-mb-md">
+    <div>
       <q-chip
         v-for="(value, key) in filters"
         :key="key"
@@ -12,7 +12,7 @@
         class="q-ma-xs"
         size="sm"
       >
-        {{ key }}: {{ value }}
+        {{ propertiesStore.columnLabels[key] }}: {{ value }}
       </q-chip>
 
       <q-btn
@@ -34,7 +34,7 @@
         class="col-12 col-sm-6 col-md-4"
       >
         <donut-chart
-          :title="propertiesStore.columnLabels[column]"
+          :title="propertiesStore.columnLabels[column] as string"
           :column-name="column"
           :filters="filters"
           @sectorClick="handleSectorClick"
@@ -49,7 +49,6 @@ import { ref } from 'vue'
 import DonutChart from './DonutChart.vue'
 
 const propertiesStore = usePropertiesStore()
-const properties = computed(() => propertiesStore.properties)
 
 const columns = ["Microstructure type", "Typology based on Italian Code", "Vertical loading_GMQI_class"]
 const filters = ref<Record<string, string>>({})
