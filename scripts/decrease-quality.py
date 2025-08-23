@@ -1,4 +1,5 @@
 import os
+import sys
 from pathlib import Path
 import open3d as o3d
 import numpy as np
@@ -7,46 +8,36 @@ from tqdm import tqdm
 # Configurable parameters
 TARGET_SIZE_MB = 1
 TARGET_SIZE_BYTES = TARGET_SIZE_MB * 1024 * 1024
-SMOOTHING_ITERATIONS = 3  # Number of smoothing iterations
-VERTEX_CLUSTERING_SIZE = 0.01  # Size for vertex clustering (smaller = less reduction)
-NOISE_STRENGTH = 0.001  # Small noise to reduce precision
+TARGET_NUMBER_OF_TRIANGLES_STONE = 5000
+TARGET_NUMBER_OF_TRIANGLES_WALL = 20000
+VOXEL_COUNT = 20
 
 def get_all_ply_files(root_dir):
     return list(Path(root_dir).rglob("*.ply"))
 
 def reduce_mesh_quality(file_path):
     try:
-        mesh = o3d.io.read_triangle_mesh(str(file_path))
-
-        if not mesh.has_triangles():
-            print(f"Skipped (no triangles): {file_path}")
-            return
-
-        mesh.compute_vertex_normals()
         original_size = os.path.getsize(file_path)
-
-        # Method 1: Vertex clustering (merges nearby vertices without creating holes)
-        mesh = mesh.simplify_vertex_clustering(voxel_size=VERTEX_CLUSTERING_SIZE)
+        mesh = o3d.io.read_triangle_mesh(str(file_path))
         mesh.compute_vertex_normals()
-
-        # Method 2: Laplacian smoothing (reduces surface detail while preserving shape)
-        mesh = mesh.filter_smooth_laplacian(number_of_iterations=SMOOTHING_ITERATIONS)
-        mesh.compute_vertex_normals()
-
-        # Method 3: Add small noise to reduce coordinate precision
-        vertices = np.asarray(mesh.vertices)
-        noise = np.random.normal(0, NOISE_STRENGTH, vertices.shape)
-        mesh.vertices = o3d.utility.Vector3dVector(vertices + noise)
-
-        # Method 4: Reduce coordinate precision by rounding
-        vertices = np.asarray(mesh.vertices)
-        vertices = np.round(vertices, 3)  # Round to 3 decimal places
-        mesh.vertices = o3d.utility.Vector3dVector(vertices)
 
         # Remove duplicate vertices and triangles
         mesh.remove_duplicated_vertices()
         mesh.remove_duplicated_triangles()
         mesh.remove_unreferenced_vertices()
+
+        # Simplification (reduces number of triangles)
+        target_number_of_triangles = TARGET_NUMBER_OF_TRIANGLES_STONE if "stone" in str(file_path) else TARGET_NUMBER_OF_TRIANGLES_WALL
+        if len(mesh.triangles) > target_number_of_triangles:
+            mesh = mesh.simplify_quadric_decimation(target_number_of_triangles=target_number_of_triangles)
+            mesh.compute_vertex_normals()
+
+        # Vertex clustering (merges nearby vertices without creating holes)
+        # bbox = mesh.get_axis_aligned_bounding_box()
+        # largest_length = max(bbox.get_max_bound() - bbox.get_min_bound())
+        # vertex_clustering_size = largest_length / VOXEL_COUNT
+        # mesh = mesh.simplify_vertex_clustering(voxel_size=vertex_clustering_size)
+        # mesh.compute_vertex_normals()
 
         # Save as binary PLY (reduces size significantly if it's ASCII)
         o3d.io.write_triangle_mesh(str(file_path), mesh, write_ascii=False)
@@ -75,5 +66,10 @@ def main(root_folder):
     for file in tqdm(ply_files, desc="Processing"):
         reduce_mesh_quality(file)
 
-# Run it
-main("/home/user/documents/mms/15044436")
+if __name__ == "__main__":
+    if len(sys.argv) == 1:
+        root_folder = os.getcwd()
+    else:
+        root_folder = sys.argv[1]
+
+    main(root_folder)
