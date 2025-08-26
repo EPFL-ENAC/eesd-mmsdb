@@ -4,6 +4,7 @@
       :ply-data="result"
       :width="Math.min(400, q.screen.width)"
       :height="400"
+      sliceable
       class="microstucture-container"
     />
 

@@ -12,6 +12,43 @@
         <q-spinner color="primary" size="60px" />
       </div>
     </div>
+
+    <div
+      class="controls"
+    >
+      <q-btn
+        v-if="slicing"
+        size=sm
+        color=blue
+      >
+        Download slice
+      </q-btn>
+
+      <q-btn
+        v-if="sliceable"
+        size=sm
+        :color="slicing ? undefined : 'blue'"
+        @click="toggleSlicing"
+      >
+        {{ slicing ? "Cancel" : "Compute slice" }}
+      </q-btn>
+
+      <q-btn
+        v-if="downloadUrl&&!slicing"
+        size=sm
+        color=red
+      >
+        Download (high resolution, xxxMB)
+      </q-btn>
+
+      <q-slider
+        v-model=sliceX
+        v-if=slicing
+        :min=-0.3
+        :max=0.3
+        :step=0.01
+      ></q-slider>
+    </div>
   </div>
 </template>
 
@@ -26,22 +63,28 @@ interface Props {
   width?: number
   height?: number
   backgroundColor?: string
+  sliceable?: boolean
+  downloadUrl?: string
 }
 
 const props = withDefaults(defineProps<Props>(), {
-  width: 400,
-  height: 400,
+  width: 300,
+  height: 300,
   backgroundColor: '#f0f0f0'
 })
 
 const container = ref<HTMLDivElement>()
 const isLoading = ref(false)
+const slicing = ref(false)
+const sliceX = ref(0)
 
 let scene: THREE.Scene
 let camera: THREE.PerspectiveCamera
 let renderer: THREE.WebGLRenderer
 let controls: OrbitControls
 let mesh: THREE.Mesh
+let slicePlane: THREE.Mesh
+let sliceClipPlane: THREE.Plane | undefined = undefined
 let animationId: number
 
 const initThreeJS = () => {
@@ -98,6 +141,16 @@ const initThreeJS = () => {
     directionalLight.shadow.mapSize.height = 128
     scene.add(directionalLight)
   }
+
+  const slicePlaneGeometry = new THREE.PlaneGeometry(1.1, 1.1, 1, 1)
+  const slicePlaneMaterial = new THREE.MeshBasicMaterial({
+    color: 0xffaaaa,
+    side: THREE.DoubleSide,
+  })
+  slicePlane = new THREE.Mesh(slicePlaneGeometry, slicePlaneMaterial)
+  slicePlane.rotateY(Math.PI / 2)
+
+  sliceClipPlane = new THREE.Plane(new THREE.Vector3(1, 0, 0), 1)
 }
 
 const loadPlyFromBuffer = () => {
@@ -126,7 +179,7 @@ const loadPlyFromBuffer = () => {
     geometry.rotateY(Math.PI / 2)
 
     const material = new THREE.MeshPhongMaterial({
-      color: 0xbbbbbb,
+      color: 0xdddddd,
       specular: 0x888888,
       shininess: 15,
       flatShading: false
@@ -164,6 +217,20 @@ const handleResize = () => {
   camera.aspect = props.width / props.height
   camera.updateProjectionMatrix()
   renderer.setSize(props.width, props.height)
+}
+
+const toggleSlicing = () => {
+  if (!renderer || !sliceClipPlane) return
+  slicing.value = !slicing.value
+
+  if (slicing.value) {
+    sliceX.value = 0
+    scene.add(slicePlane)
+    renderer.clippingPlanes = [sliceClipPlane]
+  } else {
+    scene.remove(slicePlane)
+    renderer.clippingPlanes = []
+  }
 }
 
 onMounted(() => {
@@ -205,6 +272,11 @@ watch(() => props.plyData, () => {
     loadPlyFromBuffer()
   }
 })
+
+watch(sliceX, () => {
+  if (!slicePlane) return;
+  slicePlane.position.x = sliceX.value
+})
 </script>
 
 <style scoped>
@@ -232,5 +304,11 @@ watch(() => props.plyData, () => {
   display: block;
   position: relative;
   z-index: 1;
+}
+
+.controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
 }
 </style>
