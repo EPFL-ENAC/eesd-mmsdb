@@ -2,12 +2,12 @@
   <q-page>
     <microstructure-view
       :ply-data="result"
-      :width="Math.min(600, q.screen.width)"
+      :width="Math.min(400, q.screen.width)"
       :height="400"
-      background-color="#f0f0f0"
+      class="microstucture-container"
     />
 
-    <donut-charts/>
+    <donut-charts class="q-mt-lg"/>
 
     <parallel-categories-diagram/>
 
@@ -31,14 +31,28 @@ import DonutCharts from 'src/components/DonutCharts.vue';
 import ParallelCategoriesDiagram from 'src/components/ParallelCategoriesDiagram.vue';
 import citationItems from 'src/assets/citation_items.json';
 import { useWallsStore } from 'src/stores/walls';
+import axios from 'axios';
 
 const q = useQuasar();
 const wallsStore = useWallsStore();
 const result = ref<ArrayBuffer | null>(null)
 
 onMounted(async () => {
-  result.value = await wallsStore.getWall(true, "real", "OC01");
+  // result.value = await wallsStore.getWall(true, "real", "OC01");
+
+    const response = await axios.get("/OC01.ply", {responseType: 'arraybuffer'});
+    // const response = await axios.get("/OC01_stone_1.ply", {responseType: 'arraybuffer'});
+    result.value = response.data
 });
 
 const { t } = useI18n();
 </script>
+
+<style scoped>
+.microstucture-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+}
+</style>

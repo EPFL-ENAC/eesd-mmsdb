@@ -1,23 +1,16 @@
 <template>
-  <div class="ply-viewer">
+  <div>
     <div
       ref="container"
       class="viewer-container"
       :style="`width:${props.width}px;height:${props.height}px;position:relative;`"
     >
-      <!-- Move loading overlay outside or ensure it's rendered after canvas -->
       <div
         v-if="!props.plyData || isLoading"
         class="loading-overlay"
       >
         <q-spinner color="primary" size="60px" />
       </div>
-    </div>
-    <div class="controls">
-      <q-btn @click="resetCamera" color="primary" size="sm">Reset View</q-btn>
-      <q-btn @click="toggleWireframe" color="secondary" size="sm">
-        {{ wireframe ? 'Solid' : 'Wireframe' }}
-      </q-btn>
     </div>
   </div>
 </template>
@@ -36,14 +29,13 @@ interface Props {
 }
 
 const props = withDefaults(defineProps<Props>(), {
-  width: 800,
-  height: 600,
+  width: 400,
+  height: 400,
   backgroundColor: '#f0f0f0'
 })
 
 const container = ref<HTMLDivElement>()
-const wireframe = ref(false)
-const isLoading = ref(false) // Add loading state
+const isLoading = ref(false)
 
 let scene: THREE.Scene
 let camera: THREE.PerspectiveCamera
@@ -55,7 +47,6 @@ let animationId: number
 const initThreeJS = () => {
   if (!container.value) return
 
-  // Remove previous renderer if any
   const canvasElements = container.value.querySelectorAll('canvas')
   canvasElements.forEach(canvas => canvas.remove())
 
@@ -63,7 +54,7 @@ const initThreeJS = () => {
   scene.background = new THREE.Color(props.backgroundColor)
 
   camera = new THREE.PerspectiveCamera(
-    75,
+    30,
     props.width / props.height,
     0.1,
     1000
@@ -77,7 +68,6 @@ const initThreeJS = () => {
   renderer.shadowMap.enabled = true
   renderer.shadowMap.type = THREE.PCFSoftShadowMap
 
-  // Insert canvas before loading overlay to maintain z-index order
   const loadingOverlay = container.value.querySelector('.loading-overlay')
   if (loadingOverlay) {
     container.value.insertBefore(renderer.domElement, loadingOverlay)
@@ -87,53 +77,58 @@ const initThreeJS = () => {
 
   controls = new OrbitControls(camera, renderer.domElement)
   controls.enableDamping = true
-  controls.dampingFactor = 0.05
+  controls.dampingFactor = 0.2
+  controls.enablePan = false
 
-  const ambientLight = new THREE.AmbientLight(0x404040, 0.6)
-  scene.add(ambientLight)
-
-  const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8)
-  directionalLight.position.set(10, 10, 5)
-  directionalLight.castShadow = true
-  directionalLight.shadow.mapSize.width = 1024
-  directionalLight.shadow.mapSize.height = 1024
-  scene.add(directionalLight)
-
-  const pointLight = new THREE.PointLight(0xffffff, 0.5)
-  pointLight.position.set(-10, 10, 10)
-  scene.add(pointLight)
+  // Emulate ambient occlusion with multiple lights
+  const lightPositions: [number, number, number][]  = [
+    [1, 1, 1],
+    [1, -1, -1],
+    [-1, -1, 1],
+    [-1, 1, -1],
+  ]
+  const lightIntensities = [1, 0.4, 0.4, 0.7]
+  for (let i = 0; i < lightPositions.length; i++) {
+    const lightPosition = lightPositions[i] as [number, number, number]
+    const lightIntensity = lightIntensities[i]
+    const directionalLight = new THREE.DirectionalLight(0xffffff, lightIntensity)
+    directionalLight.position.set(...lightPosition)
+    directionalLight.castShadow = true
+    directionalLight.shadow.mapSize.width = 128
+    directionalLight.shadow.mapSize.height = 128
+    scene.add(directionalLight)
+  }
 }
 
-const loadPlyFromBuffer = async () => {
+const loadPlyFromBuffer = () => {
   if (!props.plyData) return
 
-  isLoading.value = true // Set loading state
+  isLoading.value = true
   const loader = new PLYLoader()
 
   try {
-    // Add a small delay to ensure the spinner shows
-    await new Promise(resolve => setTimeout(resolve, 100))
-
     const geometry = loader.parse(props.plyData)
 
     if (!geometry.attributes.normal) {
       geometry.computeVertexNormals()
     }
 
-    // Center and scale the geometry
     geometry.computeBoundingBox()
     const boundingBox = geometry.boundingBox!
     const center = boundingBox.getCenter(new THREE.Vector3())
     const size = boundingBox.getSize(new THREE.Vector3())
     const maxDim = Math.max(size.x, size.y, size.z)
-    const scale = 5 / maxDim // Scale to fit in a 5-unit cube
+    const scale = 1 / maxDim
 
     geometry.translate(-center.x, -center.y, -center.z)
     geometry.scale(scale, scale, scale)
+    geometry.rotateX(Math.PI / 2)
+    geometry.rotateY(Math.PI / 2)
 
     const material = new THREE.MeshPhongMaterial({
-      color: 0x888888,
-      side: THREE.DoubleSide,
+      color: 0xbbbbbb,
+      specular: 0x888888,
+      shininess: 15,
       flatShading: false
     })
 
@@ -143,17 +138,16 @@ const loadPlyFromBuffer = async () => {
 
     scene.add(mesh)
 
-    camera.position.set(8, 8, 8)
+    camera.position.set(2, 1, -1.5)
     camera.lookAt(0, 0, 0)
     controls.update()
 
-    console.log('PLY loaded successfully')
-    console.log('Vertices:', geometry.attributes.position.count)
+    console.log(`PLY loaded successfully (${geometry.attributes.position?.count} vertices)`)
 
   } catch (error) {
     console.error('Error loading PLY:', error)
   } finally {
-    isLoading.value = false // Clear loading state
+    isLoading.value = false
   }
 }
 
@@ -162,19 +156,6 @@ const animate = () => {
 
   controls.update()
   renderer.render(scene, camera)
-}
-
-const resetCamera = () => {
-  camera.position.set(8, 8, 8)
-  camera.lookAt(0, 0, 0)
-  controls.reset()
-}
-
-const toggleWireframe = () => {
-  wireframe.value = !wireframe.value
-  if (mesh && mesh.material instanceof THREE.MeshPhongMaterial) {
-    mesh.material.wireframe = wireframe.value
-  }
 }
 
 const handleResize = () => {
@@ -219,9 +200,6 @@ watch(() => props.plyData, () => {
   if (scene && mesh) {
     scene.remove(mesh)
     mesh.geometry.dispose()
-    // @ts-ignore
-    mesh.material.dispose()
-    mesh = undefined as any
   }
   if (props.plyData) {
     loadPlyFromBuffer()
@@ -230,18 +208,10 @@ watch(() => props.plyData, () => {
 </script>
 
 <style scoped>
-.ply-viewer {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 16px;
-}
-
 .viewer-container {
   border: 1px solid #ddd;
   border-radius: 8px;
   overflow: hidden;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   position: relative;
 }
 
@@ -251,23 +221,16 @@ watch(() => props.plyData, () => {
   left: 0;
   width: 100%;
   height: 100%;
-  z-index: 1000; /* Increased z-index */
+  z-index: 2;
   display: flex;
   justify-content: center;
   align-items: center;
-  background: rgba(255, 255, 255, 0.8); /* More opaque background */
   pointer-events: none;
-  backdrop-filter: blur(2px); /* Optional: adds a blur effect */
-}
-
-.controls {
-  display: flex;
-  gap: 8px;
 }
 
 .viewer-container canvas {
   display: block;
   position: relative;
-  z-index: 1; /* Lower z-index than overlay */
+  z-index: 1;
 }
 </style>

@@ -23,7 +23,7 @@ export const useWallsStore = defineStore('walls', () => {
 
     try {
       // const filePath = `${downscaled?"downscaled":"original"}/01_Microstructures_data/${type === 'real' ? '01_Real' : '02_Virtual'}_walls/${reference_directory}/${id_directory}/02_Wall_data/${id}.ply`;
-      const filePath = "downscaled/01_Microstructures_data/01_Real_walls/01_OC/01_OC01/01_Stones_data/OC01_stone_0.ply";
+      const filePath = "downscaled/01_Microstructures_data/01_Real_walls/01_OC/01_OC01/02_Wall_data/OC01.ply";
       console.log(`Fetching wall data from: ${filePath}`);
       const response = await api.get(`/files/get/${filePath}`, {
         params: {
