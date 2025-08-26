@@ -40,7 +40,7 @@ def reduce_mesh_quality(file_path):
         # mesh.compute_vertex_normals()
 
         # Save as binary PLY (reduces size significantly if it's ASCII)
-        o3d.io.write_triangle_mesh(str(file_path), mesh, write_ascii=False)
+        o3d.io.write_triangle_mesh(str(file_path), mesh, write_ascii=False, compressed=True)
 
         final_size = os.path.getsize(file_path)
         
