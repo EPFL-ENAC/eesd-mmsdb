@@ -8,6 +8,7 @@ name: deploy
     tags: ['v*.*.*']
 
 env:
+  GIT_LFS_SKIP_SMUDGE: 1 # Don't pull LFS files
   REGISTRY: ghcr.io
   IMAGE_NAME: ${{github.repository}}
 jobs:
