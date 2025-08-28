@@ -19,6 +19,19 @@ class FilePath(BaseModel):
 router = APIRouter()
 
 
+def cached(func):
+    """Simple in-memory cache decorator for async functions"""
+    cache = {}
+
+    async def wrapper(*args, **kwargs):
+        key = (args, frozenset(kwargs.items()))
+        if key not in cache:
+            cache[key] = await func(*args, **kwargs)
+        return cache[key]
+
+    return wrapper
+
+
 @router.get(
     "/get/{file_path:path}",
     status_code=200,
@@ -50,6 +63,7 @@ async def get_file(
         raise HTTPException(status_code=404, detail="File not found")
 
 
+@cached
 @router.get(
     "/list/{directory_path:path}",
     status_code=200,
@@ -67,3 +81,23 @@ async def list_files(
         return {"files": files}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+
+@cached
+@router.get(
+    "/wall-path/{wall_id}",
+    status_code=200,
+    description='Get the S3 path for a given wall ID, in the form "OC01"',
+)
+async def get_wall_path(
+    wall_id: str,
+) -> str | None:
+    wall_paths = (await list_files("downscaled/01_Microstructures_data"))["files"]
+    wall_paths = [p for p in wall_paths if "02_Wall_data" in p and wall_id in p]
+
+    if not wall_paths:
+        return None
+
+    wall_path = wall_paths[0]
+    wall_path = wall_path[: wall_path.index("/02_Wall_data")]
+    return wall_path

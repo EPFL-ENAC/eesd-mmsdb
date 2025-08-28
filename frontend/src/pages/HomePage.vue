@@ -32,18 +32,17 @@ import DonutCharts from 'src/components/DonutCharts.vue';
 import ParallelCategoriesDiagram from 'src/components/ParallelCategoriesDiagram.vue';
 import citationItems from 'src/assets/citation_items.json';
 import { useWallsStore } from 'src/stores/walls';
-import axios from 'axios';
+// import axios from 'axios';
 
 const q = useQuasar();
 const wallsStore = useWallsStore();
 const result = ref<ArrayBuffer | null>(null)
 
 onMounted(async () => {
-  // result.value = await wallsStore.getWall(true, "real", "OC01");
+  result.value = await wallsStore.getWall(true, "OC01");
 
-    const response = await axios.get("/OC01.ply", {responseType: 'arraybuffer'});
-    // const response = await axios.get("/OC01_stone_1.ply", {responseType: 'arraybuffer'});
-    result.value = response.data
+  // const response = await axios.get("/downscaled/OC01.ply", {responseType: 'arraybuffer'});
+  // result.value = response.data
 });
 
 const { t } = useI18n();
