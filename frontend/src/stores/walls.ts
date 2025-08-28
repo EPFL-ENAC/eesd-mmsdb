@@ -9,21 +9,16 @@ export const useWallsStore = defineStore('walls', () => {
   /**
    * Get wall data as ArrayBuffer
    * @param downscaled - Whether to get downscaled version
-   * @param type - Type of wall: 'real' or 'virtual'
    * @param id - Wall identifier of the form "OC01"
    * @returns Promise that resolves to ArrayBuffer or null if error
    */
-  async function getWall(downscaled: boolean, type: 'real' | 'virtual', id: string): Promise<ArrayBuffer | null> {
+  async function getWall(downscaled: boolean, id: string): Promise<ArrayBuffer | null> {
     loading.value = true;
     error.value = null;
 
-    // TODO: find automatically
-    // const reference_directory = "01_OC";
-    // const id_directory = "01_OC01";
-
     try {
-      // const filePath = `${downscaled?"downscaled":"original"}/01_Microstructures_data/${type === 'real' ? '01_Real' : '02_Virtual'}_walls/${reference_directory}/${id_directory}/02_Wall_data/${id}.ply`;
-      const filePath = "downscaled/01_Microstructures_data/01_Real_walls/01_OC/01_OC01/02_Wall_data/OC01.ply";
+      const wallPath = (await api.get(`/files/wall-path/${id}`)).data;
+      const filePath = `${downscaled?"downscaled":"original"}/01_Microstructures_data/${wallPath}/02_Wall_data/${id}.ply`;
       console.log(`Fetching wall data from: ${filePath}`);
       const response = await api.get(`/files/get/${filePath}`, {
         params: {

@@ -105,7 +105,7 @@ const initThreeJS = () => {
 
   renderer = new THREE.WebGLRenderer({
     antialias: true,
-    alpha: true
+    alpha: true,
   })
   renderer.setSize(props.width, props.height)
   renderer.shadowMap.enabled = true
@@ -130,7 +130,7 @@ const initThreeJS = () => {
     [-1, -1, 1],
     [-1, 1, -1],
   ]
-  const lightIntensities = [1, 0.4, 0.4, 0.7]
+  const lightIntensities = [1, 0.5, 0.5, 0.9]
   for (let i = 0; i < lightPositions.length; i++) {
     const lightPosition = lightPositions[i] as [number, number, number]
     const lightIntensity = lightIntensities[i]
@@ -176,13 +176,18 @@ const loadPlyFromBuffer = () => {
     geometry.translate(-center.x, -center.y, -center.z)
     geometry.scale(scale, scale, scale)
     geometry.rotateX(Math.PI / 2)
-    geometry.rotateY(Math.PI / 2)
+    if (size.x > size.y) {
+      geometry.rotateY(Math.PI / 2)
+    }
+    if (size.x > size.z) {
+      geometry.rotateZ(-Math.PI / 2)
+    }
 
     const material = new THREE.MeshPhongMaterial({
-      color: 0xdddddd,
-      specular: 0x888888,
-      shininess: 15,
-      flatShading: false
+      color: 0xefefee,
+      specular: 0xcccccc,
+      shininess: 5,
+      flatShading: true,
     })
 
     mesh = new THREE.Mesh(geometry, material)
