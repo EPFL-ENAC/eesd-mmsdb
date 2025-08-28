@@ -1,5 +1,11 @@
 [
   {
+    "title": "Katrin Beyer",
+    "caption": "people.epfl.ch/katrin.beyer",
+    "link": "https://people.epfl.ch/katrin.beyer?lang=en",
+    "icon": "person_2"
+  },
+  {
     "title": "Mati Ullah Shah",
     "caption": "people.epfl.ch/mati.shah",
     "link": "https://people.epfl.ch/mati.shah?lang=en",
@@ -10,11 +16,5 @@
     "caption": "people.epfl.ch/savvas.saloustros",
     "link": "https://people.epfl.ch/savvas.saloustros?lang=en",
     "icon": "person"
-  },
-  {
-    "title": "Katrin Beyer",
-    "caption": "people.epfl.ch/katrin.beyer",
-    "link": "https://people.epfl.ch/katrin.beyer?lang=en",
-    "icon": "person_2"
   }
 ]
