@@ -22,7 +22,7 @@ export const usePropertiesStore = defineStore('properties', () => {
     error.value = null;
 
     try {
-      const response = await api.get('/properties');
+      const response = await api.get('/properties/');
       properties.value = response.data;
     } catch (err) {
       error.value = err instanceof Error ? err.message : 'An unknown error occurred';
