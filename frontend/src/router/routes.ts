@@ -13,7 +13,7 @@ const routes: RouteRecordRaw[] = [
         path: '/database',
         components: {
           default: () => import('pages/DatabasePage.vue'),
-          drawer: () => import('components/DatabasePageDrawer.vue'),
+          drawer: () => import('components/DatabaseDrawer.vue'),
         },
         meta: { hasDrawer: true },
       },
@@ -21,7 +21,7 @@ const routes: RouteRecordRaw[] = [
         path: '/correlations',
         components: {
           default: () => import('pages/CorrelationsPage.vue'),
-          drawer: () => import('components/DatabasePageDrawer.vue'),
+          drawer: () => import('components/DatabaseDrawer.vue'),
         },
         meta: { hasDrawer: true },
       },
@@ -29,7 +29,7 @@ const routes: RouteRecordRaw[] = [
         path: '/quality-index',
         components: {
           default: () => import('pages/QualityIndexPage.vue'),
-          drawer: () => import('components/DatabasePageDrawer.vue'),
+          drawer: () => import('components/DatabaseDrawer.vue'),
         },
         meta: { hasDrawer: true },
       },

@@ -1,13 +1,19 @@
 <template>
   <q-page class="q-pa-md">
+    <div class="database-header q-mb-md">
+      <div class="text-grey-6">
+        Showing {{ filteredWallIds.length }} of {{ allWallIds.length }} walls
+      </div>
+    </div>
+
     <div class="microstructure-grid">
       <div
-        v-for="wallId in wallIds"
+        v-for="wallId in filteredWallIds"
         :key="wallId"
         class="microstructure-card"
       >
         <q-card class="cursor-pointer" @click="openWallDialog(wallId)">
-          <q-card-section class="text-center q-pa-sm">
+          <q-card-section class="text-center q-mt-sm q-pa-none">
             <div class="wall-image-title">{{ wallId }}</div>
           </q-card-section>
 
@@ -36,8 +42,7 @@
     >
       <div v-if="selectedWallId" class="wall-dialog-content">
         <microstructure-view
-          v-if="wallData[selectedWallId]"
-          :ply-data="wallData[selectedWallId]"
+          :ply-data="wallData[selectedWallId] || null"
           :width="400"
           :height="400"
           sliceable
@@ -66,45 +71,32 @@
 <script setup lang="ts">
 import { usePropertiesStore } from 'stores/properties'
 import { useWallsStore } from 'stores/walls'
+import { useDatabaseFiltersStore } from 'stores/database_filters'
 import MicrostructureView from 'src/components/MicrostructureView.vue'
 import SimpleDialog from 'src/components/SimpleDialog.vue'
-import type { PropertyEntry, Property } from '../models';
+import type { PropertyEntry } from '../models';
 
 const propertiesStore = usePropertiesStore()
 const wallsStore = useWallsStore()
-const properties = computed(() => propertiesStore.properties)
+const databaseFiltersStore = useDatabaseFiltersStore()
 
-// Get unique wall IDs from properties
-const wallIds = computed(() => {
-  if (!Array.isArray(properties.value)) return []
+const filteredWallIds = computed(() => databaseFiltersStore.filteredWallIds)
+const allWallIds = computed(() => databaseFiltersStore.allWallIds)
 
-  const wallIds = (properties.value as PropertyEntry[])
-    .map(propertyEntry => {
-      const wallIdProperty = propertyEntry.properties.find(p => p.name === 'Wall ID')
-      return wallIdProperty?.value
-    })
-    .filter(Boolean)
 
-  return [...new Set(wallIds)] as string[]
-})
-
-// Store wall images and loading states
-const wallImages = ref<Record<string, string>>({})
-const loadingImages = ref<Record<string, boolean>>({})
-
-// Store wall data for 3D view (loaded on demand)
 const wallData = ref<Record<string, ArrayBuffer | null>>({})
 const loadingWallData = ref(false)
 
-// Dialog state
+const wallImages = computed(() => wallsStore.wallImages)
+const loadingImages = computed(() => wallsStore.loadingImages)
+
 const showWallDialog = ref(false)
 const selectedWallId = ref<string | null>(null)
 
-// Get parameters for selected wall
 const selectedWallParameters = computed(() => {
-  if (!selectedWallId.value || !Array.isArray(properties.value)) return []
+  if (!selectedWallId.value || !Array.isArray(propertiesStore.properties)) return []
 
-  const propertyEntry = (properties.value as PropertyEntry[])
+  const propertyEntry = (propertiesStore.properties as PropertyEntry[])
     .find(entry => {
       const wallIdProperty = entry.properties.find(p => p.name === 'Wall ID')
       return wallIdProperty?.value === selectedWallId.value
@@ -112,47 +104,24 @@ const selectedWallParameters = computed(() => {
 
   if (!propertyEntry) return []
 
-  // Filter out Wall ID since it's already shown in the title
   return propertyEntry.properties.filter(p => p.name !== 'Wall ID')
 })
 
-// Load wall images
-async function loadWallImage(wallId: string) {
-  if (wallImages.value[wallId] || loadingImages.value[wallId]) return
 
-  loadingImages.value[wallId] = true
-
-  try {
-    const imageData = await wallsStore.getWallImage(wallId)
-    if (imageData) {
-      const blob = new Blob([imageData], { type: 'image/png' })
-      wallImages.value[wallId] = URL.createObjectURL(blob)
-    }
-  } catch (error) {
-    console.error(`Failed to load wall image for ${wallId}:`, error)
-  } finally {
-    loadingImages.value[wallId] = false
-  }
-}
-
-// Load wall images for all unique wall IDs in parallel
 onMounted(async () => {
-  await Promise.all(wallIds.value.map(wallId => loadWallImage(wallId)))
+  await Promise.all(allWallIds.value.map(wallId => wallsStore.loadWallImage(wallId)))
 })
 
-// Watch for changes in unique wall IDs and load new images in parallel
-watch(wallIds, async (newWallIds, oldWallIds) => {
+watch(allWallIds, async (newWallIds, oldWallIds) => {
   const newIds = newWallIds.filter(id => !oldWallIds?.includes(id))
 
-  await Promise.all(newIds.map(wallId => loadWallImage(wallId)))
+  await Promise.all(newIds.map(wallId => wallsStore.loadWallImage(wallId)))
 }, { immediate: false })
 
-// Open wall dialog and load 3D data
 async function openWallDialog(wallId: string) {
   selectedWallId.value = wallId
   showWallDialog.value = true
 
-  // Load 3D data if not already loaded
   if (!wallData.value[wallId]) {
     loadingWallData.value = true
     try {
@@ -166,15 +135,16 @@ async function openWallDialog(wallId: string) {
   }
 }
 
-// Clean up object URLs when component is unmounted
 onUnmounted(() => {
-  Object.values(wallImages.value).forEach(url => {
-    if (url) URL.revokeObjectURL(url)
-  })
+  wallsStore.revokeAllWallImageUrls()
 })
 </script>
 
 <style scoped>
+.database-header {
+  text-align: center;
+}
+
 .microstructure-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));

@@ -1,7 +1,7 @@
 <template>
   <q-dialog :maximized="$q.screen.lt.sm" v-model="showDialog" @hide="onHide">
     <q-card :style="$q.screen.lt.sm ? '' : `width: ${size === 'lg' ? '900px' : size === 'md' ? '600px' : '500px'}; max-width: 90vw`">
-      <q-card-actions v-if="$q.screen.lt.sm" align="right">
+      <q-card-actions align="right">
         <q-btn flat icon="close" color="primary" v-close-popup />
       </q-card-actions>
       <q-card-section>

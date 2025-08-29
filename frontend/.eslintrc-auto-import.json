@@ -106,6 +106,7 @@
     "watchPostEffect": true,
     "watchSyncEffect": true,
     "usePropertiesStore": true,
-    "useWallsStore": true
+    "useWallsStore": true,
+    "useDatabaseFiltersStore": true
   }
 }
