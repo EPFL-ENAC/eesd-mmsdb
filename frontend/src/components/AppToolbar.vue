@@ -1,7 +1,7 @@
 <template>
   <q-toolbar>
     <q-btn
-      v-if="$q.screen.lt.md && hasDrawer"
+      v-if="hasDrawer"
       flat
       dense
       round

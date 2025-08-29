@@ -10,18 +10,27 @@ const routes: RouteRecordRaw[] = [
         component: () => import('pages/HomePage.vue'),
       },
       {
-        path: 'database',
-        component: () => import('pages/DatabasePage.vue'),
+        path: '/database',
+        components: {
+          default: () => import('pages/DatabasePage.vue'),
+          drawer: () => import('components/DatabasePageDrawer.vue'),
+        },
         meta: { hasDrawer: true },
       },
       {
         path: '/correlations',
-        component: () => import('pages/CorrelationsPage.vue'),
+        components: {
+          default: () => import('pages/CorrelationsPage.vue'),
+          drawer: () => import('components/DatabasePageDrawer.vue'),
+        },
         meta: { hasDrawer: true },
       },
       {
         path: '/quality-index',
-        component: () => import('pages/QualityIndexPage.vue'),
+        components: {
+          default: () => import('pages/QualityIndexPage.vue'),
+          drawer: () => import('components/DatabasePageDrawer.vue'),
+        },
         meta: { hasDrawer: true },
       },
       {
