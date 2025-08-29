@@ -27,9 +27,9 @@ const hasDrawer = computed(() => {
   return route.meta.hasDrawer === true;
 });
 
-watch(hasDrawer, (value) => {
+watch(hasDrawer, async (value) => {
   if (value) {
-    nextTick(() => {
+    await nextTick(() => {
       if (leftDrawerRef.value) {
         if ($q.screen.gt.sm) {
           leftDrawerRef.value.open();
@@ -37,7 +37,7 @@ watch(hasDrawer, (value) => {
       }
     });
   } else {
-    nextTick(() => {
+    await nextTick(() => {
       if (leftDrawerRef.value) {
         leftDrawerRef.value.close();
       }

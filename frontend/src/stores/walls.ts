@@ -1,13 +1,15 @@
 import { defineStore } from 'pinia';
 import { ref } from 'vue';
 import { api } from 'src/boot/api';
-import axios from 'axios';
+// import axios from 'axios';
 
 export const useWallsStore = defineStore('walls', () => {
   const loading = ref(false);
   const error = ref<string | null>(null);
   const wallCache = ref<Record<string, ArrayBuffer>>({});
   const wallImageCache = ref<Record<string, ArrayBuffer>>({});
+  const wallImages = ref<Record<string, string>>({});
+  const loadingImages = ref<Record<string, boolean>>({});
 
   /**
    * Get wall data as ArrayBuffer
@@ -24,9 +26,9 @@ export const useWallsStore = defineStore('walls', () => {
     loading.value = true;
     error.value = null;
 
-    const response = await axios.get(`/downscaled/${id}.ply`, {responseType: 'arraybuffer'});
-    wallCache.value[cacheKey] = response.data;
-    return response.data
+    // const response = await axios.get(`/downscaled/${id}.ply`, {responseType: 'arraybuffer'});
+    // wallCache.value[cacheKey] = response.data;
+    // return response.data
 
     try {
       const wallPath = (await api.get(`/files/wall-path/${id}`)).data;
@@ -76,10 +78,47 @@ export const useWallsStore = defineStore('walls', () => {
     }
   }
 
+  async function loadWallImage(wallId: string): Promise<void> {
+    if (wallImages.value[wallId] || loadingImages.value[wallId]) return;
+
+    loadingImages.value[wallId] = true;
+
+    try {
+      const imageData = await getWallImage(wallId);
+      if (imageData) {
+        const blob = new Blob([imageData], { type: 'image/png' });
+        wallImages.value[wallId] = URL.createObjectURL(blob);
+      }
+    } catch (error) {
+      console.error(`Failed to load wall image for ${wallId}:`, error);
+    } finally {
+      loadingImages.value[wallId] = false;
+    }
+  }
+
+  function revokeWallImageUrl(wallId: string): void {
+    if (wallImages.value[wallId]) {
+      URL.revokeObjectURL(wallImages.value[wallId]);
+      delete wallImages.value[wallId];
+    }
+  }
+
+  function revokeAllWallImageUrls(): void {
+    Object.values(wallImages.value).forEach(url => {
+      if (url) URL.revokeObjectURL(url);
+    });
+    wallImages.value = {};
+  }
+
   return {
     loading,
     error,
+    wallImages,
+    loadingImages,
     getWall,
     getWallImage,
+    loadWallImage,
+    revokeWallImageUrl,
+    revokeAllWallImageUrls,
   };
 });
