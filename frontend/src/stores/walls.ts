@@ -1,7 +1,7 @@
 import { defineStore } from 'pinia';
 import { ref } from 'vue';
 import { api } from 'src/boot/api';
-// import axios from 'axios';
+import axios from 'axios';
 
 export const useWallsStore = defineStore('walls', () => {
   const loading = ref(false);
@@ -24,9 +24,9 @@ export const useWallsStore = defineStore('walls', () => {
     loading.value = true;
     error.value = null;
 
-    // const response = await axios.get(`/downscaled/{id}.ply`, {responseType: 'arraybuffer'});
-    // cache.value[cacheKey] = response.data;
-    // return response.data
+    const response = await axios.get(`/downscaled/${id}.ply`, {responseType: 'arraybuffer'});
+    wallCache.value[cacheKey] = response.data;
+    return response.data
 
     try {
       const wallPath = (await api.get(`/files/wall-path/${id}`)).data;

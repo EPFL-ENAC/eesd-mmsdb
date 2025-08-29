@@ -53,7 +53,7 @@
               class="parameter-item"
             >
               <div class="parameter-name">{{ param.name }}</div>
-              <div class="parameter-value">{{ param.value }} {{ param.unit || '' }}</div>
+              <div class="parameter-value">{{ param.value }}</div>
             </div>
           </div>
           <div v-else class="text-grey-6">No parameters available</div>
