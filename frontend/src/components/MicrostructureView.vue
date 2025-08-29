@@ -134,7 +134,7 @@ const initThreeJS = () => {
     [-1, -1, 1],
     [-1, 1, -1],
   ]
-  const lightIntensities = [1, 0.2, 0.2, 0.6]
+  const lightIntensities = [1, 0.1, 0.2, 0.6]
   for (let i = 0; i < lightPositions.length; i++) {
     const lightPosition = lightPositions[i] as [number, number, number]
     const lightIntensity = lightIntensities[i]

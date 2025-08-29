@@ -3,7 +3,7 @@
     <div class="text-h6 q-mb-md">Filters</div>
 
     <div class="filter-section">
-      <div class="text-subtitle2 q-mb-sm">Microstructure Type</div>
+      <div class="text-subtitle2 q-mb-xs">Microstructure Type</div>
       <q-select
         :model-value="databaseFiltersStore.filters['Microstructure type'].values"
         @update:model-value="(val) => databaseFiltersStore.updateStringFilter('Microstructure type', val || [])"
@@ -19,7 +19,7 @@
     </div>
 
     <div class="filter-section">
-      <div class="text-subtitle2 q-mb-sm">Typology</div>
+      <div class="text-subtitle2 q-mb-xs">Typology</div>
       <q-select
         :model-value="databaseFiltersStore.filters['Typology based on Italian Code'].values"
         @update:model-value="(val) => databaseFiltersStore.updateStringFilter('Typology based on Italian Code', val || [])"
@@ -35,7 +35,7 @@
     </div>
 
     <div class="filter-section">
-      <div class="text-subtitle2 q-mb-sm">Number of Leaves</div>
+      <div class="text-subtitle2 q-mb-xs">Number of Leaves</div>
       <div class="range-slider-container">
         <q-range
           :model-value="databaseFiltersStore.filters['No of leaves']"
@@ -54,7 +54,7 @@
     </div>
 
     <div class="filter-section">
-      <div class="text-subtitle2 q-mb-sm">Vertical LMT</div>
+      <div class="text-subtitle2 q-mb-xs">Vertical LMT</div>
       <div class="range-slider-container">
         <q-range
           :model-value="databaseFiltersStore.filters['Average vertical LMT']"
@@ -73,7 +73,7 @@
     </div>
 
     <div class="filter-section">
-      <div class="text-subtitle2 q-mb-sm">Horizontal LMT</div>
+      <div class="text-subtitle2 q-mb-xs">Horizontal LMT</div>
       <div class="range-slider-container">
         <q-range
           :model-value="databaseFiltersStore.filters['Average horizontal LMT']"
@@ -86,13 +86,13 @@
         />
         <div class="range-labels">
           <span>{{ databaseFiltersStore.getNumericColumnRange('Average horizontal LMT').min }}</span>
-          <span>{{ databaseFiltersStore.getNumericColumnRange('Average horizontal LMT').max }}</span>
+          <span>{{ databaseFiltersStore.getNumericColumnRange('Average horizontal LMT').max.toFixed(2) }}</span>
         </div>
       </div>
     </div>
 
     <div class="filter-section">
-      <div class="text-subtitle2 q-mb-sm">Shape Factor</div>
+      <div class="text-subtitle2 q-mb-xs">Shape Factor</div>
       <div class="range-slider-container">
         <q-range
           :model-value="databaseFiltersStore.filters['Average shape factor']"
@@ -111,7 +111,7 @@
     </div>
 
     <div class="filter-section">
-      <div class="text-subtitle2 q-mb-sm">MQI Masonry Class</div>
+      <div class="text-subtitle2 q-mb-xs">MQI Masonry Class</div>
       <q-select
         :model-value="databaseFiltersStore.filters['Vertical loading_GMQI_class'].values"
         @update:model-value="(val) => databaseFiltersStore.updateStringFilter('Vertical loading_GMQI_class', val || [])"
@@ -122,7 +122,6 @@
         clearable
         multiple
         use-chips
-        class="q-mb-md"
       />
     </div>
 
