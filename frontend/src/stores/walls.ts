@@ -1,10 +1,12 @@
 import { defineStore } from 'pinia';
 import { ref } from 'vue';
 import { api } from 'src/boot/api';
+// import axios from 'axios';
 
 export const useWallsStore = defineStore('walls', () => {
   const loading = ref(false);
   const error = ref<string | null>(null);
+  const cache = ref<Record<string, ArrayBuffer>>({});
 
   /**
    * Get wall data as ArrayBuffer
@@ -13,8 +15,17 @@ export const useWallsStore = defineStore('walls', () => {
    * @returns Promise that resolves to ArrayBuffer or null if error
    */
   async function getWall(downscaled: boolean, id: string): Promise<ArrayBuffer | null> {
+    const cacheKey = `${downscaled}:${id}`;
+    if (cache.value[cacheKey]) {
+      return cache.value[cacheKey];
+    }
+
     loading.value = true;
     error.value = null;
+
+    // const response = await axios.get(`/downscaled/{id}.ply`, {responseType: 'arraybuffer'});
+    // cache.value[cacheKey] = response.data;
+    // return response.data
 
     try {
       const wallPath = (await api.get(`/files/wall-path/${id}`)).data;
@@ -27,6 +38,7 @@ export const useWallsStore = defineStore('walls', () => {
         responseType: 'arraybuffer'
       });
 
+      cache.value[cacheKey] = response.data;
       return response.data;
     } catch (err) {
       error.value = err instanceof Error ? err.message : 'An unknown error occurred';
@@ -36,9 +48,31 @@ export const useWallsStore = defineStore('walls', () => {
     }
   };
 
+  async function getWallImage(id: string): Promise<ArrayBuffer | null> {
+    const filePath = `original/02_Rendered_walls_photos/${id}.png`;
+    loading.value = true;
+    error.value = null;
+
+    try {
+      const response = await api.get(`/files/get/${filePath}`, {
+        params: {
+          d: false
+        },
+        responseType: 'arraybuffer'
+      });
+      return response.data;
+    } catch (err) {
+      error.value = err instanceof Error ? err.message : 'An unknown error occurred';
+      return null;
+    } finally {
+      loading.value = false;
+    }
+  }
+
   return {
     loading,
     error,
     getWall,
+    getWallImage,
   };
 });
