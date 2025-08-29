@@ -68,6 +68,7 @@ interface Props {
 }
 
 const props = withDefaults(defineProps<Props>(), {
+  plyData: null,
   width: 300,
   height: 300,
   backgroundColor: '#ffffff'
@@ -110,7 +111,9 @@ const initThreeJS = () => {
   renderer.setSize(props.width, props.height)
   renderer.setPixelRatio(window.devicePixelRatio)
   renderer.shadowMap.enabled = true
-  renderer.shadowMap.type = THREE.PCFSoftShadowMap
+  renderer.shadowMap.type = THREE.VSMShadowMap
+  renderer.toneMapping = THREE.NeutralToneMapping
+  renderer.toneMappingExposure = 2.5
 
   const loadingOverlay = container.value.querySelector('.loading-overlay')
   if (loadingOverlay) {
@@ -131,7 +134,7 @@ const initThreeJS = () => {
     [-1, -1, 1],
     [-1, 1, -1],
   ]
-  const lightIntensities = [1, 0.5, 0.5, 0.9]
+  const lightIntensities = [1, 0.2, 0.2, 0.6]
   for (let i = 0; i < lightPositions.length; i++) {
     const lightPosition = lightPositions[i] as [number, number, number]
     const lightIntensity = lightIntensities[i]
@@ -176,8 +179,7 @@ const loadPlyFromBuffer = () => {
 
     geometry.translate(-center.x, -center.y, -center.z)
     geometry.scale(scale, scale, scale)
-    console.log(size)
-    geometry.rotateX(Math.PI / 2)
+    geometry.rotateX(-Math.PI / 2)
     if (size.x > size.y) {
       geometry.rotateY(Math.PI / 2)
     }
@@ -187,7 +189,7 @@ const loadPlyFromBuffer = () => {
 
     const material = new THREE.MeshPhongMaterial({
       color: 0xefefee,
-      specular: 0xcccccc,
+      specular: 0xaaaaaa,
       shininess: 5,
       flatShading: true,
     })
@@ -198,7 +200,7 @@ const loadPlyFromBuffer = () => {
 
     scene.add(mesh)
 
-    camera.position.set(2, 1, -1.5)
+    camera.position.set(2, 1, -1.3)
     camera.lookAt(0, 0, 0)
     controls.update()
 
