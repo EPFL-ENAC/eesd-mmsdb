@@ -5,7 +5,7 @@
       :width="Math.min(400, q.screen.width)"
       :height="400"
       sliceable
-      class="microstucture-container"
+      class="microstructure-container"
     />
 
     <donut-charts class="q-mt-lg"/>
@@ -45,7 +45,7 @@ const { t } = useI18n();
 </script>
 
 <style scoped>
-.microstucture-container {
+.microstructure-container {
   display: flex;
   flex-direction: column;
   align-items: center;

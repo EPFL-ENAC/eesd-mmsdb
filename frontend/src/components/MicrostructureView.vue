@@ -284,7 +284,7 @@ watch(() => props.plyData, () => {
 
 watch(sliceX, () => {
   if (!slicePlane) return;
-  slicePlane.position.x = sliceX.value
+  slicePlane.position.x = sliceX.value;
 })
 </script>
 
