@@ -6,7 +6,8 @@ import { api } from 'src/boot/api';
 export const useWallsStore = defineStore('walls', () => {
   const loading = ref(false);
   const error = ref<string | null>(null);
-  const cache = ref<Record<string, ArrayBuffer>>({});
+  const wallCache = ref<Record<string, ArrayBuffer>>({});
+  const wallImageCache = ref<Record<string, ArrayBuffer>>({});
 
   /**
    * Get wall data as ArrayBuffer
@@ -16,8 +17,8 @@ export const useWallsStore = defineStore('walls', () => {
    */
   async function getWall(downscaled: boolean, id: string): Promise<ArrayBuffer | null> {
     const cacheKey = `${downscaled}:${id}`;
-    if (cache.value[cacheKey]) {
-      return cache.value[cacheKey];
+    if (wallCache.value[cacheKey]) {
+      return wallCache.value[cacheKey];
     }
 
     loading.value = true;
@@ -38,7 +39,7 @@ export const useWallsStore = defineStore('walls', () => {
         responseType: 'arraybuffer'
       });
 
-      cache.value[cacheKey] = response.data;
+      wallCache.value[cacheKey] = response.data;
       return response.data;
     } catch (err) {
       error.value = err instanceof Error ? err.message : 'An unknown error occurred';
@@ -49,6 +50,11 @@ export const useWallsStore = defineStore('walls', () => {
   };
 
   async function getWallImage(id: string): Promise<ArrayBuffer | null> {
+    const cacheKey = id;
+    if (wallImageCache.value[cacheKey]) {
+      return wallImageCache.value[cacheKey];
+    }
+
     const filePath = `original/02_Rendered_walls_photos/${id}.png`;
     loading.value = true;
     error.value = null;
@@ -60,6 +66,7 @@ export const useWallsStore = defineStore('walls', () => {
         },
         responseType: 'arraybuffer'
       });
+      wallImageCache.value[cacheKey] = response.data;
       return response.data;
     } catch (err) {
       error.value = err instanceof Error ? err.message : 'An unknown error occurred';
