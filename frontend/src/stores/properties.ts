@@ -7,6 +7,7 @@ export const usePropertiesStore = defineStore('properties', () => {
   const loading = ref(false);
   const error = ref<string | null>(null);
   const columnLabels: Record<string, string> = {
+    "Wall ID": "Wall ID",
     "Microstructure type": "Microstructure type",
     "Typology based on Italian Code": "Typology",
     "No of leaves": "Number of leaves",

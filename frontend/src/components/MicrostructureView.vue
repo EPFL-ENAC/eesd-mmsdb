@@ -70,7 +70,7 @@ interface Props {
 const props = withDefaults(defineProps<Props>(), {
   width: 300,
   height: 300,
-  backgroundColor: '#f0f0f0'
+  backgroundColor: '#ffffff'
 })
 
 const container = ref<HTMLDivElement>()
@@ -108,6 +108,7 @@ const initThreeJS = () => {
     alpha: true,
   })
   renderer.setSize(props.width, props.height)
+  renderer.setPixelRatio(window.devicePixelRatio)
   renderer.shadowMap.enabled = true
   renderer.shadowMap.type = THREE.PCFSoftShadowMap
 
@@ -175,11 +176,12 @@ const loadPlyFromBuffer = () => {
 
     geometry.translate(-center.x, -center.y, -center.z)
     geometry.scale(scale, scale, scale)
+    console.log(size)
     geometry.rotateX(Math.PI / 2)
     if (size.x > size.y) {
       geometry.rotateY(Math.PI / 2)
     }
-    if (size.x > size.z) {
+    if (size.x > size.z && size.y > size.z) {
       geometry.rotateZ(-Math.PI / 2)
     }
 
@@ -286,7 +288,7 @@ watch(sliceX, () => {
 
 <style scoped>
 .viewer-container {
-  border: 1px solid #ddd;
+  border: 1px solid #ccc;
   border-radius: 8px;
   overflow: hidden;
   position: relative;
