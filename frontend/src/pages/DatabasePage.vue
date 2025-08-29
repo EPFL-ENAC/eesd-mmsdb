@@ -76,6 +76,7 @@ import MicrostructureView from 'src/components/MicrostructureView.vue'
 import SimpleDialog from 'src/components/SimpleDialog.vue'
 import type { PropertyEntry } from '../models';
 
+const dialogColumns = ["Microstructure type", "Typology based on Italian Code", "No of leaves", "Average vertical LMT", "Average horizontal LMT", "Average shape factor", "Vertical loading_GMQI_class"]
 const propertiesStore = usePropertiesStore()
 const wallsStore = useWallsStore()
 const databaseFiltersStore = useDatabaseFiltersStore()
@@ -104,7 +105,12 @@ const selectedWallParameters = computed(() => {
 
   if (!propertyEntry) return []
 
-  return propertyEntry.properties.filter(p => p.name !== 'Wall ID')
+  return propertyEntry.properties
+    .filter(p => dialogColumns.includes(p.name))
+    .map(p => ({
+      name: propertiesStore.columnLabels[p.name] || p.name,
+      value: p.value
+    }))
 })
 
 
