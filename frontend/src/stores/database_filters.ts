@@ -4,7 +4,6 @@ import { usePropertiesStore } from './properties'
 import type { PropertyEntry } from '../models'
 
 const columnFilters = ["Microstructure type", "Typology based on Italian Code", "No of leaves", "Vertical loading_GMQI_class", "In-plane_GMQI_class", "Out-of-plane_GMQI_class", "Length [cm]", "Height [cm]", "Width [cm]"]
-const FLOAT_DECIMALS = 2
 
 const propertiesStore = usePropertiesStore()
 
@@ -52,14 +51,14 @@ export const useDatabaseFiltersStore = defineStore('databaseFilters', () => {
   const stringFilters = ref<StringFilters>(createInitialStringFilters())
   const numericFilters = ref<NumericFilters>(createInitialNumericFilters())
 
-  function roundRange(range: NumericFilter): NumericFilter {
+  function roundRange(range: NumericFilter, precision: number): NumericFilter {
     return {
-      min: Math.floor(range.min * Math.pow(10, FLOAT_DECIMALS)) / Math.pow(10, FLOAT_DECIMALS),
-      max: Math.ceil(range.max * Math.pow(10, FLOAT_DECIMALS)) / Math.pow(10, FLOAT_DECIMALS)
+      min: Math.floor(range.min * Math.pow(10, precision)) / Math.pow(10, precision),
+      max: Math.ceil(range.max * Math.pow(10, precision)) / Math.pow(10, precision)
     }
   }
 
-  function getNumericRange(columnName: string, rounded: boolean): NumericFilter {
+  function getNumericRange(columnName: string): NumericFilter {
     if (!Array.isArray(propertiesStore.properties)) return { min: 0, max: 100 }
 
     const values = propertiesStore.properties
@@ -76,8 +75,10 @@ export const useDatabaseFiltersStore = defineStore('databaseFilters', () => {
       max: Math.max(...values)
     }
 
-    if (rounded) {
-      range = roundRange(range)
+    const precision = propertiesStore.columnPrecisions[columnName]
+    if (precision !== undefined) {
+      const precision = propertiesStore.columnPrecisions[columnName] || 0
+      range = roundRange(range, precision)
     }
 
     return range
@@ -101,7 +102,7 @@ export const useDatabaseFiltersStore = defineStore('databaseFilters', () => {
   }
 
   function getNumericColumnRange(columnName: string): NumericFilter {
-    const range = getNumericRange(columnName, propertiesStore.columnTypes[columnName] === 'float')
+    const range = getNumericRange(columnName)
     return range
   }
 

@@ -107,11 +107,21 @@ const selectedWallParameters = computed(() => {
 
   return propertyEntry.properties
     .filter(p => dialogColumns.includes(p.name))
-    .map(p => ({
-      name: propertiesStore.columnLabels[p.name] || p.name,
-      value: p.value,
-      unit: propertiesStore.columnUnits[p.name] || ''
-    }))
+    .map(p => {
+      const precision = propertiesStore.columnPrecisions[p.name]
+      let value = p.value
+
+      if (precision !== undefined) {
+        const numberValue = Math.floor(parseFloat(value) * Math.pow(10, precision)) / Math.pow(10, precision)
+        value = numberValue.toString()
+      }
+
+      return {
+        name: propertiesStore.columnLabels[p.name] || p.name,
+        value: value,
+        unit: propertiesStore.columnUnits[p.name] || ''
+      }
+    })
 })
 
 
