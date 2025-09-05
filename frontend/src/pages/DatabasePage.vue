@@ -58,7 +58,7 @@
               class="parameter-item"
             >
               <div class="parameter-name">{{ param.name }}</div>
-              <div class="parameter-value">{{ param.value }}</div>
+              <div class="parameter-value">{{ param.value }} {{ param.unit }}</div>
             </div>
           </div>
           <div v-else class="text-grey-6">No parameters available</div>
@@ -76,7 +76,7 @@ import MicrostructureView from 'src/components/MicrostructureView.vue'
 import SimpleDialog from 'src/components/SimpleDialog.vue'
 import type { PropertyEntry } from '../models';
 
-const dialogColumns = ["Microstructure type", "Typology based on Italian Code", "No of leaves", "Average vertical LMT", "Average horizontal LMT", "Average shape factor", "Vertical loading_GMQI_class"]
+const dialogColumns = ["Microstructure type", "Typology based on Italian Code", "No of leaves", "Vertical loading_GMQI_class", "In-plane_GMQI_class", "Out-of-plane_GMQI_class", "Length [cm]", "Height [cm]", "Width [cm]"]
 const propertiesStore = usePropertiesStore()
 const wallsStore = useWallsStore()
 const databaseFiltersStore = useDatabaseFiltersStore()
@@ -109,7 +109,8 @@ const selectedWallParameters = computed(() => {
     .filter(p => dialogColumns.includes(p.name))
     .map(p => ({
       name: propertiesStore.columnLabels[p.name] || p.name,
-      value: p.value
+      value: p.value,
+      unit: propertiesStore.columnUnits[p.name] || ''
     }))
 })
 

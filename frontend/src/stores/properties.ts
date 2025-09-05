@@ -1,21 +1,21 @@
 import { defineStore } from 'pinia';
 import type { PropertyEntry } from '../models';
 import { api } from 'src/boot/api';
+import columnLabelsJson from 'src/assets/properties_columns.json';
 
 export const usePropertiesStore = defineStore('properties', () => {
   const properties = ref<PropertyEntry[] | null>(null);
   const loading = ref(false);
   const error = ref<string | null>(null);
-  const columnLabels: Record<string, string> = {
-    "Wall ID": "Wall ID",
-    "Microstructure type": "Microstructure type",
-    "Typology based on Italian Code": "Typology",
-    "No of leaves": "Number of leaves",
-    "Average vertical LMT": "Vertical LMT",
-    "Average horizontal LMT": "Horizontal LMT",
-    "Average shape factor": "Shape factor",
-    "Vertical loading_GMQI_class": "MQI masonry class",
-  };
+  const columnLabels = Object.fromEntries(
+    columnLabelsJson.map(entry => [entry.key, entry.label])
+  );
+  const columnTypes = Object.fromEntries(
+    columnLabelsJson.map(entry => [entry.key, entry.type || 'string'])
+  );
+  const columnUnits = Object.fromEntries(
+    columnLabelsJson.map(entry => [entry.key, entry.unit || ''])
+  );
 
   const fetchProperties = async () => {
     loading.value = true;
@@ -37,5 +37,7 @@ export const usePropertiesStore = defineStore('properties', () => {
     error,
     fetchProperties,
     columnLabels,
+    columnTypes,
+    columnUnits,
   };
 });

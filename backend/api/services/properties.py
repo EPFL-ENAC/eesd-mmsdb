@@ -27,7 +27,7 @@ class Properties:
 
         for _, row in data.iterrows():
             properties = [
-                Property(name=col, value=str(row[col])) for col in data.columns
+                Property(name=col.strip(), value=str(row[col])) for col in data.columns
             ]
             entries.append(PropertyEntry(properties=properties))
 
