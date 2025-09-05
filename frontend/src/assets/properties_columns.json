@@ -1,0 +1,128 @@
+[
+  {
+    "key": "Sr.No",
+    "label": "Serial number",
+    "type": "int"
+  },
+  {
+    "key": "Wall ID",
+    "label": "Wall ID",
+    "type": "string"
+  },
+  {
+    "key": "Reference",
+    "label": "Reference",
+    "type": "string"
+  },
+  {
+    "key": "Reference ID",
+    "label": "Reference ID",
+    "type": "int"
+  },
+  {
+    "key": "Wall ID in original publication",
+    "label": "Wall ID in original publication",
+    "type": "string"
+  },
+  {
+    "key": "Length [cm]",
+    "label": "Length",
+    "unit": "cm",
+    "type": "float"
+  },
+  {
+    "key": "Height [cm]",
+    "label": "Height",
+    "unit": "cm",
+    "type": "float"
+  },
+  {
+    "key": "Width [cm]",
+    "label": "Width",
+    "unit": "cm",
+    "type": "float"
+  },
+  {
+    "key": "No of leaves",
+    "label": "Number of leaves",
+    "type": "int"
+  },
+  {
+    "key": "Wall volume [m^3]",
+    "label": "Wall volume",
+    "unit": "m³",
+    "type": "float"
+  },
+  {
+    "key": "Stones Volume [m^3]",
+    "label": "Stones volume",
+    "unit": "m³",
+    "type": "float"
+  },
+  {
+    "key": "Percentage of volumetric stone ratio",
+    "label": "Volumetric stone ratio",
+    "unit": "%",
+    "type": "float"
+  },
+  {
+    "key": "Average shape factor",
+    "label": "Shape factor",
+    "type": "float"
+  },
+  {
+    "key": "Average vertical LMT",
+    "label": "Vertical LMT",
+    "type": "float"
+  },
+  {
+    "key": "Average horizontal LMT",
+    "label": "Horizontal LMT",
+    "type": "float"
+  },
+  {
+    "key": "Average LMT for wall leaf connection",
+    "label": "LMT for wall-leaf connection",
+    "type": "float"
+  },
+  {
+    "key": "Typology based on Italian Code",
+    "label": "Typology",
+    "type": "string"
+  },
+  {
+    "key": "Vertical_GMQI",
+    "label": "Vertical MQI",
+    "type": "float"
+  },
+  {
+    "key": "In-plane_GMQI",
+    "label": "In-plane MQI",
+    "type": "float"
+  },
+  {
+    "key": "Out-of-plan_GMQI",
+    "label": "Out-of-plane MQI",
+    "type": "float"
+  },
+  {
+    "key": "Vertical loading_GMQI_class",
+    "label": "Vertical MQI class",
+    "type": "string"
+  },
+  {
+    "key": "In-plane_GMQI_class",
+    "label": "In-plane MQI class",
+    "type": "string"
+  },
+  {
+    "key": "Out-of-plane_GMQI_class",
+    "label": "Out-of-plane MQI class",
+    "type": "string"
+  },
+  {
+    "key": "Microstructure type",
+    "label": "Microstructure type",
+    "type": "string"
+  }
+]

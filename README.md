@@ -22,14 +22,13 @@ Then, edit the `.env` file in the root directory of the repository with the foll
 
 ```env
 PATH_PREFIX=
-API_KEYS=...
 S3_ENDPOINT_PROTOCOL=https://
 S3_ENDPOINT_HOSTNAME=s3.epfl.ch
 S3_ACCESS_KEY_ID=...
 S3_SECRET_ACCESS_KEY=...
 S3_REGION=EU
 S3_BUCKET=...
-S3_PATH_PREFIX=frame/dev/
+S3_PATH_PREFIX=eesd-mmsdb/prod
 ```
 
 

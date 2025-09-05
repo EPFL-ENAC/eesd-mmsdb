@@ -3,56 +3,54 @@ import { computed, ref, readonly } from 'vue'
 import { usePropertiesStore } from './properties'
 import type { PropertyEntry } from '../models'
 
-const STRING_COLUMNS = [
-  'Microstructure type',
-  'Typology based on Italian Code',
-  'Vertical loading_GMQI_class'
-] as const
-
-const NUMERIC_COLUMNS = [
-  'No of leaves',
-  'Average vertical LMT',
-  'Average horizontal LMT',
-  'Average shape factor'
-] as const
-
+const columnFilters = ["Microstructure type", "Typology based on Italian Code", "No of leaves", "Vertical loading_GMQI_class", "In-plane_GMQI_class", "Out-of-plane_GMQI_class", "Length [cm]", "Height [cm]", "Width [cm]"]
 const FLOAT_DECIMALS = 2
 
-type StringColumnName = typeof STRING_COLUMNS[number]
-type NumericColumnName = typeof NUMERIC_COLUMNS[number]
+const propertiesStore = usePropertiesStore()
 
 interface NumericFilter {
   min: number
   max: number
 }
 
-interface StringFilter {
-  values: string[]
+
+type StringFilters = {
+  [K: string]: string[]
 }
 
-type DatabaseFilters = {
-  [K in StringColumnName]: StringFilter
-} & {
-  [K in NumericColumnName]: NumericFilter
+type NumericFilters = {
+  [K: string]: NumericFilter
 }
 
 export const useDatabaseFiltersStore = defineStore('databaseFilters', () => {
-  const createInitialFilters = (): DatabaseFilters => {
-    const filters: Partial<DatabaseFilters> = {}
+  const createInitialStringFilters = (): StringFilters => {
+    const filters: StringFilters = {}
 
-    STRING_COLUMNS.forEach(column => {
-      filters[column] = { values: [] }
+    columnFilters.forEach(column => {
+      const type = propertiesStore.columnTypes[column]
+      if (type === 'string') {
+        filters[column] = []
+      }
     })
 
-    NUMERIC_COLUMNS.forEach(column => {
-      filters[column] = { min: 0, max: 100 }
-    })
-
-    return filters as DatabaseFilters
+    return filters
   }
 
-  const filters = ref<DatabaseFilters>(createInitialFilters())
-  const propertiesStore = usePropertiesStore()
+  const createInitialNumericFilters = (): NumericFilters => {
+    const filters: NumericFilters = {}
+
+    columnFilters.forEach(column => {
+      const type = propertiesStore.columnTypes[column]
+      if (type !== 'string') {
+        filters[column] = { min: 0, max: 100 }
+      }
+    })
+
+    return filters
+  }
+
+  const stringFilters = ref<StringFilters>(createInitialStringFilters())
+  const numericFilters = ref<NumericFilters>(createInitialNumericFilters())
 
   function roundRange(range: NumericFilter): NumericFilter {
     return {
@@ -61,30 +59,36 @@ export const useDatabaseFiltersStore = defineStore('databaseFilters', () => {
     }
   }
 
-  function getNumericRange(propertyName: string): NumericFilter {
+  function getNumericRange(columnName: string, rounded: boolean): NumericFilter {
     if (!Array.isArray(propertiesStore.properties)) return { min: 0, max: 100 }
 
     const values = propertiesStore.properties
-      .flatMap(entry => {
-        const property = entry.properties.find(p => p.name === propertyName)
-        return property?.value ? [parseFloat(property.value)] : []
+      .map(entry => {
+        const property = entry.properties.find(p => p.name === columnName)
+        return property?.value ? parseFloat(property.value) : NaN
       })
       .filter(value => !isNaN(value))
 
     if (values.length === 0) return { min: 0, max: 100 }
 
-    return roundRange({
+    let range = {
       min: Math.min(...values),
       max: Math.max(...values)
-    })
+    }
+
+    if (rounded) {
+      range = roundRange(range)
+    }
+
+    return range
   }
 
-  function getStringOptions(propertyName: string): string[] {
+  function getStringOptions(columnName: string): string[] {
     if (!Array.isArray(propertiesStore.properties)) return []
 
     const values = propertiesStore.properties
       .flatMap(entry => {
-        const property = entry.properties.find(p => p.name === propertyName)
+        const property = entry.properties.find(p => p.name === columnName)
         return property?.value ? [property.value] : []
       })
       .filter(Boolean)
@@ -92,34 +96,24 @@ export const useDatabaseFiltersStore = defineStore('databaseFilters', () => {
     return [...new Set(values)].sort((a, b) => a.localeCompare(b))
   }
 
-  function getStringColumnOptions(columnName: StringColumnName): string[] {
+  function getStringColumnOptions(columnName: string): string[] {
     return getStringOptions(columnName)
   }
 
-  function getNumericColumnRange(columnName: NumericColumnName): NumericFilter {
-    const range = getNumericRange(columnName)
-
-    if (columnName === 'No of leaves') {
-      return {
-        min: Math.floor(range.min),
-        max: Math.ceil(range.max)
-      }
-    }
-
+  function getNumericColumnRange(columnName: string): NumericFilter {
+    const range = getNumericRange(columnName, propertiesStore.columnTypes[columnName] === 'float')
     return range
   }
 
+  function matchesStringFilter(columnName: string, filter: string[], props: PropertyEntry['properties']): boolean {
+    if (filter.length === 0) return true
 
-
-  function matchesStringFilter(propertyName: string, filter: StringFilter, props: PropertyEntry['properties']): boolean {
-    if (filter.values.length === 0) return true
-
-    const propertyValue = props.find(p => p.name === propertyName)?.value
-    return propertyValue ? filter.values.includes(propertyValue) : false
+    const propertyValue = props.find(p => p.name === columnName)?.value
+    return propertyValue ? filter.includes(propertyValue) : false
   }
 
-  function matchesNumericFilter(propertyName: string, filter: NumericFilter, props: PropertyEntry['properties']): boolean {
-    const propertyValue = props.find(p => p.name === propertyName)?.value
+  function matchesNumericFilter(columnName: string, filter: NumericFilter, props: PropertyEntry['properties']): boolean {
+    const propertyValue = props.find(p => p.name === columnName)?.value
     if (!propertyValue) return true
 
     const numericValue = parseFloat(propertyValue)
@@ -131,15 +125,16 @@ export const useDatabaseFiltersStore = defineStore('databaseFilters', () => {
   function matchesFilters(propertyEntry: PropertyEntry): boolean {
     const props = propertyEntry.properties
 
-    for (const columnName of STRING_COLUMNS) {
-      if (!matchesStringFilter(columnName, filters.value[columnName], props)) {
-        return false
-      }
-    }
-
-    for (const columnName of NUMERIC_COLUMNS) {
-      if (!matchesNumericFilter(columnName, filters.value[columnName], props)) {
-        return false
+    for (const columnName of columnFilters) {
+      const type = propertiesStore.columnTypes[columnName]
+      if (type === 'string') {
+        if (stringFilters.value[columnName] && !matchesStringFilter(columnName, stringFilters.value[columnName], props)) {
+          return false
+        }
+      } else {
+        if (numericFilters.value[columnName] && !matchesNumericFilter(columnName, numericFilters.value[columnName], props)) {
+          return false
+        }
       }
     }
 
@@ -177,37 +172,45 @@ export const useDatabaseFiltersStore = defineStore('databaseFilters', () => {
 
   function initializeFilters() {
     if (propertiesStore.properties) {
-      NUMERIC_COLUMNS.forEach(columnName => {
-        const range = getNumericColumnRange(columnName)
-        filters.value[columnName] = { min: range.min, max: range.max }
+      columnFilters.forEach(columnName => {
+        const type = propertiesStore.columnTypes[columnName]
+        if (type === 'string') {
+          stringFilters.value[columnName] = []
+        } else {
+          const range = getNumericColumnRange(columnName)
+          numericFilters.value[columnName] = { min: range.min, max: range.max }
+        }
       })
     }
   }
 
   function clearFilters() {
-    STRING_COLUMNS.forEach(columnName => {
-      filters.value[columnName].values = []
-    })
-
-    NUMERIC_COLUMNS.forEach(columnName => {
-      const range = getNumericColumnRange(columnName)
-      filters.value[columnName] = { min: range.min, max: range.max }
+    columnFilters.forEach(columnName => {
+      const type = propertiesStore.columnTypes[columnName]
+      if (type === 'string') {
+        if (stringFilters.value[columnName]) {
+          stringFilters.value[columnName] = []
+        }
+      } else {
+        const range = getNumericColumnRange(columnName)
+        numericFilters.value[columnName] = { min: range.min, max: range.max }
+      }
     })
   }
 
-  function updateStringFilter(columnName: StringColumnName, values: string[]) {
-    filters.value[columnName].values = values
+  function updateStringFilter(columnName: string, values: string[]) {
+      stringFilters.value[columnName] = values
   }
 
-  function updateNumericFilter(columnName: NumericColumnName, range: NumericFilter) {
-    filters.value[columnName] = range
+  function updateNumericFilter(columnName: string, range: NumericFilter) {
+    numericFilters.value[columnName] = range
   }
 
   return {
-    STRING_COLUMNS,
-    NUMERIC_COLUMNS,
+    columnFilters,
 
-    filters: readonly(filters),
+    stringFilters: readonly(stringFilters),
+    numericFilters: readonly(numericFilters),
     filteredWallIds,
     allWallIds,
 
