@@ -16,6 +16,9 @@ export const usePropertiesStore = defineStore('properties', () => {
   const columnUnits = Object.fromEntries(
     columnLabelsJson.map(entry => [entry.key, entry.unit || ''])
   );
+  const columnPrecisions = Object.fromEntries(
+    columnLabelsJson.map(entry => [entry.key, entry.precision])
+  );
 
   const fetchProperties = async () => {
     loading.value = true;
@@ -39,5 +42,6 @@ export const usePropertiesStore = defineStore('properties', () => {
     columnLabels,
     columnTypes,
     columnUnits,
+    columnPrecisions,
   };
 });

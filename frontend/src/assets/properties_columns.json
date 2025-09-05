@@ -28,19 +28,22 @@
     "key": "Length [cm]",
     "label": "Length",
     "unit": "cm",
-    "type": "float"
+    "type": "float",
+    "precision": 0
   },
   {
     "key": "Height [cm]",
     "label": "Height",
     "unit": "cm",
-    "type": "float"
+    "type": "float",
+    "precision": 0
   },
   {
     "key": "Width [cm]",
     "label": "Width",
     "unit": "cm",
-    "type": "float"
+    "type": "float",
+    "precision": 0
   },
   {
     "key": "No of leaves",
@@ -51,39 +54,46 @@
     "key": "Wall volume [m^3]",
     "label": "Wall volume",
     "unit": "m³",
-    "type": "float"
+    "type": "float",
+    "precision": 2
   },
   {
     "key": "Stones Volume [m^3]",
     "label": "Stones volume",
     "unit": "m³",
-    "type": "float"
+    "type": "float",
+    "precision": 2
   },
   {
     "key": "Percentage of volumetric stone ratio",
     "label": "Volumetric stone ratio",
     "unit": "%",
-    "type": "float"
+    "type": "float",
+    "precision": 2
   },
   {
     "key": "Average shape factor",
     "label": "Shape factor",
-    "type": "float"
+    "type": "float",
+    "precision": 2
   },
   {
     "key": "Average vertical LMT",
     "label": "Vertical LMT",
-    "type": "float"
+    "type": "float",
+    "precision": 2
   },
   {
     "key": "Average horizontal LMT",
     "label": "Horizontal LMT",
-    "type": "float"
+    "type": "float",
+    "precision": 2
   },
   {
     "key": "Average LMT for wall leaf connection",
     "label": "LMT for wall-leaf connection",
-    "type": "float"
+    "type": "float",
+    "precision": 2
   },
   {
     "key": "Typology based on Italian Code",
@@ -93,17 +103,20 @@
   {
     "key": "Vertical_GMQI",
     "label": "Vertical MQI",
-    "type": "float"
+    "type": "float",
+    "precision": 2
   },
   {
     "key": "In-plane_GMQI",
     "label": "In-plane MQI",
-    "type": "float"
+    "type": "float",
+    "precision": 2
   },
   {
     "key": "Out-of-plan_GMQI",
     "label": "Out-of-plane MQI",
-    "type": "float"
+    "type": "float",
+    "precision": 2
   },
   {
     "key": "Vertical loading_GMQI_class",
