@@ -1,5 +1,4 @@
 install:
-	pip install pre-commit
 	pre-commit install --install-hooks
 	cd backend && make install
 	cd frontend && npm install

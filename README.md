@@ -4,8 +4,8 @@ _Masonry MicroStructure Database_
 
 ## Requirements
 
-- Python 3.13 or higher
 - [uv](https://docs.astral.sh/uv/getting-started/installation/) Python package and project manager
+- pre-commit (`pip install pre-commit`)
 - npm
 - Make
 
@@ -28,7 +28,7 @@ S3_ACCESS_KEY_ID=...
 S3_SECRET_ACCESS_KEY=...
 S3_REGION=EU
 S3_BUCKET=...
-S3_PATH_PREFIX=eesd-mmsdb/prod
+S3_PATH_PREFIX=eesd-mmsdb/prod/
 ```
 
 
