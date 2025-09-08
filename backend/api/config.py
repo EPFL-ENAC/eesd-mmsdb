@@ -14,6 +14,7 @@ class Config(BaseSettings):
 
     PROPERTIES_PATH: str = "original/04_StoneMasonryMicrostructureDatabase.xlsx"
     PROPERTIES_SHEET: str = "Database_summary"
+    STONE_PROPERTIES_DIR_PATH: str = "original/03_Stones_geometric_properties"
 
 
 @lru_cache()
