@@ -31,7 +31,7 @@ async function createChart() {
     const sortedValues = [...new Set(values)].sort()
 
     return {
-      label: propertiesStore.columnLabels[col],
+      label: propertiesStore.getColumnLabel(col),
       values: values,
       categoryorder: 'array',
       categoryarray: sortedValues,

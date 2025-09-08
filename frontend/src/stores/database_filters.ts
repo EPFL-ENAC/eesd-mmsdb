@@ -26,7 +26,7 @@ export const useDatabaseFiltersStore = defineStore('databaseFilters', () => {
     const filters: StringFilters = {}
 
     columnFilters.forEach(column => {
-      const type = propertiesStore.columnTypes[column]
+      const type = propertiesStore.getColumnType(column)
       if (type === 'string') {
         filters[column] = []
       }
@@ -39,7 +39,7 @@ export const useDatabaseFiltersStore = defineStore('databaseFilters', () => {
     const filters: NumericFilters = {}
 
     columnFilters.forEach(column => {
-      const type = propertiesStore.columnTypes[column]
+      const type = propertiesStore.getColumnType(column)
       if (type !== 'string') {
         filters[column] = { min: 0, max: 100 }
       }
@@ -75,9 +75,9 @@ export const useDatabaseFiltersStore = defineStore('databaseFilters', () => {
       max: Math.max(...values)
     }
 
-    const precision = propertiesStore.columnPrecisions[columnName]
+    const precision = propertiesStore.getColumnPrecision(columnName)
     if (precision !== undefined) {
-      const precision = propertiesStore.columnPrecisions[columnName] || 0
+      const precision = propertiesStore.getColumnPrecision(columnName) || 0
       range = roundRange(range, precision)
     }
 
@@ -127,7 +127,7 @@ export const useDatabaseFiltersStore = defineStore('databaseFilters', () => {
     const props = propertyEntry.properties
 
     for (const columnName of columnFilters) {
-      const type = propertiesStore.columnTypes[columnName]
+      const type = propertiesStore.getColumnType(columnName)
       if (type === 'string') {
         if (stringFilters.value[columnName] && !matchesStringFilter(columnName, stringFilters.value[columnName], props)) {
           return false
@@ -174,7 +174,7 @@ export const useDatabaseFiltersStore = defineStore('databaseFilters', () => {
   function initializeFilters() {
     if (propertiesStore.properties) {
       columnFilters.forEach(columnName => {
-        const type = propertiesStore.columnTypes[columnName]
+        const type = propertiesStore.getColumnType(columnName)
         if (type === 'string') {
           stringFilters.value[columnName] = []
         } else {
@@ -187,7 +187,7 @@ export const useDatabaseFiltersStore = defineStore('databaseFilters', () => {
 
   function clearFilters() {
     columnFilters.forEach(columnName => {
-      const type = propertiesStore.columnTypes[columnName]
+      const type = propertiesStore.getColumnType(columnName)
       if (type === 'string') {
         if (stringFilters.value[columnName]) {
           stringFilters.value[columnName] = []

@@ -3,10 +3,10 @@
     <div class="text-h6 q-mb-md">Filters</div>
 
     <div v-for="key in columnFilters" :key="key" class="q-mb-xs">
-      <diV class="text-subtitle2 q-mb-xs">{{ propertiesStore.columnLabels[key] }}</div>
+      <diV class="text-subtitle2 q-mb-xs">{{ propertiesStore.getColumnLabel(key) }}</div>
 
       <q-select
-        v-if="propertiesStore.columnTypes[key] === 'string'"
+        v-if="propertiesStore.getColumnType(key) === 'string'"
         :model-value="databaseFiltersStore.stringFilters[key] || []"
         @update:model-value="(val) => databaseFiltersStore.updateStringFilter(key, val || [])"
         :options="databaseFiltersStore.getStringColumnOptions(key)"
@@ -30,8 +30,8 @@
           dense
         />
         <div class="range-labels">
-          <span>{{ databaseFiltersStore.getNumericColumnRange(key).min }} {{ propertiesStore.columnUnits[key] }}</span>
-          <span>{{ databaseFiltersStore.getNumericColumnRange(key).max }} {{ propertiesStore.columnUnits[key] }}</span>
+          <span>{{ databaseFiltersStore.getNumericColumnRange(key).min }} {{ propertiesStore.getColumnUnit(key) }}</span>
+          <span>{{ databaseFiltersStore.getNumericColumnRange(key).max }} {{ propertiesStore.getColumnUnit(key) }}</span>
         </div>
       </div>
     </div>
