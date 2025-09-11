@@ -51,7 +51,7 @@
 
         <div class="parameters-section">
           <div class="text-h6 q-mb-md">Parameters</div>
-          <div v-if="selectedWallParameters.length > 0" class="parameters-grid">
+          <div class="parameters-grid">
             <div
               v-for="param in selectedWallParameters"
               :key="param.name"
@@ -61,7 +61,6 @@
               <div class="parameter-value">{{ param.value }} {{ param.unit }}</div>
             </div>
           </div>
-          <div v-else class="text-grey-6">No parameters available</div>
         </div>
       </div>
     </simple-dialog>
@@ -70,14 +69,17 @@
 
 <script setup lang="ts">
 import { usePropertiesStore } from 'stores/properties'
+import { useStonePropertiesStore } from 'stores/stone_properties'
 import { useWallsStore } from 'stores/walls'
 import { useDatabaseFiltersStore } from 'stores/database_filters'
 import MicrostructureView from 'src/components/MicrostructureView.vue'
 import SimpleDialog from 'src/components/SimpleDialog.vue'
-import type { PropertyEntry } from '../models';
+import type { Property } from '../models';
 
 const dialogColumns = ["Microstructure type", "Typology based on Italian Code", "No of leaves", "Vertical loading_GMQI_class", "In-plane_GMQI_class", "Out-of-plane_GMQI_class", "Length [cm]", "Height [cm]", "Width [cm]"]
+const stoneColumns = ["Stone length [m]", "Stone width [m]", "stone height [m]", "Elongation [-]", "Flatness_index [-]", "Aspect ratio [-]", "Stone volume [m^3]", "Bounding box volume [m^3]", "Shape factor [-]"]
 const propertiesStore = usePropertiesStore()
+const stonePropertiesStore = useStonePropertiesStore()
 const wallsStore = useWallsStore()
 const databaseFiltersStore = useDatabaseFiltersStore()
 
@@ -97,15 +99,15 @@ const selectedWallId = ref<string | null>(null)
 const selectedWallParameters = computed(() => {
   if (!selectedWallId.value || !Array.isArray(propertiesStore.properties)) return []
 
-  const propertyEntry = (propertiesStore.properties as PropertyEntry[])
-    .find(entry => {
-      const wallIdProperty = entry.properties.find(p => p.name === 'Wall ID')
+  const propertyEntry = (propertiesStore.properties as Property[][])
+    .find(propertyEntry => {
+      const wallIdProperty = propertyEntry.find(p => p.name === 'Wall ID')
       return wallIdProperty?.value === selectedWallId.value
     })
 
   if (!propertyEntry) return []
 
-  return propertyEntry.properties
+  return propertyEntry
     .filter(p => dialogColumns.includes(p.name))
     .map(p => {
       const precision = propertiesStore.getColumnPrecision(p.name)
@@ -123,6 +125,16 @@ const selectedWallParameters = computed(() => {
       }
     })
 })
+
+const stoneProperties = ref<Property[][][] | null>(null)
+
+watch(selectedWallId, async (wallId) => {
+  if (!wallId) {
+    stoneProperties.value = null
+    return
+  }
+  stoneProperties.value = await stonePropertiesStore.getProperties(wallId)
+}, { immediate: true })
 
 
 onMounted(async () => {

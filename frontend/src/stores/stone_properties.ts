@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia';
-import type { PropertyEntry } from '../models';
+import type { Property } from '../models';
 import { api } from 'src/boot/api';
 import columns from 'src/assets/stone_properties_columns.json';
 
@@ -8,11 +8,11 @@ const columnsDict = Object.fromEntries(
 );
 
 export const useStonePropertiesStore = defineStore('stone_properties', () => {
-  const properties = ref<Record<string, PropertyEntry[]>>({});
+  const properties = ref<Record<string, Property[][][]>>({});
   const loading = ref<Record<string, boolean>>({});
   const error = ref<string | null>(null);
 
-  const getProperties = async (wallId: string): Promise<PropertyEntry[] | null> => {
+  const getProperties = async (wallId: string): Promise<Property[][][] | null> => {
     if (properties.value[wallId]) {
       return properties.value[wallId];
     }

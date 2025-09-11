@@ -6,7 +6,7 @@ from fastapi import HTTPException
 
 from api.services.s3 import s3_client
 from api.config import config
-from api.models.properties import Property, PropertyEntry
+from api.models.properties import Property
 
 
 class Properties:
@@ -44,7 +44,7 @@ class Properties:
         self._stone_data[wall_id] = data
         return data
 
-    async def get_property_entries(self) -> list[PropertyEntry]:
+    async def get_property_entries(self) -> list[list[Property]]:
         data = await self.get_data()
         entries = []
 
@@ -52,11 +52,11 @@ class Properties:
             properties = [
                 Property(name=col.strip(), value=str(row[col])) for col in data.columns
             ]
-            entries.append(PropertyEntry(properties=properties))
+            entries.append(properties)
 
         return entries
 
-    async def get_stones_property_entries(self, wall_id: str) -> list[PropertyEntry]:
+    async def get_stones_property_entries(self, wall_id: str) -> list[list[Property]]:
         data = await self.get_stone_data(wall_id)
         entries = []
 
@@ -64,6 +64,6 @@ class Properties:
             properties = [
                 Property(name=col.strip(), value=str(row[col])) for col in data.columns
             ]
-            entries.append(PropertyEntry(properties=properties))
+            entries.append(properties)
 
         return entries

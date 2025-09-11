@@ -37,7 +37,7 @@ const chartData = computed(() => {
 
   const filteredProperties = properties.value.filter(propertyEntry => {
     return Object.entries(props.filters).every(([filterColumn, filterValue]) => {
-      const property = propertyEntry.properties.find(p => p.name === filterColumn)
+      const property = propertyEntry.find(p => p.name === filterColumn)
       return !filterValue || property?.value === filterValue
     })
   })
@@ -46,7 +46,7 @@ const chartData = computed(() => {
   const columnData: Record<string, number> = {}
 
   filteredProperties.forEach(propertyEntry => {
-    const property = propertyEntry.properties.find(p => p.name === props.columnName)
+    const property = propertyEntry.find(p => p.name === props.columnName)
     if (property?.value) {
       const value = property.value
       columnData[value] = (columnData[value] || 0) + 1
