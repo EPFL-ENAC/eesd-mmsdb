@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia';
-import type { PropertyEntry } from '../models';
+import type { Property } from '../models';
 import { api } from 'src/boot/api';
 import columns from 'src/assets/properties_columns.json';
 
@@ -8,7 +8,7 @@ const columnsDict = Object.fromEntries(
 );
 
 export const usePropertiesStore = defineStore('properties', () => {
-  const properties = ref<PropertyEntry[] | null>(null);
+  const properties = ref<Property[][] | null>(null);
   const loading = ref(false);
   const error = ref<string | null>(null);
 

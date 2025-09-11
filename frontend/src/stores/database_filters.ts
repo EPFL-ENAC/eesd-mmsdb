@@ -1,7 +1,7 @@
 import { defineStore } from 'pinia'
 import { computed, ref, readonly } from 'vue'
 import { usePropertiesStore } from './properties'
-import type { PropertyEntry } from '../models'
+import type { Property } from '../models'
 
 const columnFilters = ["Microstructure type", "Typology based on Italian Code", "No of leaves", "Vertical loading_GMQI_class", "In-plane_GMQI_class", "Out-of-plane_GMQI_class", "Length [cm]", "Height [cm]", "Width [cm]"]
 
@@ -62,8 +62,8 @@ export const useDatabaseFiltersStore = defineStore('databaseFilters', () => {
     if (!Array.isArray(propertiesStore.properties)) return { min: 0, max: 100 }
 
     const values = propertiesStore.properties
-      .map(entry => {
-        const property = entry.properties.find(p => p.name === columnName)
+      .map(propertyEntry => {
+        const property = propertyEntry.find(p => p.name === columnName)
         return property?.value ? parseFloat(property.value) : NaN
       })
       .filter(value => !isNaN(value))
@@ -88,8 +88,8 @@ export const useDatabaseFiltersStore = defineStore('databaseFilters', () => {
     if (!Array.isArray(propertiesStore.properties)) return []
 
     const values = propertiesStore.properties
-      .flatMap(entry => {
-        const property = entry.properties.find(p => p.name === columnName)
+      .flatMap(propertyEntry => {
+        const property = propertyEntry.find(p => p.name === columnName)
         return property?.value ? [property.value] : []
       })
       .filter(Boolean)
@@ -106,15 +106,15 @@ export const useDatabaseFiltersStore = defineStore('databaseFilters', () => {
     return range
   }
 
-  function matchesStringFilter(columnName: string, filter: string[], props: PropertyEntry['properties']): boolean {
+  function matchesStringFilter(columnName: string, filter: string[], propertyEntry: Property[]): boolean {
     if (filter.length === 0) return true
 
-    const propertyValue = props.find(p => p.name === columnName)?.value
+    const propertyValue = propertyEntry.find(p => p.name === columnName)?.value
     return propertyValue ? filter.includes(propertyValue) : false
   }
 
-  function matchesNumericFilter(columnName: string, filter: NumericFilter, props: PropertyEntry['properties']): boolean {
-    const propertyValue = props.find(p => p.name === columnName)?.value
+  function matchesNumericFilter(columnName: string, filter: NumericFilter, propertyEntry: Property[]): boolean {
+    const propertyValue = propertyEntry.find(p => p.name === columnName)?.value
     if (!propertyValue) return true
 
     const numericValue = parseFloat(propertyValue)
@@ -123,17 +123,15 @@ export const useDatabaseFiltersStore = defineStore('databaseFilters', () => {
     return numericValue >= filter.min && numericValue <= filter.max
   }
 
-  function matchesFilters(propertyEntry: PropertyEntry): boolean {
-    const props = propertyEntry.properties
-
+  function matchesFilters(propertyEntry: Property[]): boolean {
     for (const columnName of columnFilters) {
       const type = propertiesStore.getColumnType(columnName)
       if (type === 'string') {
-        if (stringFilters.value[columnName] && !matchesStringFilter(columnName, stringFilters.value[columnName], props)) {
+        if (stringFilters.value[columnName] && !matchesStringFilter(columnName, stringFilters.value[columnName], propertyEntry)) {
           return false
         }
       } else {
-        if (numericFilters.value[columnName] && !matchesNumericFilter(columnName, numericFilters.value[columnName], props)) {
+        if (numericFilters.value[columnName] && !matchesNumericFilter(columnName, numericFilters.value[columnName], propertyEntry)) {
           return false
         }
       }
@@ -145,12 +143,12 @@ export const useDatabaseFiltersStore = defineStore('databaseFilters', () => {
   const filteredWallIds = computed(() => {
     if (!Array.isArray(propertiesStore.properties)) return []
 
-    const filteredEntries = (propertiesStore.properties as PropertyEntry[])
+    const filteredEntries = (propertiesStore.properties as Property[][])
       .filter(matchesFilters)
 
     const wallIds = filteredEntries
       .map(propertyEntry => {
-        const wallIdProperty = propertyEntry.properties.find(p => p.name === 'Wall ID')
+        const wallIdProperty = propertyEntry.find(p => p.name === 'Wall ID')
         return wallIdProperty?.value
       })
       .filter(Boolean)
@@ -161,9 +159,9 @@ export const useDatabaseFiltersStore = defineStore('databaseFilters', () => {
   const allWallIds = computed(() => {
     if (!Array.isArray(propertiesStore.properties)) return []
 
-    const wallIds = (propertiesStore.properties as PropertyEntry[])
+    const wallIds = (propertiesStore.properties as Property[][])
       .map(propertyEntry => {
-        const wallIdProperty = propertyEntry.properties.find(p => p.name === 'Wall ID')
+        const wallIdProperty = propertyEntry.find(p => p.name === 'Wall ID')
         return wallIdProperty?.value
       })
       .filter(Boolean)

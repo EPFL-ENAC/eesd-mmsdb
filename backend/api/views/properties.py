@@ -1,7 +1,7 @@
 from fastapi import APIRouter
 
 from api.services.properties import Properties
-from api.models.properties import PropertyEntry
+from api.models.properties import Property
 
 
 router = APIRouter()
@@ -13,7 +13,7 @@ properties = Properties()
     status_code=200,
     description="Get table of properties",
 )
-async def get_properties() -> list[PropertyEntry]:
+async def get_properties() -> list[list[Property]]:
     return await properties.get_property_entries()
 
 
@@ -22,5 +22,5 @@ async def get_properties() -> list[PropertyEntry]:
     status_code=200,
     description="Get table of stones geometric properties",
 )
-async def get_stone_properties(wall_id: str) -> list[PropertyEntry]:
+async def get_stone_properties(wall_id: str) -> list[list[Property]]:
     return await properties.get_stones_property_entries(wall_id)

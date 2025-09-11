@@ -5,7 +5,7 @@
 <script setup lang="ts">
 import Plotly from 'plotly.js-dist'
 import { usePropertiesStore } from 'stores/properties'
-import type { PropertyEntry } from '../models';
+import type { Property } from '../models';
 
 const plotlyChart = ref(null)
 const columns = ["Microstructure type", "Typology based on Italian Code", "No of leaves", "Average vertical LMT", "Average horizontal LMT", "Average shape factor", "Vertical loading_GMQI_class"]
@@ -19,8 +19,8 @@ async function createChart() {
   }
 
   const dimensions = columns.map((col) => {
-    const values = (properties.value as PropertyEntry[]).map(propertyEntry => {
-      const property = propertyEntry.properties.find(p => p.name === col)
+    const values = (properties.value as Property[][]).map(propertyEntry => {
+      const property = propertyEntry.find(p => p.name === col)
       let value = property?.value
       if (!isNaN(Number(value)) && col != "No of leaves") {
         value = Number(value).toFixed(1)
