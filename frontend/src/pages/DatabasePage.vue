@@ -91,7 +91,7 @@ import StonePropertyHistogram from 'src/components/StonePropertyHistogram.vue'
 import type { Property } from '../models';
 
 const dialogColumns = ["Microstructure type", "Typology based on Italian Code", "No of leaves", "Vertical loading_GMQI_class", "In-plane_GMQI_class", "Out-of-plane_GMQI_class", "Length [cm]", "Height [cm]", "Width [cm]"]
-const stoneColumns = ["Stone length [m]"] //, "Stone width [m]", "stone height [m]", "Elongation [-]", "Flatness_index [-]", "Aspect ratio [-]", "Stone volume [m^3]", "Bounding box volume [m^3]", "Shape factor [-]"]
+const stoneColumns = ["Stone length [m]", "Elongation [-]", "Aspect ratio [-]", "Shape factor [-]"]
 const propertiesStore = usePropertiesStore()
 const stonePropertiesStore = useStonePropertiesStore()
 const wallsStore = useWallsStore()
