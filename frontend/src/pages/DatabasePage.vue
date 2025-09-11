@@ -62,6 +62,19 @@
             </div>
           </div>
         </div>
+
+        <div class="stones-section q-mt-md">
+          <div class="text-h6 q-mb-md">Stones</div>
+          <div class="parameters-grid">
+            <stone-property-histogram
+              v-for="column of stoneColumns"
+              :key="column"
+              :title="stonePropertiesStore.getColumnLabel?.(column)"
+              :wallID="selectedWallId"
+              :columnName="column"
+            />
+          </div>
+        </div>
       </div>
     </simple-dialog>
   </q-page>
@@ -74,10 +87,11 @@ import { useWallsStore } from 'stores/walls'
 import { useDatabaseFiltersStore } from 'stores/database_filters'
 import MicrostructureView from 'src/components/MicrostructureView.vue'
 import SimpleDialog from 'src/components/SimpleDialog.vue'
+import StonePropertyHistogram from 'src/components/StonePropertyHistogram.vue'
 import type { Property } from '../models';
 
 const dialogColumns = ["Microstructure type", "Typology based on Italian Code", "No of leaves", "Vertical loading_GMQI_class", "In-plane_GMQI_class", "Out-of-plane_GMQI_class", "Length [cm]", "Height [cm]", "Width [cm]"]
-const stoneColumns = ["Stone length [m]", "Stone width [m]", "stone height [m]", "Elongation [-]", "Flatness_index [-]", "Aspect ratio [-]", "Stone volume [m^3]", "Bounding box volume [m^3]", "Shape factor [-]"]
+const stoneColumns = ["Stone length [m]"] //, "Stone width [m]", "stone height [m]", "Elongation [-]", "Flatness_index [-]", "Aspect ratio [-]", "Stone volume [m^3]", "Bounding box volume [m^3]", "Shape factor [-]"]
 const propertiesStore = usePropertiesStore()
 const stonePropertiesStore = useStonePropertiesStore()
 const wallsStore = useWallsStore()
@@ -125,17 +139,6 @@ const selectedWallParameters = computed(() => {
       }
     })
 })
-
-const stoneProperties = ref<Property[][][] | null>(null)
-
-watch(selectedWallId, async (wallId) => {
-  if (!wallId) {
-    stoneProperties.value = null
-    return
-  }
-  stoneProperties.value = await stonePropertiesStore.getProperties(wallId)
-}, { immediate: true })
-
 
 onMounted(async () => {
   await Promise.all(allWallIds.value.map(wallId => wallsStore.loadWallImage(wallId)))

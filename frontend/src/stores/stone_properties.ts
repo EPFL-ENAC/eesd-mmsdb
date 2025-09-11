@@ -8,11 +8,11 @@ const columnsDict = Object.fromEntries(
 );
 
 export const useStonePropertiesStore = defineStore('stone_properties', () => {
-  const properties = ref<Record<string, Property[][][]>>({});
+  const properties = ref<Record<string, Property[][]>>({});
   const loading = ref<Record<string, boolean>>({});
   const error = ref<string | null>(null);
 
-  const getProperties = async (wallId: string): Promise<Property[][][] | null> => {
+  const getProperties = async (wallId: string): Promise<Property[][] | null> => {
     if (properties.value[wallId]) {
       return properties.value[wallId];
     }
