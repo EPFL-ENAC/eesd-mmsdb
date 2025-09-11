@@ -107,6 +107,7 @@
     "watchSyncEffect": true,
     "usePropertiesStore": true,
     "useWallsStore": true,
-    "useDatabaseFiltersStore": true
+    "useDatabaseFiltersStore": true,
+    "useStonePropertiesStore": true
   }
 }

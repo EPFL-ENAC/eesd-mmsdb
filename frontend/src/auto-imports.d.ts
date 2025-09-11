@@ -95,6 +95,7 @@ declare global {
   const useRouter: typeof import('vue-router')['useRouter']
   const useSettingsStore: typeof import('./stores/settings')['useSettingsStore']
   const useSlots: typeof import('vue')['useSlots']
+  const useStonePropertiesStore: typeof import('./stores/stone_properties')['useStonePropertiesStore']
   const useTemplateRef: typeof import('vue')['useTemplateRef']
   const useWallsStore: typeof import('./stores/walls')['useWallsStore']
   const watch: typeof import('vue')['watch']
@@ -193,6 +194,7 @@ declare module 'vue' {
     readonly useRouter: UnwrapRef<typeof import('vue-router')['useRouter']>
     readonly useSettingsStore: UnwrapRef<typeof import('./stores/settings')['useSettingsStore']>
     readonly useSlots: UnwrapRef<typeof import('vue')['useSlots']>
+    readonly useStonePropertiesStore: UnwrapRef<typeof import('./stores/stone_properties')['useStonePropertiesStore']>
     readonly useTemplateRef: UnwrapRef<typeof import('vue')['useTemplateRef']>
     readonly useWallsStore: UnwrapRef<typeof import('./stores/walls')['useWallsStore']>
     readonly watch: UnwrapRef<typeof import('vue')['watch']>

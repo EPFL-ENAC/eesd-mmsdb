@@ -1,30 +1,36 @@
 import { defineStore } from 'pinia';
 import type { PropertyEntry } from '../models';
 import { api } from 'src/boot/api';
-import columns from 'src/assets/properties_columns.json';
+import columns from 'src/assets/stone_properties_columns.json';
 
 const columnsDict = Object.fromEntries(
   columns.map(entry => [entry.key, entry])
 );
 
-export const usePropertiesStore = defineStore('properties', () => {
-  const properties = ref<PropertyEntry[] | null>(null);
-  const loading = ref(false);
+export const useStonePropertiesStore = defineStore('stone_properties', () => {
+  const properties = ref<Record<string, PropertyEntry[]>>({});
+  const loading = ref<Record<string, boolean>>({});
   const error = ref<string | null>(null);
 
-  const fetchProperties = async () => {
-    loading.value = true;
+  const getProperties = async (wallId: string): Promise<PropertyEntry[] | null> => {
+    if (properties.value[wallId]) {
+      return properties.value[wallId];
+    }
+
+    loading.value[wallId] = true;
     error.value = null;
 
     try {
-      const response = await api.get('/properties/');
-      properties.value = response.data;
+      const response = await api.get(`/properties/stones/${wallId}`);
+      properties.value[wallId] = response.data;
+      return properties.value[wallId] || null;
     } catch (err) {
-      error.value = err instanceof Error ? err.message : 'An unknown error occurred';
+      error.value = err instanceof Error ? err.message : 'Error fetching stone properties';
+      return null;
     } finally {
-      loading.value = false;
+      loading.value[wallId] = false;
     }
-  };
+  }
 
   const getColumnLabel = (key: string): string => {
     return columnsDict[key]?.label || key;
@@ -43,10 +49,9 @@ export const usePropertiesStore = defineStore('properties', () => {
   };
 
   return {
-    properties,
     loading,
     error,
-    fetchProperties,
+    getProperties,
     getColumnLabel,
     getColumnType,
     getColumnUnit,

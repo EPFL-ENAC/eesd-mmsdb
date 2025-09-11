@@ -1,0 +1,66 @@
+[
+  {
+    "key": "Stone ID",
+    "label": "ID",
+    "type": "string"
+  },
+  {
+    "key": "Stone length [m]",
+    "label": "Length",
+    "type": "float",
+    "unit": "m",
+    "precision": 2
+  },
+  {
+    "key": "Stone width [m]",
+    "label": "Width",
+    "type": "float",
+    "unit": "m",
+    "precision": 2
+  },
+  {
+    "key": "stone height [m]",
+    "label": "Height",
+    "type": "float",
+    "unit": "m",
+    "precision": 2
+  },
+  {
+    "key": "Elongation [-]",
+    "label": "Elongation",
+    "type": "float",
+    "precision": 2
+  },
+  {
+    "key": "Flatness_index [-]",
+    "label": "Flatness index",
+    "type": "float",
+    "precision": 2
+  },
+  {
+    "key": "Aspect ratio [-]",
+    "label": "Aspect ratio",
+    "type": "float",
+    "precision": 2
+  },
+  {
+    "key": "Stone volume [m^3]",
+    "label": "Volume",
+    "type": "float",
+    "unit": "m³",
+    "precision": 2
+  },
+  {
+    "key": "Bounding box volume [m^3]",
+    "label": "Bounding box volume",
+    "type": "float",
+    "unit": "m³",
+    "precision": 2
+  },
+  {
+    "key": "Shape factor [-]",
+    "label": "Shape factor",
+    "type": "float",
+    "precision": 2
+  }
+]
