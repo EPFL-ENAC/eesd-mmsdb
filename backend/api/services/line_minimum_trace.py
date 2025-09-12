@@ -28,11 +28,10 @@ Note:
 """
 
 import numpy as np
-import matplotlib.pyplot as plt
 from PIL import Image
 import networkx as nx
 import os
-from bwgraph import bwgraph
+from .bwgraph import bwgraph
 import base64
 from io import BytesIO
 
@@ -241,6 +240,8 @@ def _find_nearest_mortar(image, point, pixel_height, pixel_length, max_radius=10
 
 def _generate_plot(image, pi, pj, start_point, end_point, lmt_type):
     """Generate plot and return as base64 string."""
+    import matplotlib.pyplot as plt
+
     try:
         fig, ax = plt.subplots(figsize=(12, 8))
         ax.imshow(image, cmap="gray")
