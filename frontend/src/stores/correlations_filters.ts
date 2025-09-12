@@ -9,7 +9,7 @@ watch(() => propertiesStore?.columnsDict,
     if (columnsDict) {
       numericColumns.value = Object.values(columnsDict)
         .filter(column => column.type === "int" || column.type === "float")
-        .map(column => column.key)
+        .map(column => column.label)
     } else {
       numericColumns.value = []
     }
@@ -18,8 +18,8 @@ watch(() => propertiesStore?.columnsDict,
 )
 
 export const useCorrelationsFiltersStore = defineStore('correlationsFilters', () => {
-  const xColumn = ref<string | null>("Average shape factor")
-  const yColumn = ref<string | null>("Average vertical LMT")
+  const xColumn = ref<string | null>("Shape factor")
+  const yColumn = ref<string | null>("Vertical LMT")
 
   const setXColumn = (column: string | null) => xColumn.value = column
   const setYColumn = (column: string | null) => yColumn.value = column

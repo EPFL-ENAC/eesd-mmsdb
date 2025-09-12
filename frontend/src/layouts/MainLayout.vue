@@ -4,7 +4,7 @@
       <app-toolbar @toggle-left="toggleLeftDrawer" :has-drawer="hasDrawer" />
     </q-header>
 
-    <left-drawer v-if="hasDrawer" ref="leftDrawerRef">
+    <left-drawer v-if="hasDrawer" ref="leftDrawerRef" @drawer-toggled="onDrawerToggled">
       <router-view name="drawer" />
     </left-drawer>
 
@@ -49,6 +49,12 @@ function toggleLeftDrawer() {
   if (leftDrawerRef.value) {
     leftDrawerRef.value.toggle();
   }
+}
+
+function onDrawerToggled(isOpen: boolean) {
+  setTimeout(() => {
+    window.dispatchEvent(new CustomEvent('drawer-toggled', { detail: { isOpen } }))
+  }, 200) // Small delay to allow drawer animation to complete
 }
 </script>
 

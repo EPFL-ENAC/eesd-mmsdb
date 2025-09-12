@@ -19,16 +19,23 @@ import { useQuasar } from 'quasar'
 const $q = useQuasar()
 const isOpen = ref(false)
 
+const emit = defineEmits<{
+  drawerToggled: [isOpen: boolean]
+}>()
+
 function toggle() {
   isOpen.value = !isOpen.value
+  emit('drawerToggled', isOpen.value)
 }
 
 function open() {
   isOpen.value = true
+  emit('drawerToggled', isOpen.value)
 }
 
 function close() {
   isOpen.value = false
+  emit('drawerToggled', isOpen.value)
 }
 
 onMounted(() => {
