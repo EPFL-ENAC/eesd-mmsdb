@@ -41,8 +41,8 @@
       class="icons"
       flat
       round
-      :title="t('aknowledgements')"
-      @click="showAknowledgements = true"
+      :title="t('acknowledgements')"
+      @click="showAcknowledgements = true"
     ></q-btn>
   </div>
 
@@ -84,12 +84,12 @@
     </div>
   </simple-dialog>
 
-  <simple-dialog v-model="showAknowledgements" :title="t('aknowledgements')">
+  <simple-dialog v-model="showAcknowledgements" :title="t('acknowledgements')">
     <q-list separator class="q-mt-md">
     </q-list>
     <q-list separator class="q-mt-md">
       <essential-link
-        v-for="link in aknowledgementsLinks"
+        v-for="link in acknowledgementsLinks"
         :key="link.title"
         v-bind="link"
       />
@@ -102,14 +102,14 @@ import SimpleDialog from 'src/components/SimpleDialog.vue';
 import EssentialLink from 'src/components/EssentialLink.vue';
 import CitationItem from 'src/components/CitationItem.vue';
 import contactLinks from 'src/assets/contact_links.json';
-import aknowledgementsLinks from 'src/assets/aknowledgements_links.json';
+import acknowledgementsLinks from 'src/assets/acknowledgements_links.json';
 import citationItems from 'src/assets/citation_items.json';
 
 const { t } = useI18n();
 const showCitation = ref(false);
 const showContact = ref(false);
 const showUpload = ref(false);
-const showAknowledgements = ref(false);
+const showAcknowledgements = ref(false);
 </script>
 
 <style scoped lang="scss">
