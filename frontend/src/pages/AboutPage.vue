@@ -18,7 +18,7 @@
               <q-icon name="construction" />
             </q-item-section>
             <q-item-section>
-              <q-item-label>ENAC-IT4R</q-item-label>
+              <q-item-label>ENAC-IT4R Development team</q-item-label>
               <q-item-label caption>go.epfl.ch/it4r</q-item-label>
             </q-item-section>
           </q-item>

@@ -1,7 +1,7 @@
 export default {
   about: 'About',
   about_info: 'Information about the project',
-  aknowledgements: 'Acknowledgements',
+  acknowledgements: 'Acknowledgements',
   citation: 'How to cite',
   citation_text: 'Please cite the database as follow:',
   close: 'Close',
