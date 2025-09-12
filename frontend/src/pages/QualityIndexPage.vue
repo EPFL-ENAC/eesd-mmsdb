@@ -1,5 +1,5 @@
 <template>
-  <q-page>
+  <q-page v-show=false>
     Quality index
   </q-page>
 </template>

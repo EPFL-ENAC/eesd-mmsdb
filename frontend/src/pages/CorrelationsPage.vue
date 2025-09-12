@@ -1,5 +1,5 @@
 <template>
-  <q-page>
+  <q-page v-show=false>
     <h6 class="chart-title q-ma-sm">Correlation</h6>
     <div
       v-show="correlationsFiltersStore.xColumn && correlationsFiltersStore.yColumn"
