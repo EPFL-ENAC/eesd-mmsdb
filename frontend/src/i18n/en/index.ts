@@ -20,5 +20,5 @@ export default {
   source_code: 'Source code',
   title: 'Masonry Microstructure Database',
   upload: 'Data upload',
-  upload_text: 'IN DEVELOPMENT',
+  upload_text: 'If you want to contribute to the database, please send your microstructure data to <a href="mailto:mati.shah@epfl.ch" target="_blank" rel="noopener noreferrer">mati.shah@epfl.ch</a>, using a service such as <a href="https://www.swisstransfer.com/" target="_blank" rel="noopener noreferrer">SwissTransfer</a>. Stone and wall parameters will be computed by the EESD Laboratory and added to the database.',
 };

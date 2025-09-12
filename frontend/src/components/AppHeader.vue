@@ -80,7 +80,7 @@
 
   <simple-dialog v-model="showUpload" :title="t('upload')">
     <div>
-      {{ t('upload_text') }}
+      <div v-html="t('upload_text')" />
     </div>
   </simple-dialog>
 
