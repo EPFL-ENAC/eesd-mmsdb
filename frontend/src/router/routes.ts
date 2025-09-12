@@ -27,11 +27,7 @@ const routes: RouteRecordRaw[] = [
       },
       {
         path: '/quality-index',
-        components: {
-          default: () => import('pages/QualityIndexPage.vue'),
-          drawer: () => import('components/DatabaseDrawer.vue'),
-        },
-        meta: { hasDrawer: true },
+        component: () => import('pages/QualityIndexPage.vue'),
       },
       {
         path: '/others',
