@@ -46,6 +46,15 @@
     ></q-btn>
   </div>
 
+  <!-- TODO: Remove -->
+  <q-banner class="development-banner" dense>
+    <template v-slot:avatar>
+      <q-icon name="warning" color="amber" />
+    </template>
+    This website is currently under <strong>active development</strong>. Features and data may change. Please give your feedback using
+    <a href="https://github.com/EPFL-ENAC/eesd-mmsdb/issues" target="_blank" rel="noopener">GitHub Issues</a>.
+  </q-banner>
+
   <simple-dialog v-model="showCitation" :title="t('citation')">
     {{ t('citation_text') }}
     <citation-item
@@ -127,5 +136,10 @@ $header-height: 3.125rem;
 
 .icons {
   color: white;
+}
+
+.development-banner {
+  background: #fffbe6;
+  color: #795548;
 }
 </style>
