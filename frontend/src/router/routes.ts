@@ -13,17 +13,17 @@ const routes: RouteRecordRaw[] = [
         path: '/database',
         components: {
           default: () => import('pages/DatabasePage.vue'),
-          drawer: () => import('components/DatabaseDrawer.vue'),
+          // drawer: () => import('components/DatabaseDrawer.vue'),
         },
-        meta: { hasDrawer: true },
+        // meta: { hasDrawer: true },
       },
       {
         path: '/correlations',
         components: {
           default: () => import('pages/CorrelationsPage.vue'),
-          drawer: () => import('components/CorrelationsDrawer.vue'),
+          // drawer: () => import('components/CorrelationsDrawer.vue'),
         },
-        meta: { hasDrawer: true },
+        // meta: { hasDrawer: true },
       },
       {
         path: '/quality-index',

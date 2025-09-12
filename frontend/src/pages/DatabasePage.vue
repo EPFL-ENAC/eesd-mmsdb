@@ -1,5 +1,5 @@
 <template>
-  <q-page class="q-pa-md">
+  <q-page class="q-pa-md" v-show=false>
     <div class="database-header q-mb-md">
       <div class="text-grey-6">
         Showing {{ filteredWallIds.length }} of {{ allWallIds.length }} walls

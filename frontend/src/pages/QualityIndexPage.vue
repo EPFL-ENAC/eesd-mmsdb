@@ -1,5 +1,5 @@
 <template>
-  <q-page class="q-pa-md">
+  <q-page class="q-pa-md" v-show=false>
     <q-card class="q-pa-md">
       <div class="text-h4">Line of minimum trace</div>
       <q-card-section>

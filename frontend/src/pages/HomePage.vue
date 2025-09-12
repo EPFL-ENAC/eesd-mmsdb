@@ -4,13 +4,14 @@
       :ply-data="result"
       :width="Math.min(400, q.screen.width)"
       :height="400"
-      sliceable
       class="microstructure-container"
     />
 
+<div v-show=false>
     <donut-charts class="q-mt-lg"/>
 
     <parallel-categories-diagram/>
+</div>
 
     <div>
       {{ t('citation_text') }}
