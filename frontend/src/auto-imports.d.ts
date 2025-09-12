@@ -88,6 +88,7 @@ declare global {
   const useHelpStore: typeof import('./stores/help')['useHelpStore']
   const useI18n: typeof import('vue-i18n')['useI18n']
   const useId: typeof import('vue')['useId']
+  const useLineStore: typeof import('./stores/line')['useLineStore']
   const useLink: typeof import('vue-router')['useLink']
   const useMapStore: typeof import('./stores/map')['useMapStore']
   const useModel: typeof import('vue')['useModel']
@@ -189,6 +190,7 @@ declare module 'vue' {
     readonly useDatabaseFiltersStore: UnwrapRef<typeof import('./stores/database_filters')['useDatabaseFiltersStore']>
     readonly useI18n: UnwrapRef<typeof import('vue-i18n')['useI18n']>
     readonly useId: UnwrapRef<typeof import('vue')['useId']>
+    readonly useLineStore: UnwrapRef<typeof import('./stores/line')['useLineStore']>
     readonly useLink: UnwrapRef<typeof import('vue-router')['useLink']>
     readonly useModel: UnwrapRef<typeof import('vue')['useModel']>
     readonly usePropertiesStore: UnwrapRef<typeof import('./stores/properties')['usePropertiesStore']>

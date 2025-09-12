@@ -2,3 +2,32 @@ export interface Property {
   name: string;
   value: string;
 }
+
+export interface LineComputeParams {
+  startX: number;
+  startY: number;
+  endX: number;
+  endY: number;
+  image: File;
+}
+
+export interface LineComputeResult {
+  "success": boolean,
+  "lmp_type": string,
+  "lmt_result": number,
+  "total_length": number,
+  "path_coordinates": {
+    "pixel_coordinates": [number, number][],
+    "real_world_coordinates": [number, number][],
+  },
+  "start_point_used": [number, number],
+  "end_point_used": [number, number],
+  "image_dimensions": {
+    "width": number,
+    "height": number,
+  },
+  "scale_factors": {
+    "length_scale": number,
+    "height_scale": number,
+  },
+}
