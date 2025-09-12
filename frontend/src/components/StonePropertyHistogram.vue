@@ -114,9 +114,9 @@ const getChartOptions = () => ({
     axisPointer: {
       type: 'shadow'
     },
-    formatter: function (params: any) {
-      const binIndex = params[0].dataIndex
-      const bin = binsConfiguration.value[binIndex]
+    formatter: function (params: { dataIndex: number }[]) {
+      const binIndex = params[0]?.dataIndex
+      const bin = binsConfiguration.value[binIndex || 0]
       return bin?.fullName
     },
     confine: true
@@ -137,7 +137,7 @@ const getChartOptions = () => ({
   series: [
     {
       type: 'bar',
-      data: chartData.value.map(([_, count]) => (count as number).toFixed(2)),
+      data: chartData.value.map(([, count]) => (count as number).toFixed(2)),
       label: {
         show: true,
         position: 'top',

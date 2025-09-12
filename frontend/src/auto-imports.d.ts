@@ -79,6 +79,7 @@ declare global {
   const useAuthStore: typeof import('./stores/auth')['useAuthStore']
   const useCatalogStore: typeof import('./stores/catalog')['useCatalogStore']
   const useContributeStore: typeof import('./stores/contribute')['useContributeStore']
+  const useCorrelationsFiltersStore: typeof import('./stores/correlations_filters')['useCorrelationsFiltersStore']
   const useCounterStore: (typeof import('./stores/help'))['useCounterStore']
   const useCssModule: typeof import('vue')['useCssModule']
   const useCssVars: typeof import('vue')['useCssVars']
@@ -182,6 +183,7 @@ declare module 'vue' {
     readonly triggerRef: UnwrapRef<typeof import('vue')['triggerRef']>
     readonly unref: UnwrapRef<typeof import('vue')['unref']>
     readonly useAttrs: UnwrapRef<typeof import('vue')['useAttrs']>
+    readonly useCorrelationsFiltersStore: UnwrapRef<typeof import('./stores/correlations_filters')['useCorrelationsFiltersStore']>
     readonly useCssModule: UnwrapRef<typeof import('vue')['useCssModule']>
     readonly useCssVars: UnwrapRef<typeof import('vue')['useCssVars']>
     readonly useDatabaseFiltersStore: UnwrapRef<typeof import('./stores/database_filters')['useDatabaseFiltersStore']>

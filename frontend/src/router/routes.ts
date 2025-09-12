@@ -21,7 +21,7 @@ const routes: RouteRecordRaw[] = [
         path: '/correlations',
         components: {
           default: () => import('pages/CorrelationsPage.vue'),
-          drawer: () => import('components/DatabaseDrawer.vue'),
+          drawer: () => import('components/CorrelationsDrawer.vue'),
         },
         meta: { hasDrawer: true },
       },
