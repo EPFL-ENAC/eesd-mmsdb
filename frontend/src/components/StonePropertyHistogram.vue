@@ -133,6 +133,8 @@ const getChartOptions = () => ({
     name: 'Amount (%)',
     min: 0,
     // max: 100
+    nameLocation: 'middle',
+    nameGap: 25,
   },
   series: [
     {
@@ -150,7 +152,7 @@ const getChartOptions = () => ({
     }
   ],
   grid: {
-    left: '5%',
+    left: '10%',
     top: '10%',
     right: '5%',
     bottom: '5%',
