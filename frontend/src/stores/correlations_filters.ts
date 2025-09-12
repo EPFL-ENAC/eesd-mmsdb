@@ -18,8 +18,8 @@ watch(() => propertiesStore?.columnsDict,
 )
 
 export const useCorrelationsFiltersStore = defineStore('correlationsFilters', () => {
-  const xColumn = ref<string | null>(null)
-  const yColumn = ref<string | null>(null)
+  const xColumn = ref<string | null>("Average shape factor")
+  const yColumn = ref<string | null>("Average vertical LMT")
 
   const setXColumn = (column: string | null) => xColumn.value = column
   const setYColumn = (column: string | null) => yColumn.value = column
