@@ -108,6 +108,7 @@
     "usePropertiesStore": true,
     "useWallsStore": true,
     "useDatabaseFiltersStore": true,
-    "useStonePropertiesStore": true
+    "useStonePropertiesStore": true,
+    "useCorrelationsFiltersStore": true
   }
 }

@@ -3,10 +3,6 @@ import type { Property } from '../models';
 import { api } from 'src/boot/api';
 import columns from 'src/assets/properties_columns.json';
 
-const columnsDict = Object.fromEntries(
-  columns.map(entry => [entry.key, entry])
-);
-
 export const usePropertiesStore = defineStore('properties', () => {
   const properties = ref<Property[][] | null>(null);
   const loading = ref(false);
@@ -25,6 +21,10 @@ export const usePropertiesStore = defineStore('properties', () => {
       loading.value = false;
     }
   };
+
+  const columnsDict = Object.fromEntries(
+    columns.map(entry => [entry.key, entry])
+  );
 
   const getColumnLabel = (key: string): string => {
     return columnsDict[key]?.label || key;
@@ -47,6 +47,7 @@ export const usePropertiesStore = defineStore('properties', () => {
     loading,
     error,
     fetchProperties,
+    columnsDict,
     getColumnLabel,
     getColumnType,
     getColumnUnit,
