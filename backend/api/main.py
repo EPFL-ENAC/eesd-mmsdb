@@ -3,6 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from api.config import config
 from logging import basicConfig, INFO
 from pydantic import BaseModel
+from api.views.compute import router as compute_router
 from api.views.files import router as files_router
 from api.views.properties import router as properties_router
 
@@ -40,6 +41,12 @@ async def get_health() -> HealthCheck:
 
     return HealthCheck(status="OK")
 
+
+app.include_router(
+    compute_router,
+    prefix="/compute",
+    tags=["Compute"],
+)
 
 app.include_router(
     files_router,
