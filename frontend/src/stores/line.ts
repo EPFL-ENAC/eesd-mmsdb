@@ -6,7 +6,7 @@ import type { LineComputeParams, LineComputeResult } from 'src/models';
 export const useLineStore = defineStore('line', () => {
   const loading = ref(false);
   const error = ref<string | null>(null);
-  const result = ref<Record<string, any> | null>(null);
+  const result = ref<LineComputeResult | null>(null);
 
   const computeLine = async (params: LineComputeParams): Promise<LineComputeResult | null> => {
     loading.value = true;
