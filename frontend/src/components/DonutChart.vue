@@ -75,7 +75,8 @@ const getChartOptions = () => ({
     {
       name: props.columnName,
       type: 'pie',
-      radius: ['30%', '60%'],
+      // Increase the inner and outer radius for a larger donut and less padding
+      radius: ['45%', '80%'],
       center: ['50%', '50%'],
       avoidLabelOverlap: false,
       itemStyle: {
@@ -99,7 +100,7 @@ const getChartOptions = () => ({
       labelLine: {
         show: true,
         length: 15,
-        length2: 10
+        length2: 5
       },
       data: chartData.value
     }

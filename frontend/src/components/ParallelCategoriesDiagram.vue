@@ -1,5 +1,5 @@
 <template>
-  <div ref="plotlyChart" style="width:100%; height:500px;"></div>
+  <div ref="plotlyChart" style="width:100%;"></div>
 </template>
 
 <script setup lang="ts">
@@ -51,7 +51,13 @@ async function createChart() {
   const layout = {
     title: 'Parallel Categories Diagram',
     autosize: true,
-    height: 500,
+    height: 400,
+    margin: {
+      l: 40,
+      r: 40,
+      t: 30,
+      b: 20
+    },
     font: {
       family: "Roboto, -apple-system, Helvetica Neue, Helvetica, Arial, sans-serif",
       size: 14,
