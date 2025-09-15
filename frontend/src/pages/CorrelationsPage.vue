@@ -68,7 +68,6 @@ const chartData = computed(() => {
     }
   }
 
-  // Compute linear regression for all data points
   const regression = computeLinearRegression(allPoints)
   let regressionData: [number, number][] = []
 
@@ -77,7 +76,6 @@ const chartData = computed(() => {
     const minX = Math.min(...xValues)
     const maxX = Math.max(...xValues)
 
-    // Generate regression line points
     regressionData = [
       [minX, regression.slope * minX + regression.intercept],
       [maxX, regression.slope * maxX + regression.intercept]
@@ -91,7 +89,7 @@ const getChartOptions = () => {
   const scatterSeries = Object.entries(chartData.value.scatterData).map(([category, points], idx) => ({
     name: category,
     type: 'scatter',
-    symbol: ['circle', 'square', 'triangle', 'diamond', 'pin', 'arrow', 'roundRect'][idx % 7],
+    symbol: ['circle', 'square', 'triangle', 'diamond', 'pin', 'arrow', 'roundRect'][idx % 6],
     data: points.map(point => point.value),
   }))
 
@@ -122,13 +120,12 @@ const getChartOptions = () => {
       trigger: 'item',
       formatter: function (params: { seriesName: string; value: (string | number)[]; dataIndex: number; seriesIndex: number; seriesType: string }) {
         if (params.seriesType === 'line') {
-          // This is handled by the series-specific tooltip
-          return null
+          return false
         }
 
         const xName = correlationsFiltersStore.xColumn;
         const yName = correlationsFiltersStore.yColumn;
-        // Find the wallID from the chartData
+
         const category = params.seriesName;
         const wallID = chartData.value.scatterData[category]?.[params.dataIndex]?.wallID || 'Unknown';
         return `Wall ID: ${wallID}<br/>${xName}: ${params.value[0]}<br/>${yName}: ${params.value[1]}`;

@@ -79,9 +79,10 @@
   </simple-dialog>
 
   <simple-dialog v-model="showUpload" :title="t('upload')">
-    <div>
-      <div v-html="t('upload_text')" />
-    </div>
+      <div v-html="t('upload_text', {
+        email_link: '<a href=\'mailto:mati.shah@epfl.ch\' target=\'_blank\' rel=\'noopener noreferrer\'>mati.shah@epfl.ch</a>',
+        transfer_link: '<a href=\'https://www.swisstransfer.com/\' target=\'_blank\' rel=\'noopener noreferrer\'>SwissTransfer</a>'
+      })"></div>
   </simple-dialog>
 
   <simple-dialog v-model="showAcknowledgements" :title="t('acknowledgements')">
