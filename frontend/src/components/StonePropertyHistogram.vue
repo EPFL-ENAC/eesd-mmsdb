@@ -35,55 +35,7 @@ async function fetchStoneProperties(wallId: string) {
 watch(() => props.wallID, fetchStoneProperties, { immediate: true })
 
 const binsConfiguration = computed(() => {
-  return {
-    "Stone length [m]": [
-      {
-        "name": "NF",
-        "fullName": "< 20cm (Not Fulfilled)",
-        "min": 0,
-        "max": 0.2,
-      },
-      {
-        "name": "PF",
-        "fullName": "20-40cm (Partially Fulfilled)",
-        "min": 0.2,
-        "max": 0.4,
-      },
-      {
-        "name": "F",
-        "fullName": "≥ 40cm (Fulfilled)",
-        "min": 0.4,
-        "max": Infinity,
-      },
-    ],
-
-    "Shape factor [-]": [
-      {
-        "name": "NF",
-        "fullName": "< 0.57 (Not Fulfilled)",
-        "min": 0,
-        "max": 0.57,
-      },
-      {
-        "name": "PF",
-        "fullName": "0.57-0.73 (Partially Fulfilled)",
-        "min": 0.57,
-        "max": 0.73,
-      },
-      {
-        "name": "F",
-        "fullName": "≥ 0.73 (Fulfilled)",
-        "min": 0.73,
-        "max": Infinity,
-      },
-    ],
-
-  }[props.columnName] || [...Array(5).keys()].map((_, i) => ({
-    name: ((i + 0.5) * 0.2).toFixed(1),
-    fullName: `${(i * 0.2).toFixed(1)}-${((i + 1) * 0.2).toFixed(1)}`,
-    min: i * 0.2,
-    max: (i + 1) * 0.2
-  }))
+  return stonePropertiesStore.getColumnBins(props.columnName) ?? [];
 })
 
 const chartContainer = ref<HTMLDivElement>()

@@ -1,7 +1,8 @@
 import { defineStore } from 'pinia';
-import type { Property } from '../models';
+import type { PropertyColumn, Property } from '../models';
 import { api } from 'src/boot/api';
-import columns from 'src/assets/stone_properties_columns.json';
+import columnsJson from 'src/assets/stone_properties_columns.json';
+const columns = columnsJson as PropertyColumn[];
 
 const columnsDict = Object.fromEntries(
   columns.map(entry => [entry.key, entry])
@@ -48,6 +49,19 @@ export const useStonePropertiesStore = defineStore('stone_properties', () => {
     return columnsDict[key]?.precision;
   };
 
+  const getColumnBins = (key: string): PropertyColumn['bins'] => {
+    if (columnsDict[key]?.bins) {
+      return columnsDict[key].bins;
+    }
+
+    return [...Array(5).keys()].map((_, i) => ({
+      name: ((i + 0.5) * 0.2).toFixed(1),
+      fullName: `${(i * 0.2).toFixed(1)}-${((i + 1) * 0.2).toFixed(1)}`,
+      min: i * 0.2,
+      max: (i + 1) * 0.2
+    }))
+  }
+
   return {
     loading,
     error,
@@ -56,5 +70,6 @@ export const useStonePropertiesStore = defineStore('stone_properties', () => {
     getColumnType,
     getColumnUnit,
     getColumnPrecision,
+    getColumnBins,
   };
 });
