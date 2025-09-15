@@ -11,7 +11,7 @@ const plotlyChart = ref(null)
 const columns = ["Microstructure type", "Typology based on Italian Code", "No of leaves", "Average vertical LMT", "Average horizontal LMT", "Average shape factor", "Vertical loading_GMQI_class"]
 
 const propertiesStore = usePropertiesStore()
-const properties = computed(() => propertiesStore.properties)
+const properties = computed(() => propertiesStore.getBinnedProperties())
 
 async function createChart() {
   if (!Array.isArray(properties.value) || plotlyChart.value === null) {
@@ -21,14 +21,13 @@ async function createChart() {
   const dimensions = columns.map((col) => {
     const values = (properties.value as Property[][]).map(propertyEntry => {
       const property = propertyEntry.find(p => p.name === col)
-      let value = property?.value
-      if (!isNaN(Number(value)) && col != "No of leaves") {
-        value = Number(value).toFixed(1)
-      }
-      return value
+      return property?.value
     })
 
-    const sortedValues = [...new Set(values)].sort()
+    const sortedValues = [...new Set(values)]
+    if (!propertiesStore.getColumnBins(col)) {
+      sortedValues.sort()
+    }
 
     return {
       label: propertiesStore.getColumnLabel(col),

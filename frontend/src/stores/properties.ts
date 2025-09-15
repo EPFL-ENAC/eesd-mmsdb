@@ -1,7 +1,8 @@
 import { defineStore } from 'pinia';
-import type { Property } from '../models';
+import type { PropertyColumn, Property } from '../models';
 import { api } from 'src/boot/api';
-import columns from 'src/assets/properties_columns.json';
+import columnsJson from 'src/assets/properties_columns.json';
+const columns = columnsJson as PropertyColumn[];
 
 export const usePropertiesStore = defineStore('properties', () => {
   const properties = ref<Property[][] | null>(null);
@@ -42,6 +43,30 @@ export const usePropertiesStore = defineStore('properties', () => {
     return columnsDict[key]?.precision;
   };
 
+  const getColumnBins = (key: string): PropertyColumn['bins'] | undefined => {
+    return columnsDict[key]?.bins;
+  }
+
+  const getBinnedProperties = (): Property[][] | null => {
+    return properties.value?.map(propertyEntry =>
+      propertyEntry.map(prop => {
+        if (!getColumnBins(prop.name)) {
+          return prop;
+        }
+
+        const binName = getColumnBins(prop.name)?.find(bin => {
+          const value = parseFloat(prop.value);
+          return value >= bin.min && value < bin.max;
+        })?.name || prop.value;
+
+        return {
+          ...prop,
+          value: binName
+        }
+      })
+    ) || null;
+  }
+
   return {
     properties,
     loading,
@@ -52,5 +77,7 @@ export const usePropertiesStore = defineStore('properties', () => {
     getColumnType,
     getColumnUnit,
     getColumnPrecision,
+    getColumnBins,
+    getBinnedProperties,
   };
 });
