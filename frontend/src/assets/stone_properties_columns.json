@@ -9,7 +9,27 @@
     "label": "Length",
     "type": "float",
     "unit": "m",
-    "precision": 2
+    "precision": 2,
+    "bins": [
+      {
+        "name": "NF",
+        "fullName": "Not Fulfilled (< 20cm)",
+        "min": 0,
+        "max": 0.2
+      },
+      {
+        "name": "PF",
+        "fullName": "Partially Fulfilled (20-40cm)",
+        "min": 0.2,
+        "max": 0.4
+      },
+      {
+        "name": "F",
+        "fullName": "Fulfilled (≥ 40cm)",
+        "min": 0.4,
+        "max": "Infinity"
+      }
+    ]
   },
   {
     "key": "Stone width [m]",

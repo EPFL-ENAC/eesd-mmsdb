@@ -1,3 +1,17 @@
+export interface PropertyColumn {
+  key: string;
+  label: string;
+  type: string;
+  unit?: string;
+  precision?: number;
+  bins?: {
+    name: string;
+    fullName: string;
+    min: number;
+    max: number;
+  }[];
+}
+
 export interface Property {
   name: string;
   value: string;
