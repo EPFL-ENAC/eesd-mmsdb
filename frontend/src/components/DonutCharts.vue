@@ -45,7 +45,6 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
 import DonutChart from './DonutChart.vue'
 
 const propertiesStore = usePropertiesStore()

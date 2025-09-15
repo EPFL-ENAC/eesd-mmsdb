@@ -1,5 +1,4 @@
 import { defineStore } from 'pinia'
-import { computed, ref, readonly } from 'vue'
 import { usePropertiesStore } from './properties'
 import type { Property } from '../models'
 

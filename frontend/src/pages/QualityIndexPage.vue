@@ -269,7 +269,6 @@ const computeLine = async () => {
 };
 
 // Watch for parameter changes to redraw line
-import { watch } from 'vue';
 watch([startX, startY, endX, endY], () => {
   if (imageLoaded.value) {
     redrawCanvas();
