@@ -75,25 +75,105 @@
     "key": "Average shape factor",
     "label": "Shape factor",
     "type": "float",
-    "precision": 2
+    "precision": 2,
+    "bins": [
+      {
+        "name": "NF",
+        "fullName": "Not Fulfilled (< 0.57)",
+        "min": 0,
+        "max": 0.57
+      },
+      {
+        "name": "PF",
+        "fullName": "Partially Fulfilled (0.57-0.73)",
+        "min": 0.57,
+        "max": 0.73
+      },
+      {
+        "name": "F",
+        "fullName": "Fulfilled (≥ 0.73)",
+        "min": 0.73,
+        "max": "Infinity"
+      }
+    ]
   },
   {
     "key": "Average vertical LMT",
     "label": "Vertical LMT",
     "type": "float",
-    "precision": 2
+    "precision": 2,
+    "bins": [
+      {
+        "name": "NF",
+        "fullName": "Not Fulfilled (< 1.4)",
+        "min": 0,
+        "max": 1.4
+      },
+      {
+        "name": "PF",
+        "fullName": "Partially Fulfilled (1.4-1.6)",
+        "min": 1.4,
+        "max": 1.6
+      },
+      {
+        "name": "F",
+        "fullName": "Fulfilled (≥ 1.6)",
+        "min": 1.6,
+        "max": "Infinity"
+      }
+    ]
   },
   {
     "key": "Average horizontal LMT",
     "label": "Horizontal LMT",
     "type": "float",
-    "precision": 2
+    "precision": 2,
+    "bins": [
+      {
+        "name": "F",
+        "fullName": "Fulfilled (< 1.06)",
+        "min": 0,
+        "max": 1.06
+      },
+      {
+        "name": "PF",
+        "fullName": "Partially Fulfilled (1.06-1.11)",
+        "min": 1.06,
+        "max": 1.11
+      },
+      {
+        "name": "NF",
+        "fullName": "Not Fulfilled (≥ 1.11)",
+        "min": 1.11,
+        "max": "Infinity"
+      }
+    ]
   },
   {
     "key": "Average LMT for wall leaf connection",
     "label": "LMT for wall-leaf connection",
     "type": "float",
-    "precision": 2
+    "precision": 2,
+    "bins": [
+      {
+        "name": "NF",
+        "fullName": "Not Fulfilled (< 1.25)",
+        "min": 0,
+        "max": 1.25
+      },
+      {
+        "name": "PF",
+        "fullName": "Partially Fulfilled (1.25-1.55)",
+        "min": 1.25,
+        "max": 1.55
+      },
+      {
+        "name": "F",
+        "fullName": "Fulfilled (≥ 1.55)",
+        "min": 1.55,
+        "max": "Infinity"
+      }
+    ]
   },
   {
     "key": "Typology based on Italian Code",
