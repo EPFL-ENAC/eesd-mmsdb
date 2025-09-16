@@ -1,6 +1,17 @@
 <template>
   <div class="donut-chart-container">
-    <h6 class="chart-title q-ma-sm">{{ title }}</h6>
+    <h6 class="chart-title q-ma-sm">
+      {{ title }}
+      <template v-if="props.titleTooltip">
+        <q-icon
+          name="help_outline"
+          color="grey-6"
+        >
+          <q-tooltip>{{ props.titleTooltip }}</q-tooltip>
+        </q-icon>
+      </template>
+    </h6>
+
     <div
       ref="chartContainer"
       class="chart-wrapper"
@@ -17,6 +28,7 @@ const properties = computed(() => propertiesStore.properties)
 
 interface Props {
   title: string
+  titleTooltip?: string | undefined
   columnName: string
   filters: Record<string, string>
 }

@@ -1,6 +1,5 @@
 <template>
   <div>
-    <!-- Filter chips -->
     <div>
       <q-chip
         v-for="(value, key) in filters"
@@ -26,7 +25,6 @@
       />
     </div>
 
-    <!-- Donut charts -->
     <div class="row q-col-gutter-md justify-center">
       <div
         v-for="column in columns"
@@ -35,6 +33,7 @@
       >
         <donut-chart
           :title="propertiesStore.getColumnLabel(column) as string"
+          :title-tooltip="tooltips[column]"
           :column-name="column"
           :filters="filters"
           @sectorClick="handleSectorClick"
@@ -47,9 +46,15 @@
 <script setup lang="ts">
 import DonutChart from './DonutChart.vue'
 
+const { t } = useI18n();
 const propertiesStore = usePropertiesStore()
 
 const columns = ["Microstructure type", "Typology based on Italian Code", "Vertical loading_GMQI_class"]
+const tooltips: Record<string, string> = {
+  "Microstructure type": t("definitions.microstructure"),
+  "Typology based on Italian Code": `${t("definitions.typology")} ${["A", "B", "C", "D", "E", "E1"].map(typology => typology + ": " + t("typologies." + typology)).join(", ")}`,
+  "Vertical loading_GMQI_class": t("definitions.GMQI"),
+}
 const filters = ref<Record<string, string>>({})
 
 const handleSectorClick = (payload: { columnName: string; sectorLabel: string }) => {
