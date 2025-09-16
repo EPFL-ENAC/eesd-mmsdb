@@ -209,7 +209,7 @@
     "type": "string"
   },
   {
-    "key": "Out-of-plane_GMQI_class",
+    "key": "out-of-plane_GMQI_class",
     "label": "Out-of-plane MQI class",
     "type": "string"
   },

@@ -51,7 +51,6 @@ const propertiesStore = usePropertiesStore()
 
 const columns = ["Microstructure type", "Typology based on Italian Code", "Vertical loading_GMQI_class"]
 const tooltips: Record<string, string> = {
-  "Microstructure type": t("definitions.microstructure"),
   "Typology based on Italian Code": `${t("definitions.typology")} ${["A", "B", "C", "D", "E", "E1"].map(typology => typology + ": " + t("typologies." + typology)).join(", ")}`,
   "Vertical loading_GMQI_class": t("definitions.GMQI"),
 }

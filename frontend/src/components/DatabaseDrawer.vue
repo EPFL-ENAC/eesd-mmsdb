@@ -3,7 +3,16 @@
     <div class="text-h6 q-mb-md">Filters</div>
 
     <div v-for="key in columnFilters" :key="key" class="q-mb-xs">
-      <diV class="text-subtitle2 q-mb-xs">{{ propertiesStore.getColumnLabel(key) }}</div>
+      <diV class="text-subtitle2 q-mb-xs">{{ propertiesStore.getColumnLabel(key) }}
+        <template v-if="tooltips[key]">
+          <q-icon
+            name="help_outline"
+            color="grey-6"
+          >
+            <q-tooltip>{{ tooltips[key] }}</q-tooltip>
+          </q-icon>
+        </template>
+      </div>
 
       <q-select
         v-if="propertiesStore.getColumnType(key) === 'string'"
@@ -51,7 +60,14 @@
 import { useDatabaseFiltersStore } from 'stores/database_filters'
 import { usePropertiesStore } from 'stores/properties'
 
-const columnFilters = ["Microstructure type", "Typology based on Italian Code", "No of leaves", "Vertical loading_GMQI_class", "In-plane_GMQI_class", "Out-of-plane_GMQI_class", "Length [cm]", "Height [cm]", "Width [cm]"]
+const { t } = useI18n();
+const columnFilters = ["Microstructure type", "Typology based on Italian Code", "No of leaves", "Vertical loading_GMQI_class", "In-plane_GMQI_class", "out-of-plane_GMQI_class", "Length [cm]", "Height [cm]", "Width [cm]"]
+const tooltips: Record<string, string> = {
+  "Typology based on Italian Code": `${t("definitions.typology")} ${["A", "B", "C", "D", "E", "E1"].map(typology => typology + ": " + t("typologies." + typology)).join(", ")}`,
+  "Vertical loading_GMQI_class": t("definitions.GMQI"),
+  "In-plane_GMQI_class": t("definitions.GMQI"),
+  "out-of-plane_GMQI_class": t("definitions.GMQI"),
+}
 const databaseFiltersStore = useDatabaseFiltersStore()
 const propertiesStore = usePropertiesStore()
 
