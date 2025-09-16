@@ -89,7 +89,6 @@
       </q-card-section>
     </q-card>
 
-    <!-- Results -->
     <q-card v-if="lineStore.result" class="q-mt-md">
       <q-card-section>
         <div class="text-h6 q-mb-md">Computation Result</div>
@@ -97,13 +96,17 @@
       </q-card-section>
     </q-card>
 
-    <!-- Error Display -->
     <q-banner v-if="lineStore.error" class="bg-negative text-white q-mt-md">
       <template v-slot:avatar>
         <q-icon name="error" />
       </template>
       {{ lineStore.error }}
     </q-banner>
+
+    <q-card class="q-pa-md q-mt-md">
+      <div class="text-h4">Masonry Quality Index computation</div>
+      <!-- TODO: add MQI computation form -->
+    </q-card>
   </q-page>
 </template>
 
