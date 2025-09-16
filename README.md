@@ -21,7 +21,7 @@ make install
 Then, edit the `.env` file in the root directory of the repository with the following content:
 
 ```env
-PATH_PREFIX=
+PATH_PREFIX=<leave empty for local deployment>
 S3_ENDPOINT_PROTOCOL=https://
 S3_ENDPOINT_HOSTNAME=s3.epfl.ch
 S3_ACCESS_KEY_ID=...
