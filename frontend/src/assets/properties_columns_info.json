@@ -65,7 +65,7 @@
     "precision": 2
   },
   {
-    "key": "Percentage of volumetric stone ratio",
+    "key": "Percentage of  volumetric stone ratio",
     "label": "Volumetric stone ratio",
     "unit": "%",
     "type": "float",

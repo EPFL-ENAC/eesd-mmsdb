@@ -1,21 +1,16 @@
 import { defineStore } from 'pinia'
-import { usePropertiesStore } from './properties'
 
-const propertiesStore = usePropertiesStore()
-const numericColumns = ref<string[]>([])
+const numericColumns = [
+  "Volumetric stone ratio",
+  "Shape factor",
+  "Vertical LMT",
+  "Horizontal LMT",
+  "LMT for wall-leaf connection",
+  "Vertical MQI",
+  "In-plane MQI",
+  "Out-of-plane MQI",
+]
 
-watch(() => propertiesStore?.columnsDict,
-  (columnsDict) => {
-    if (columnsDict) {
-      numericColumns.value = Object.values(columnsDict)
-        .filter(column => column.type === "int" || column.type === "float")
-        .map(column => column.label)
-    } else {
-      numericColumns.value = []
-    }
-  },
-  { immediate: true }
-)
 
 export const useCorrelationsFiltersStore = defineStore('correlationsFilters', () => {
   const xColumn = ref<string | null>("Shape factor")
