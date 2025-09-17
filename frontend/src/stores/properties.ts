@@ -47,6 +47,11 @@ export const usePropertiesStore = defineStore('properties', () => {
     return columnsDict[key]?.bins;
   }
 
+  const getColumnKeyFromLabel = (label: string): string | null => {
+    const column = columns.find(col => col.label === label);
+    return column ? column.key : null;
+  }
+
   const getColumnValues = (key: string): string[] | undefined => {
     return properties.value?.find(col => col.name === key)?.values;
   }
@@ -82,6 +87,7 @@ export const usePropertiesStore = defineStore('properties', () => {
     getColumnUnit,
     getColumnPrecision,
     getColumnBins,
+    getColumnKeyFromLabel,
     getColumnValues,
     getBinnedProperties,
   };

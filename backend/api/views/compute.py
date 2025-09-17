@@ -1,9 +1,20 @@
 import tempfile
 from fastapi import APIRouter, HTTPException, UploadFile
 
+from api.models.compute import CorrelationResult
+from api.services.correlation import compute_correlation_parameters
 from api.services.line_minimum_trace import calculate_line_minimum_trace
 
 router = APIRouter()
+
+
+@router.get("/correlation")
+async def get_correlation_parameters(
+    x_column: str,
+    y_column: str,
+) -> CorrelationResult:
+    """Get correlation parameters between two columns in a dataset."""
+    return await compute_correlation_parameters(x_column, y_column)
 
 
 @router.post("/line")

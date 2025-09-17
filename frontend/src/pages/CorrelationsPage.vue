@@ -20,35 +20,22 @@
 import * as echarts from 'echarts'
 import { usePropertiesStore } from 'stores/properties'
 import { useCorrelationsFiltersStore } from 'stores/correlations_filters'
+import type { CorrelationResult } from 'src/models';
 const propertiesStore = usePropertiesStore()
 const correlationsFiltersStore = useCorrelationsFiltersStore()
 const properties = computed(() => propertiesStore.properties)
+const correlationParameters = ref<CorrelationResult | null>(null)
 
 const chartContainer = ref<HTMLDivElement>()
 let chartInstance: echarts.ECharts | null = null
 
-const computeLinearRegression = (points: [number, number][]) => {
-  if (points.length < 2) return null
-
-  const n = points.length
-  const sumX = points.reduce((sum, point) => sum + point[0], 0)
-  const sumY = points.reduce((sum, point) => sum + point[1], 0)
-  const sumXY = points.reduce((sum, point) => sum + point[0] * point[1], 0)
-  const sumXX = points.reduce((sum, point) => sum + point[0] * point[0], 0)
-
-  const slope = (n * sumXY - sumX * sumY) / (n * sumXX - sumX * sumX)
-  const intercept = (sumY - slope * sumX) / n
-
-  return { slope, intercept }
-}
-
-const chartData = computed(() => {
+const scatterData = computed(() => {
   if (!properties.value || !Array.isArray(properties.value) || !correlationsFiltersStore.xColumn || !correlationsFiltersStore.yColumn) {
-    return { scatterData: {}, regressionData: [] }
+    return {}
   }
 
   const scatterData: Record<string, { value: [number, number]; wallID: string }[]> = {}
-  const allPoints: [number, number][] = []
+
 
   const wallIDs = propertiesStore.getColumnValues('Wall ID') as string[]
   const xValues = properties.value.find(col => propertiesStore.getColumnLabel(col.name) === correlationsFiltersStore.xColumn)?.values as string[]
@@ -68,36 +55,48 @@ const chartData = computed(() => {
         value: [xValue, yValue],
         wallID: wallID || 'Unknown'
       })
-      allPoints.push([xValue, yValue])
+
     }
   }
 
-  const regression = computeLinearRegression(allPoints)
-  let regressionData: [number, number][] = []
+  return scatterData
+})
 
-  if (regression && allPoints.length > 0) {
-    const xValues = allPoints.map(point => point[0])
-    const minX = Math.min(...xValues)
-    const maxX = Math.max(...xValues)
-
-    regressionData = [
-      [minX, regression.slope * minX + regression.intercept],
-      [maxX, regression.slope * maxX + regression.intercept]
-    ]
+const regressionData = computed(() => {
+  if (!correlationsFiltersStore.xColumn || !correlationsFiltersStore.yColumn || Object.keys(scatterData.value).length === 0 || !correlationParameters.value) {
+    return []
   }
 
-  return { scatterData, regressionData }
+  const allPoints: [number, number][] = []
+  Object.values(scatterData.value).forEach(categoryPoints => {
+    categoryPoints.forEach(point => {
+      allPoints.push(point.value)
+    })
+  })
+
+  if (allPoints.length === 0) {
+    return []
+  }
+
+  const xValues = allPoints.map(point => point[0])
+  const minX = Math.min(...xValues)
+  const maxX = Math.max(...xValues)
+
+  return [
+    [minX, correlationParameters.value.slope * minX + correlationParameters.value.intercept],
+    [maxX, correlationParameters.value.slope * maxX + correlationParameters.value.intercept]
+  ] as [number, number][]
 })
 
 const getChartOptions = () => {
-  const scatterSeries = Object.entries(chartData.value.scatterData).map(([category, points], idx) => ({
+  const scatterSeries = Object.entries(scatterData.value).map(([category, points], idx) => ({
     name: category,
     type: 'scatter',
     symbol: ['circle', 'square', 'triangle', 'diamond', 'pin', 'arrow', 'roundRect'][idx % 6],
     data: points.map(point => point.value),
   }))
 
-  const regressionSeries = chartData.value.regressionData.length > 0 ? [{
+  const regressionSeries = regressionData.value.length > 0 ? [{
     name: 'Linear Regression',
     type: 'line',
     symbol: 'none',
@@ -106,7 +105,7 @@ const getChartOptions = () => {
       width: 2,
       type: 'dashed'
     },
-    data: chartData.value.regressionData,
+    data: regressionData.value,
     tooltip: {
       formatter: function (params: { value: (string | number)[] }) {
         const xName = correlationsFiltersStore.xColumn;
@@ -117,7 +116,7 @@ const getChartOptions = () => {
   }] : []
 
   const allSeries = [...scatterSeries, ...regressionSeries]
-  const legendData = [...Object.keys(chartData.value.scatterData)]
+  const legendData = [...Object.keys(scatterData.value)]
 
   return {
     tooltip: {
@@ -131,7 +130,7 @@ const getChartOptions = () => {
         const yName = correlationsFiltersStore.yColumn;
 
         const category = params.seriesName;
-        const wallID = chartData.value.scatterData[category]?.[params.dataIndex]?.wallID || 'Unknown';
+        const wallID = scatterData.value[category]?.[params.dataIndex]?.wallID || 'Unknown';
         return `Wall ID: ${wallID}<br/>${xName}: ${params.value[0]}<br/>${yName}: ${params.value[1]}`;
       },
       confine: true
@@ -196,10 +195,23 @@ const resizeChart = () => {
 const onDrawerToggled = resizeChart
 
 watch(
-  () => [properties.value, correlationsFiltersStore.xColumn, correlationsFiltersStore.yColumn],
+  () => [correlationsFiltersStore.xColumn, correlationsFiltersStore.yColumn],
+  async () => {
+    if (correlationsFiltersStore.xColumn && correlationsFiltersStore.yColumn) {
+      correlationParameters.value = await correlationsFiltersStore.getCorrelationParameters()
+    } else {
+      correlationParameters.value = null
+    }
+  },
+  { immediate: true }
+)
+
+watch(
+  () => [scatterData.value, regressionData.value],
   async () => {
     if (correlationsFiltersStore.xColumn && correlationsFiltersStore.yColumn) {
       await initChart()
+
     } else if (chartInstance) {
       chartInstance.clear()
     }
@@ -211,6 +223,7 @@ onMounted(async () => {
   await nextTick()
   if (correlationsFiltersStore.xColumn && correlationsFiltersStore.yColumn) {
     await initChart()
+
   }
   window.addEventListener('resize', resizeChart)
   window.addEventListener('drawer-toggled', onDrawerToggled)

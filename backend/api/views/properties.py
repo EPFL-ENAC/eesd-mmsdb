@@ -1,11 +1,10 @@
 from fastapi import APIRouter
 
-from api.services.properties import Properties
+from api.services.properties import properties
 from api.models.properties import Table
 
 
 router = APIRouter()
-properties = Properties()
 
 
 @router.get(

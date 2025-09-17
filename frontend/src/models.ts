@@ -19,6 +19,13 @@ export interface Column {
 
 export type Table = Column[];
 
+export interface CorrelationResult {
+  slope: number;
+  intercept: number;
+  R2: number;
+  MAE: number;
+}
+
 export interface LineComputeParams {
   startX: number;
   startY: number;
