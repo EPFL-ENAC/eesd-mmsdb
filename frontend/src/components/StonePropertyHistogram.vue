@@ -11,7 +11,7 @@
 
 <script setup lang="ts">
 import * as echarts from 'echarts'
-import type { Property } from '../models';
+import type { Table } from '../models';
 
 interface Props {
   title: string
@@ -22,7 +22,7 @@ interface Props {
 const props = defineProps<Props>()
 
 const stonePropertiesStore = useStonePropertiesStore()
-const stoneProperties = ref<Property[][] | null>(null)
+const stoneProperties = ref<Table | null>(null)
 
 async function fetchStoneProperties(wallId: string) {
   if (!wallId) {
@@ -47,16 +47,16 @@ const chartData = computed(() => {
   }
 
   const counts = binsConfiguration.value.map(bin =>
-    (stoneProperties.value as Property[][]).filter(propertyEntry => {
-      const property = propertyEntry.find(p => p.name === props.columnName)
-      if (property?.value !== undefined) {
-        const value = parseFloat(property.value)
-        return value >= bin.min && value < bin.max
-      }
-      return false
-    }).length
+    stoneProperties.value
+      ?.find(col => col.name === props.columnName)
+      ?.values
+      .filter(value => {
+        if (value === undefined) return false
+        const numValue = parseFloat(value)
+        return numValue >= bin.min && numValue < bin.max
+      }).length
   )
-  const total = stoneProperties.value.length
+  const total = stoneProperties.value[0]?.values.length || 1
   return binsConfiguration.value.map((bin, index) => [bin.name, counts[index] as number / total * 100])
 })
 

@@ -1,11 +1,11 @@
 import { defineStore } from 'pinia';
-import type { PropertyColumn, Property } from '../models';
+import type { ColumnInfo, Table } from '../models';
 import { api } from 'src/boot/api';
-import columnsJson from 'src/assets/properties_columns.json';
-const columns = columnsJson as PropertyColumn[];
+import columnsJson from 'src/assets/properties_columns_info.json';
+const columns = columnsJson as ColumnInfo[];
 
 export const usePropertiesStore = defineStore('properties', () => {
-  const properties = ref<Property[][] | null>(null);
+  const properties = ref<Table | null>(null);
   const loading = ref(false);
   const error = ref<string | null>(null);
 
@@ -43,28 +43,32 @@ export const usePropertiesStore = defineStore('properties', () => {
     return columnsDict[key]?.precision;
   };
 
-  const getColumnBins = (key: string): PropertyColumn['bins'] | undefined => {
+  const getColumnBins = (key: string): ColumnInfo['bins'] | undefined => {
     return columnsDict[key]?.bins;
   }
 
-  const getBinnedProperties = (): Property[][] | null => {
-    return properties.value?.map(propertyEntry =>
-      propertyEntry.map(prop => {
-        if (!getColumnBins(prop.name)) {
-          return prop;
-        }
+  const getColumnValues = (key: string): string[] | undefined => {
+    return properties.value?.find(col => col.name === key)?.values;
+  }
 
-        const binName = getColumnBins(prop.name)?.find(bin => {
-          const value = parseFloat(prop.value);
-          return value >= bin.min && value < bin.max;
-        })?.name || prop.value;
+  const getBinnedProperties = (): Table | null => {
+    return properties.value?.map(col => {
+      if (!getColumnBins(col.name)) {
+        return col;
+      }
 
-        return {
-          ...prop,
-          value: binName
-        }
-      })
-    ) || null;
+      return {
+        ...col,
+        values: col.values.map(value => {
+          const binName = getColumnBins(col.name)?.find(bin => {
+            const floatValue = parseFloat(value);
+            return floatValue >= bin.min && floatValue < bin.max;
+          })?.name || value;
+
+          return binName;
+        })
+      }
+    }) || null;
   }
 
   return {
@@ -78,6 +82,7 @@ export const usePropertiesStore = defineStore('properties', () => {
     getColumnUnit,
     getColumnPrecision,
     getColumnBins,
+    getColumnValues,
     getBinnedProperties,
   };
 });

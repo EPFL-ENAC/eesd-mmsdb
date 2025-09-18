@@ -47,20 +47,29 @@ const chartData = computed(() => {
     return []
   }
 
-  const filteredProperties = properties.value.filter(propertyEntry => {
-    return Object.entries(props.filters).every(([filterColumn, filterValue]) => {
-      const property = propertyEntry.find(p => p.name === filterColumn)
-      return !filterValue || property?.value === filterValue
+  const matchingIndicesSet = new Set<number>([...Array(properties.value[0]?.values.length).keys()])
+  Object.entries(props.filters).forEach(([filterColumn, filterValue]) => {
+    properties.value?.forEach(col => {
+      if (col.name !== filterColumn) return
+      col.values.forEach((value: string, index: number) => {
+        if (value !== filterValue) {
+          matchingIndicesSet.delete(index)
+        }
+      })
     })
   })
+
+  const matchingIndices = Array.from(matchingIndicesSet)
+  const filteredProperties = properties.value?.map(col => ({
+    ...col,
+    values: matchingIndices.map(index => col.values[index]) as string[]
+  })) || []
 
   // Aggregate data for the specified column
   const columnData: Record<string, number> = {}
 
-  filteredProperties.forEach(propertyEntry => {
-    const property = propertyEntry.find(p => p.name === props.columnName)
-    if (property?.value) {
-      const value = property.value
+  filteredProperties.find(col => col.name === props.columnName)?.values?.forEach((value: string) => {
+    if (value) {
       columnData[value] = (columnData[value] || 0) + 1
     }
   })

@@ -1,6 +1,9 @@
 from pydantic import BaseModel
 
 
-class Property(BaseModel):
+class Column(BaseModel):
     name: str
-    value: str
+    values: list[str]
+
+
+Table = list[Column]
