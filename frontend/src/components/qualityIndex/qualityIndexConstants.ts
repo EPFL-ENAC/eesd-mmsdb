@@ -98,7 +98,6 @@ const SMClassifier_PFValues = [
 
 // === Strength of Masonry (SM) ===
 export function classifySM(value: string): MQIClassification {
-  console.log("classifySM called with value:", value);
   if (SMClassifier_NFValues.includes(value)) {
     return "NF";
   } else if (SMClassifier_PFValues.includes(value)) {
