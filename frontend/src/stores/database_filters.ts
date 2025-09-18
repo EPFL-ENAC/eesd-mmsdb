@@ -109,7 +109,7 @@ export const useDatabaseFiltersStore = defineStore('databaseFilters', () => {
   const filteredWallIds = computed(() => {
     if (!Array.isArray(propertiesStore.properties)) return []
 
-    const matchingIndicesSet = new Set<number>([...Array(propertiesStore.properties[0]?.values.length).keys()])
+    const matchingIndicesSet = new Set<number>([...Array(propertiesStore.properties?.[0]?.values.length).keys()])
     Object.entries(stringFilters.value).forEach(([columnName, filterValues]) => {
       const values = propertiesStore.getColumnValues(columnName) || []
       values.forEach((value, index) => {

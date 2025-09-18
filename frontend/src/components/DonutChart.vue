@@ -47,7 +47,7 @@ const chartData = computed(() => {
     return []
   }
 
-  const matchingIndicesSet = new Set<number>([...Array(properties.value[0]?.values.length).keys()])
+  const matchingIndicesSet = new Set<number>([...Array(properties.value?.[0]?.values.length).keys()])
   Object.entries(props.filters).forEach(([filterColumn, filterValue]) => {
     properties.value?.forEach(col => {
       if (col.name !== filterColumn) return
