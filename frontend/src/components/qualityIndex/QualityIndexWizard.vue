@@ -68,7 +68,7 @@
     </q-step>
 
     <q-step :name="5" title="Thick Bed Joints & Mortar properties">
-      <div v-if="masonryType === 'Squared hardstone masonry' || masonryType === 'Brickwork (lime-based mortar)'">
+      <div v-if="masonryType?.value === 'squared-hardstone-masonry' || masonryType?.value === 'brickwork-lime-based-mortar'">
         <q-toggle v-model="thickBedJoints" label="Are mortar bed joints thick (>13 mm)?" />
       </div>
       <div v-if="isMortarNF">
@@ -116,7 +116,7 @@ import { ref } from 'vue'
 const step = ref(1);
 
 // Masonry Typologies
-const masonryType = ref(null);
+const masonryType = ref<{ label: string, value: string } | null>(null);
 
 const textParametersKeys = ["SM", "MM", "SS", "SD", "HJ"] as const;
 const selections = ref<Partial<TextParameterSelection>>({});
