@@ -38,8 +38,8 @@ const scatterData = computed(() => {
 
 
   const wallIDs = propertiesStore.getColumnValues('Wall ID') as string[]
-  const xValues = properties.value.find(col => propertiesStore.getColumnLabel(col.name) === correlationsFiltersStore.xColumn)?.values as string[]
-  const yValues = properties.value.find(col => propertiesStore.getColumnLabel(col.name) === correlationsFiltersStore.yColumn)?.values as string[]
+  const xValues = propertiesStore.getColumnValues(propertiesStore.getColumnKeyFromLabel(correlationsFiltersStore.xColumn) as string) as string[]
+  const yValues = propertiesStore.getColumnValues(propertiesStore.getColumnKeyFromLabel(correlationsFiltersStore.yColumn) as string) as string[]
 
   for (let i = 0; i < wallIDs.length; i++) {
     const wallID = wallIDs[i]
@@ -131,13 +131,13 @@ const getChartOptions = () => {
 
         const category = params.seriesName;
         const wallID = scatterData.value[category]?.[params.dataIndex]?.wallID || 'Unknown';
-        return `Wall ID: ${wallID}<br/>${xName}: ${params.value[0]}<br/>${yName}: ${params.value[1]}`;
+        return `Wall ID: ${wallID}<br/>${xName}: ${Number(params.value[0]).toFixed(2)}<br/>${yName}: ${Number(params.value[1]).toFixed(2)}`;
       },
       confine: true
     },
     xAxis: {
       type: 'value',
-      name: correlationsFiltersStore.xColumn,
+      name: `${correlationsFiltersStore.xColumn} [${propertiesStore.getColumnUnit(propertiesStore.getColumnKeyFromLabel(correlationsFiltersStore.xColumn as string) as string) || '-'}]`,
       axisTick: {
         alignWithLabel: true
       },
@@ -147,7 +147,7 @@ const getChartOptions = () => {
     },
     yAxis: {
       type: 'value',
-      name: correlationsFiltersStore.yColumn,
+      name: `${correlationsFiltersStore.yColumn} [${propertiesStore.getColumnUnit(propertiesStore.getColumnKeyFromLabel(correlationsFiltersStore.yColumn as string) as string) || '-'}]`,
       scale: true,
       nameLocation: 'middle',
       nameGap: 35,
