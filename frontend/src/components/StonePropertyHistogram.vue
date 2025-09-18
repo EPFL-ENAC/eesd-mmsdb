@@ -50,11 +50,13 @@ const chartData = computed(() => {
     stoneProperties.value
       ?.find(col => col.name === props.columnName)
       ?.values
-      .filter(value => {
+      ?.filter(value => {
         if (value === undefined) return false
         const numValue = parseFloat(value)
         return numValue >= bin.min && numValue < bin.max
-      }).length
+      })
+      ?.length
+      || 0
   )
   const total = stoneProperties.value[0]?.values.length || 1
   return binsConfiguration.value.map((bin, index) => [bin.name, counts[index] as number / total * 100])
