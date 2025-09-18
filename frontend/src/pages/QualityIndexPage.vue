@@ -106,11 +106,13 @@
     <q-card class="q-pa-md q-mt-md">
       <div class="text-h4">Masonry Quality Index computation</div>
       <!-- TODO: add MQI computation form -->
+       <quality-index-wizard />
     </q-card>
   </q-page>
 </template>
 
 <script setup lang="ts">
+import QualityIndexWizard from '../components/qualityIndex/QualityIndexWizard.vue'
 import { useLineStore } from '../stores/line';
 
 const lineStore = useLineStore();
