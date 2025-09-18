@@ -1,19 +1,19 @@
 import { defineStore } from 'pinia';
-import type { PropertyColumn, Property } from '../models';
+import type { ColumnInfo, Table } from '../models';
 import { api } from 'src/boot/api';
-import columnsJson from 'src/assets/stone_properties_columns.json';
-const columns = columnsJson as PropertyColumn[];
+import columnsJson from 'src/assets/stone_properties_columns_info.json';
+const columns = columnsJson as ColumnInfo[];
 
 const columnsDict = Object.fromEntries(
   columns.map(entry => [entry.key, entry])
 );
 
 export const useStonePropertiesStore = defineStore('stone_properties', () => {
-  const properties = ref<Record<string, Property[][]>>({});
+  const properties = ref<Record<string, Table>>({});
   const loading = ref<Record<string, boolean>>({});
   const error = ref<string | null>(null);
 
-  const getProperties = async (wallId: string): Promise<Property[][] | null> => {
+  const getProperties = async (wallId: string): Promise<Table | null> => {
     if (properties.value[wallId]) {
       return properties.value[wallId];
     }
@@ -49,7 +49,7 @@ export const useStonePropertiesStore = defineStore('stone_properties', () => {
     return columnsDict[key]?.precision;
   };
 
-  const getColumnBins = (key: string): PropertyColumn['bins'] => {
+  const getColumnBins = (key: string): ColumnInfo['bins'] => {
     if (columnsDict[key]?.bins) {
       return columnsDict[key].bins;
     }
@@ -62,6 +62,10 @@ export const useStonePropertiesStore = defineStore('stone_properties', () => {
     }))
   }
 
+  const getColumnValues = (wallId: string, key: string): string[] | undefined => {
+    return properties.value[wallId]?.find(col => col.name === key)?.values;
+  }
+
   return {
     loading,
     error,
@@ -71,5 +75,6 @@ export const useStonePropertiesStore = defineStore('stone_properties', () => {
     getColumnUnit,
     getColumnPrecision,
     getColumnBins,
+    getColumnValues
   };
 });

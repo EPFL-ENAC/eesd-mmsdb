@@ -50,15 +50,19 @@ const chartData = computed(() => {
   const scatterData: Record<string, { value: [number, number]; wallID: string }[]> = {}
   const allPoints: [number, number][] = []
 
-  for (const propertyEntry of properties.value) {
-    const wallID = propertyEntry.find(prop => prop.name === "Wall ID")?.value
+  const wallIDs = propertiesStore.getColumnValues('Wall ID') as string[]
+  const xValues = properties.value.find(col => propertiesStore.getColumnLabel(col.name) === correlationsFiltersStore.xColumn)?.values as string[]
+  const yValues = properties.value.find(col => propertiesStore.getColumnLabel(col.name) === correlationsFiltersStore.yColumn)?.values as string[]
+
+  for (let i = 0; i < wallIDs.length; i++) {
+    const wallID = wallIDs[i]
     const referenceShortName = wallID?.substring(0, 2) || "Unknown"
     if (!scatterData[referenceShortName]) {
       scatterData[referenceShortName] = []
     }
 
-    const xValue = parseFloat(propertyEntry.find(prop => propertiesStore.getColumnLabel(prop.name) === correlationsFiltersStore.xColumn)?.value || '')
-    const yValue = parseFloat(propertyEntry.find(prop => propertiesStore.getColumnLabel(prop.name) === correlationsFiltersStore.yColumn)?.value || '')
+    const xValue = parseFloat(xValues[i] || '')
+    const yValue = parseFloat(yValues[i] || '')
     if (!isNaN(xValue) && !isNaN(yValue)) {
       scatterData[referenceShortName].push({
         value: [xValue, yValue],

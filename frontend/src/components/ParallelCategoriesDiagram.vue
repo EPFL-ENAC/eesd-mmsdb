@@ -5,7 +5,6 @@
 <script setup lang="ts">
 import Plotly from 'plotly.js-dist'
 import { usePropertiesStore } from 'stores/properties'
-import type { Property } from '../models';
 
 const plotlyChart = ref(null)
 const columns = ["Microstructure type", "Typology based on Italian Code", "No of leaves", "Average vertical LMT", "Average horizontal LMT", "Average shape factor", "Vertical loading_GMQI_class"]
@@ -19,10 +18,7 @@ async function createChart() {
   }
 
   const dimensions = columns.map((col) => {
-    const values = (properties.value as Property[][]).map(propertyEntry => {
-      const property = propertyEntry.find(p => p.name === col)
-      return property?.value
-    })
+    const values = properties.value?.find(c => c.name === col)?.values || []
 
     const sortedValues = [...new Set(values)]
     if (!propertiesStore.getColumnBins(col)) {

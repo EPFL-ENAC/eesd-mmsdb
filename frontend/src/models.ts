@@ -1,4 +1,4 @@
-export interface PropertyColumn {
+export interface ColumnInfo {
   key: string;
   label: string;
   type: string;
@@ -12,10 +12,12 @@ export interface PropertyColumn {
   }[];
 }
 
-export interface Property {
+export interface Column {
   name: string;
-  value: string;
+  values: string[];
 }
+
+export type Table = Column[];
 
 export interface LineComputeParams {
   startX: number;

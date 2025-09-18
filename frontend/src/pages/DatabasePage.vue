@@ -88,7 +88,6 @@ import { useDatabaseFiltersStore } from 'stores/database_filters'
 import MicrostructureView from 'src/components/MicrostructureView.vue'
 import SimpleDialog from 'src/components/SimpleDialog.vue'
 import StonePropertyHistogram from 'src/components/StonePropertyHistogram.vue'
-import type { Property } from '../models';
 
 const dialogColumns = ["Microstructure type", "Typology based on Italian Code", "No of leaves", "Vertical loading_GMQI_class", "In-plane_GMQI_class", "Out-of-plane_GMQI_class", "Length [cm]", "Height [cm]", "Width [cm]"]
 const stoneColumns = ["Stone length [m]", "Elongation [-]", "Aspect ratio [-]"]
@@ -113,19 +112,14 @@ const selectedWallId = ref<string | null>(null)
 const selectedWallParameters = computed(() => {
   if (!selectedWallId.value || !Array.isArray(propertiesStore.properties)) return []
 
-  const propertyEntry = (propertiesStore.properties as Property[][])
-    .find(propertyEntry => {
-      const wallIdProperty = propertyEntry.find(p => p.name === 'Wall ID')
-      return wallIdProperty?.value === selectedWallId.value
-    })
+  const index = propertiesStore.getColumnValues("Wall ID")?.findIndex(id => id === selectedWallId.value)
+  if (index === undefined || index === -1) return []
 
-  if (!propertyEntry) return []
-
-  return propertyEntry
-    .filter(p => dialogColumns.includes(p.name))
-    .map(p => {
-      const precision = propertiesStore.getColumnPrecision(p.name)
-      let value = p.value
+  return propertiesStore.properties
+    .filter(col => dialogColumns.includes(col.name))
+    .map(col => {
+      const precision = propertiesStore.getColumnPrecision(col.name)
+      let value = col.values[index] as string
 
       if (precision !== undefined) {
         const numberValue = Math.floor(parseFloat(value) * Math.pow(10, precision)) / Math.pow(10, precision)
@@ -133,9 +127,9 @@ const selectedWallParameters = computed(() => {
       }
 
       return {
-        name: propertiesStore.getColumnLabel(p.name) || p.name,
+        name: propertiesStore.getColumnLabel(col.name) || col.name,
         value: value,
-        unit: propertiesStore.getColumnUnit(p.name) || ''
+        unit: propertiesStore.getColumnUnit(col.name) || ''
       }
     })
 })
