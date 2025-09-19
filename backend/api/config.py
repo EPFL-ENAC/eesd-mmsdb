@@ -4,13 +4,11 @@ from functools import lru_cache
 
 class Config(BaseSettings):
     PATH_PREFIX: str
-    S3_ENDPOINT_PROTOCOL: str
-    S3_ENDPOINT_HOSTNAME: str
-    S3_ACCESS_KEY_ID: str
-    S3_SECRET_ACCESS_KEY: str
-    S3_REGION: str
-    S3_BUCKET: str
-    S3_PATH_PREFIX: str
+    LFS_USERNAME: str
+    LFS_PASSWORD: str
+    LFS_REPO_URL: str = "https://github.com/EPFL-ENAC/eesd-mmsdb.git"
+    LFS_GIT_REF: str
+    LFS_CLONED_REPO_PATH: str
 
     PROPERTIES_PATH: str = "original/04_StoneMasonryMicrostructureDatabase.xlsx"
     PROPERTIES_SHEET: str = "Database_summary"

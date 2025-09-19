@@ -4,7 +4,7 @@ from io import StringIO
 import pandas as pd
 from fastapi import HTTPException
 
-from api.services.s3 import s3_client
+from api.views.files import get_local_file_content
 from api.config import config
 from api.models.properties import Column, Table
 
@@ -21,8 +21,15 @@ class Properties:
         if self._data is not None:
             return self._data
 
-        properties_full_path = Path(config.S3_PATH_PREFIX) / config.PROPERTIES_PATH
-        body, _ = await s3_client.get_file(str(properties_full_path))
+        properties_full_path = (
+            Path(config.LFS_CLONED_REPO_PATH) / "data" / config.PROPERTIES_PATH
+        )
+        body, _ = get_local_file_content(properties_full_path)
+        if body is None:
+            raise HTTPException(
+                status_code=404,
+                detail=f"Properties file not found at {properties_full_path}",
+            )
         data = pd.read_excel(body, config.PROPERTIES_SHEET)
         self._data = data
         return data
@@ -32,12 +39,13 @@ class Properties:
             return self._stone_data[wall_id]
 
         properties_full_path = (
-            Path(config.S3_PATH_PREFIX)
+            Path(config.LFS_CLONED_REPO_PATH)
+            / "data"
             / config.STONE_PROPERTIES_DIR_PATH
             / f"{wall_id}.csv"
         )
-        body, _ = await s3_client.get_file(str(properties_full_path))
-        if not body:
+        body, _ = get_local_file_content(properties_full_path)
+        if body is None:
             raise HTTPException(
                 status_code=404,
                 detail=f"Stone properties file for wall_id '{wall_id}' not found.",

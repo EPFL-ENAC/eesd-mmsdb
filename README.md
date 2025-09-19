@@ -4,6 +4,7 @@ _Masonry MicroStructure Database_
 
 ## Requirements
 
+- Git LFS
 - [uv](https://docs.astral.sh/uv/getting-started/installation/) Python package and project manager
 - pre-commit (`pip install pre-commit`)
 - npm
@@ -12,7 +13,14 @@ _Masonry MicroStructure Database_
 
 ## Deploying the website locally
 
-Follow these instructions to run the MMS Database website locally. First, run:
+Follow these instructions to run the MMS Database website locally. First, make sure all data is cloned:
+
+```bash
+git lfs install
+git lfs pull
+```
+
+Then, run:
 
 ```bash
 make install
@@ -22,13 +30,10 @@ Then, edit the `.env` file in the root directory of the repository with the foll
 
 ```env
 PATH_PREFIX=<leave empty for local deployment>
-S3_ENDPOINT_PROTOCOL=https://
-S3_ENDPOINT_HOSTNAME=s3.epfl.ch
-S3_ACCESS_KEY_ID=...
-S3_SECRET_ACCESS_KEY=...
-S3_REGION=EU
-S3_BUCKET=...
-S3_PATH_PREFIX=eesd-mmsdb/prod/
+LFS_USERNAME=<fill>
+LFS_PASSWORD=<fill>
+LFS_GIT_REF=<leave empty for local deployment>
+LFS_CLONED_REPO_PATH=..
 ```
 
 
