@@ -52,11 +52,12 @@ async def compute_correlation_parameters(
     # Outliers (residual > MAD threshold)
     residuals = y - y_predicted_robust
     mad_s = np.median(np.abs(residuals - np.median(residuals)))
-    outliers_ind = np.where(np.abs(residuals) > 1 * mad_s)[0]  # noqa
+    outliers_ind = np.where(np.abs(residuals) > 1 * mad_s)[0]
 
     return CorrelationResult(
         slope=robust_slope,
         intercept=robust_intercept,
         R2=R2_robust,
         MAE=MAE_robust,
+        outlier_indices=outliers_ind.tolist(),
     )

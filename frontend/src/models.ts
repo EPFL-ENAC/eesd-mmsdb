@@ -24,6 +24,7 @@ export interface CorrelationResult {
   intercept: number;
   R2: number;
   MAE: number;
+  outlier_indices: number[];
 }
 
 export interface LineComputeParams {

@@ -57,6 +57,8 @@ export const useCorrelationsFiltersStore = defineStore('correlationsFilters', ()
   }
 
   return {
+    loading,
+    error,
     numericColumns: readonly(numericColumns),
     xColumn: readonly(xColumn),
     yColumn: readonly(yColumn),

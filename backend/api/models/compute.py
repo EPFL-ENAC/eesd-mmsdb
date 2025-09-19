@@ -6,3 +6,4 @@ class CorrelationResult(BaseModel):
     intercept: float
     R2: float
     MAE: float
+    outlier_indices: list[int]
