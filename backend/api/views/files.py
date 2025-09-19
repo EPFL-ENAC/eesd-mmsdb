@@ -24,6 +24,22 @@ router = APIRouter()
 logger = getLogger("uvicorn.error")
 
 
+def cleanup_git_lock(repo_path: str):
+    """Kill other git processes and remove .git/index.lock if exists."""
+    try:
+        subprocess.run(["pkill", "-f", "git"], check=False)
+    except Exception:
+        pass
+
+    git_lock = Path(repo_path) / ".git" / "index.lock"
+    if git_lock.exists():
+        try:
+            git_lock.unlink()
+            logger.info(f"Removed git lock file: {git_lock}")
+        except Exception as e:
+            logger.warning(f"Failed to remove git lock file: {e}")
+
+
 def cmd(command: str, working_directory: str | None = None) -> bytes:
     """Run a shell command."""
 
@@ -73,6 +89,9 @@ def init_lfs_data():
         logger.info(
             "LFS repository already cloned. Checking out the specified git ref and pulling..."
         )
+        cleanup_git_lock(config.LFS_CLONED_REPO_PATH)
+        cmd("git reset --hard", working_directory=config.LFS_CLONED_REPO_PATH)
+        cmd("git clean -fdx", working_directory=config.LFS_CLONED_REPO_PATH)
         cmd(
             f"git checkout {config.LFS_GIT_REF}",
             working_directory=config.LFS_CLONED_REPO_PATH,
@@ -192,4 +211,8 @@ async def get_wall_path(
     return wall_path
 
 
-init_lfs_data()
+try:
+    init_lfs_data()
+except Exception as e:
+    logger.error(f"Failed to initialize LFS data: {e}")
+    logger.warning("Continuing without up to date LFS data.")
