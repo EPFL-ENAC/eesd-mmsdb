@@ -7,6 +7,7 @@ class Config(BaseSettings):
     LFS_USERNAME: str
     LFS_PASSWORD: str
     LFS_REPO_URL: str = "https://github.com/EPFL-ENAC/eesd-mmsdb.git"
+    LFS_SERVER_URL: str
     LFS_GIT_REF: str
     LFS_CLONED_REPO_PATH: str
 

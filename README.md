@@ -32,6 +32,7 @@ Then, edit the `.env` file in the root directory of the repository with the foll
 PATH_PREFIX=<leave empty for local deployment>
 LFS_USERNAME=<fill>
 LFS_PASSWORD=<fill>
+LFS_SERVER_URL=https://<fill>
 LFS_GIT_REF=<leave empty for local deployment>
 LFS_CLONED_REPO_PATH=..
 ```
