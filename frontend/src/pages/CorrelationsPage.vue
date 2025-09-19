@@ -164,7 +164,23 @@ const getChartOptions = () => {
       right: '5%',
       bottom: '5%',
       containLabel: true
-    }
+    },
+    graphic: [
+      {
+        type: 'text',
+        z: 100,
+        left: 'center',
+        top: 110,
+        style: {
+          fill: '#333',
+          width: 400,
+          overflow: 'break',
+          text: correlationParameters.value
+            ? `${correlationsFiltersStore.yColumn} = ${correlationParameters.value.slope.toFixed(2)} × ${correlationsFiltersStore.xColumn} ${correlationParameters.value.intercept >= 0 ? '+' : '-'} ${Math.abs(correlationParameters.value.intercept).toFixed(2)}\nR² = ${correlationParameters.value.R2.toFixed(2)}`
+            : '',
+        }
+      }
+    ]
   }
 }
 
