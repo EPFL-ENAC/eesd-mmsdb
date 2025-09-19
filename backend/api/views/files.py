@@ -120,7 +120,15 @@ def list_local_files(directory_path: Path) -> list[str]:
 async def get_file(
     file_path: str,
 ):
-    full_file_path = Path(config.LFS_CLONED_REPO_PATH) / "data" / file_path
+    base_path = Path(config.LFS_CLONED_REPO_PATH) / "data"
+    full_file_path = (base_path / file_path).resolve()
+
+    try:
+        full_file_path.relative_to(base_path.resolve())
+    except ValueError:
+        raise HTTPException(
+            status_code=403, detail="Access denied: Path outside allowed directory"
+        )
 
     try:
         body, content_type = get_local_file_content(full_file_path)
@@ -144,9 +152,16 @@ async def list_files(
     directory_path: str,
 ):
     try:
-        full_directory_path = (
-            Path(config.LFS_CLONED_REPO_PATH) / "data" / directory_path
-        )
+        base_path = Path(config.LFS_CLONED_REPO_PATH) / "data"
+        full_directory_path = (base_path / directory_path).resolve()
+
+        try:
+            full_directory_path.relative_to(base_path.resolve())
+        except ValueError:
+            raise HTTPException(
+                status_code=403, detail="Access denied: Path outside allowed directory"
+            )
+
         files = list_local_files(full_directory_path)
 
         files = [
