@@ -4,6 +4,7 @@ Handle local file operations
 
 from functools import cache
 from pathlib import Path
+import multiprocessing
 import os
 import subprocess
 import mimetypes
@@ -139,6 +140,14 @@ def init_lfs_data():
     logger.info("LFS data initialized.")
 
 
+def _init_lfs_data_wrapper():
+    try:
+        init_lfs_data()
+    except Exception as e:
+        logger.error(f"Failed to initialize LFS data (subprocess): {e}")
+        logger.warning("Continuing without up to date LFS data (subprocess).")
+
+
 def get_local_file_content(file_path: Path) -> tuple[bytes | None, str | None]:
     """Read file content and determine MIME type."""
     if not file_path.exists():
@@ -249,8 +258,6 @@ async def get_wall_path(
     return wall_path
 
 
-try:
-    init_lfs_data()
-except Exception as e:
-    logger.error(f"Failed to initialize LFS data: {e}")
-    logger.warning("Continuing without up to date LFS data.")
+multiprocessing.set_start_method("fork", force=True)
+p = multiprocessing.Process(target=_init_lfs_data_wrapper)
+p.start()
