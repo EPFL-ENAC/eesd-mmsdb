@@ -41,21 +41,59 @@ def cleanup_git_lock(repo_path: str):
 
 
 def cmd(command: str, working_directory: str | None = None) -> bytes:
-    """Run a shell command."""
+    """Run a shell command with real-time logging."""
 
-    result = subprocess.run(
+    logger.info(f"Running command: {command}")
+
+    process = subprocess.Popen(
         command.split(),
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,
         cwd=working_directory,
+        text=True,
+        bufsize=1,
+        universal_newlines=True,
     )
 
-    if result.returncode != 0:
-        raise Exception(
-            f"Command failed: {command}\n{result.stderr.decode('utf-8', errors='replace')}"
-        )
+    stdout_lines = []
+    stderr_lines = []
 
-    return result.stdout.strip()
+    while True:
+        stdout_line = process.stdout.readline() if process.stdout else None
+        stderr_line = process.stderr.readline() if process.stderr else None
+
+        if stdout_line:
+            logger.info(f"STDOUT: {stdout_line.rstrip()}")
+            stdout_lines.append(stdout_line)
+
+        if stderr_line:
+            logger.error(f"STDERR: {stderr_line.rstrip()}")
+            stderr_lines.append(stderr_line)
+
+        if process.poll() is not None:
+            break
+
+    remaining_stdout, remaining_stderr = process.communicate()
+    if remaining_stdout:
+        for line in remaining_stdout.splitlines():
+            if line.strip():
+                logger.info(f"STDOUT: {line}")
+                stdout_lines.append(line + "\n")
+
+    if remaining_stderr:
+        for line in remaining_stderr.splitlines():
+            if line.strip():
+                logger.error(f"STDERR: {line}")
+                stderr_lines.append(line + "\n")
+
+    return_code = process.returncode
+
+    if return_code != 0:
+        stderr_output = "".join(stderr_lines)
+        raise Exception(f"Command failed: {command}\n{stderr_output}")
+
+    stdout_output = "".join(stdout_lines)
+    return stdout_output.strip().encode("utf-8")
 
 
 def init_lfs_data():
