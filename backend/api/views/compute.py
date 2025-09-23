@@ -1,5 +1,6 @@
 import tempfile
 from fastapi import APIRouter, HTTPException, UploadFile
+from fastapi_cache.decorator import cache
 
 from api.models.compute import CorrelationResult
 from api.services.correlation import compute_correlation_parameters
@@ -9,6 +10,7 @@ router = APIRouter()
 
 
 @router.get("/correlation")
+@cache()
 async def get_correlation_parameters(
     x_column: str,
     y_column: str,

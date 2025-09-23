@@ -2,7 +2,7 @@
 Handle local file operations
 """
 
-from functools import cache
+from functools import cache as functools_cache
 from pathlib import Path
 import multiprocessing
 import os
@@ -12,6 +12,7 @@ from logging import getLogger
 
 from fastapi import APIRouter, HTTPException
 from fastapi.responses import Response
+from fastapi_cache.decorator import cache
 from pydantic import BaseModel
 
 from api.config import config
@@ -150,6 +151,7 @@ def _init_lfs_data_wrapper():
         cleanup_git_lock(config.LFS_CLONED_REPO_PATH)
 
 
+@functools_cache
 def get_local_file_content(file_path: Path) -> tuple[bytes | None, str | None]:
     """Read file content and determine MIME type."""
     if not file_path.exists():
@@ -165,7 +167,6 @@ def get_local_file_content(file_path: Path) -> tuple[bytes | None, str | None]:
     return content, mime_type
 
 
-@cache
 def list_local_files(directory_path: Path) -> list[str]:
     """List all files in a directory recursively."""
     logger.info(f"Listing files in directory: {directory_path}")
@@ -185,6 +186,7 @@ def list_local_files(directory_path: Path) -> list[str]:
     status_code=200,
     description="Download any assets from local LFS repository",
 )
+# FastAPI in-memory cache does not support binary responses
 async def get_file(
     file_path: str,
 ):
@@ -216,6 +218,7 @@ async def get_file(
     status_code=200,
     description="List files in a given directory path in local LFS repository",
 )
+@cache()
 async def list_files(
     directory_path: str,
 ):
@@ -246,6 +249,7 @@ async def list_files(
     status_code=200,
     description='Get the local path for a given wall ID, in the form "OC01"',
 )
+@cache()
 async def get_wall_path(
     wall_id: str,
 ) -> str | None:
