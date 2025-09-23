@@ -73,7 +73,7 @@
   },
   {
     "key": "Average shape factor",
-    "label": "Shape factor",
+    "label": "Average shape factor",
     "type": "float",
     "precision": 2,
     "bins": [
@@ -99,7 +99,7 @@
   },
   {
     "key": "Average vertical LMT",
-    "label": "Vertical LMT",
+    "label": "Average vertical LMT",
     "type": "float",
     "precision": 2,
     "bins": [
@@ -125,7 +125,7 @@
   },
   {
     "key": "Average horizontal LMT",
-    "label": "Horizontal LMT",
+    "label": "Average horizontal LMT",
     "type": "float",
     "precision": 2,
     "bins": [
@@ -151,7 +151,7 @@
   },
   {
     "key": "Average LMT for wall leaf connection",
-    "label": "LMT for wall-leaf connection",
+    "label": "Average lMT for wall-leaf connection",
     "type": "float",
     "precision": 2,
     "bins": [

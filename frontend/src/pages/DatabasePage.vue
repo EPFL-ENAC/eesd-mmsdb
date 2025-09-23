@@ -85,11 +85,13 @@ import { usePropertiesStore } from 'stores/properties'
 import { useStonePropertiesStore } from 'stores/stone_properties'
 import { useWallsStore } from 'stores/walls'
 import { useDatabaseFiltersStore } from 'stores/database_filters'
+import type { Column } from '../models';
 import MicrostructureView from 'src/components/MicrostructureView.vue'
 import SimpleDialog from 'src/components/SimpleDialog.vue'
 import StonePropertyHistogram from 'src/components/StonePropertyHistogram.vue'
 
-const dialogColumns = ["Microstructure type", "Typology based on Italian Code", "No of leaves", "Vertical loading_GMQI_class", "In-plane_GMQI_class", "Out-of-plane_GMQI_class", "Length [cm]", "Height [cm]", "Width [cm]"]
+const dialogColumns = ["Microstructure type", "Typology based on Italian Code", "No of leaves", "Vertical loading_GMQI_class", "In-plane_GMQI_class", "Out-of-plane_GMQI_class", "Average vertical LMT", "Average horizontal LMT", "Average shape factor"]
+const dimensionsColumns = ["Length [cm]", "Height [cm]", "Width [cm]"]
 const stoneColumns = ["Stone length [m]", "Elongation [-]", "Aspect ratio [-]"]
 const propertiesStore = usePropertiesStore()
 const stonePropertiesStore = useStonePropertiesStore()
@@ -115,23 +117,42 @@ const selectedWallParameters = computed(() => {
   const index = propertiesStore.getColumnValues("Wall ID")?.findIndex(id => id === selectedWallId.value)
   if (index === undefined || index === -1) return []
 
-  return propertiesStore.properties
+  const toDisplayedParameters = (col: Column) => {
+    const precision = propertiesStore.getColumnPrecision(col.name)
+    let value = col.values[index] as string
+
+    if (precision !== undefined) {
+      const numberValue = Math.floor(parseFloat(value) * Math.pow(10, precision)) / Math.pow(10, precision)
+      value = numberValue.toString()
+    }
+
+    return {
+      name: propertiesStore.getColumnLabel(col.name) || col.name,
+      value: value,
+      unit: propertiesStore.getColumnUnit(col.name) || '',
+    }
+  }
+
+  const properties = propertiesStore.properties
     .filter(col => dialogColumns.includes(col.name))
-    .map(col => {
-      const precision = propertiesStore.getColumnPrecision(col.name)
-      let value = col.values[index] as string
+    .map(toDisplayedParameters)
 
-      if (precision !== undefined) {
-        const numberValue = Math.floor(parseFloat(value) * Math.pow(10, precision)) / Math.pow(10, precision)
-        value = numberValue.toString()
-      }
+  const dimensions = propertiesStore.properties
+    .filter(col => dimensionsColumns.includes(col.name))
+    .map(toDisplayedParameters)
+    .reduce((acc, dimensionsString) => {
+      if (acc.length > 0) acc += ' × '
+      acc += `${dimensionsString.value} ${dimensionsString.unit}`
+      return acc
+    }, '')
 
-      return {
-        name: propertiesStore.getColumnLabel(col.name) || col.name,
-        value: value,
-        unit: propertiesStore.getColumnUnit(col.name) || ''
-      }
-    })
+  properties.push({
+    name: 'Dimensions',
+    value: dimensions,
+    unit: '',
+  })
+
+  return properties
 })
 
 onMounted(async () => {
