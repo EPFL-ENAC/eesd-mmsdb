@@ -12,7 +12,6 @@ class Config(BaseSettings):
     LFS_CLONED_REPO_PATH: str
 
     PROPERTIES_PATH: str = "original/04_StoneMasonryMicrostructureDatabase.csv"
-    PROPERTIES_SHEET: str = "Database_summary"
     STONE_PROPERTIES_DIR_PATH: str = "original/03_Stones_geometric_properties"
 
 
