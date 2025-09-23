@@ -7,10 +7,10 @@ const propertiesStore = usePropertiesStore()
 
 const numericColumns = [
   "Volumetric stone ratio",
-  "Shape factor",
-  "Vertical LMT",
-  "Horizontal LMT",
-  "LMT for wall-leaf connection",
+  "Average shape factor",
+  "Average vertical LMT",
+  "Average horizontal LMT",
+  "Average LMT for wall-leaf connection",
   "Vertical MQI",
   "In-plane MQI",
   "Out-of-plane MQI",
@@ -18,8 +18,8 @@ const numericColumns = [
 
 
 export const useCorrelationsFiltersStore = defineStore('correlationsFilters', () => {
-  const xColumn = ref<string | null>("Shape factor")
-  const yColumn = ref<string | null>("Vertical LMT")
+  const xColumn = ref<string | null>("Average shape factor")
+  const yColumn = ref<string | null>("Average vertical LMT")
   const loading = ref(false)
   const error = ref<string | null>(null)
 
