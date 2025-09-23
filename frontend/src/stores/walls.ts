@@ -2,10 +2,19 @@ import { defineStore } from 'pinia';
 import { api } from 'src/boot/api';
 // import axios from 'axios';
 
+export interface WallStonesList {
+  wallId: string;
+  folder: string;
+  files: string[];
+}
+
 export const useWallsStore = defineStore('walls', () => {
   const loading = ref(false);
   const error = ref<string | null>(null);
   const wallCache = ref<Record<string, ArrayBuffer>>({});
+  const wallStonesListCache = ref<Record<string, WallStonesList>>({});
+  const wallStoneCache = ref<Record<string, ArrayBuffer>>({});
+  const wallPropertiesCSVCache = ref<Record<string, ArrayBuffer>>({});
   const wallImageCache = ref<Record<string, ArrayBuffer>>({});
   const wallImages = ref<Record<string, string>>({});
   const loadingImages = ref<Record<string, boolean>>({});
@@ -31,6 +40,7 @@ export const useWallsStore = defineStore('walls', () => {
 
     try {
       const wallPath = (await api.get(`/files/wall-path/${id}`)).data;
+      console.log(`Resolved wall path for ${id}: ${wallPath}`);
       const filePath = `${downscaled?"downscaled":"original"}/01_Microstructures_data/${wallPath}/02_Wall_data/${id}.ply`;
       console.log(`Fetching wall data from: ${filePath}`);
       const response = await api.get(`/files/get/${filePath}`, {
@@ -50,6 +60,69 @@ export const useWallsStore = defineStore('walls', () => {
     }
   };
 
+  /**
+   * Get list of stones for a given wall
+   * @param id - Wall identifier of the form "OC01"
+   * @returns Promise that resolves to WallStonesList or null if error
+   */
+  async function getWallStonesList(id: string): Promise<WallStonesList | null> {
+    const cacheKey = id;
+    if (wallStonesListCache.value[cacheKey]) {
+      return wallStonesListCache.value[cacheKey];
+    }
+
+    loading.value = true;
+    error.value = null;
+
+    try {
+      const wallStonesList: WallStonesList = (await api.get(`/files/wall-path/${id}/stones`)).data;
+
+      wallStonesListCache.value[cacheKey] = wallStonesList;
+      return wallStonesList;
+    } catch (err) {
+      error.value = err instanceof Error ? err.message : 'An unknown error occurred';
+      return null;
+    } finally {
+      loading.value = false;
+    }
+  };
+
+  /**
+   * Get wall data as ArrayBuffer
+   * @param downscaled - Whether to get downscaled version
+   * @param id - Wall identifier of the form "OC01"
+   * @returns Promise that resolves to ArrayBuffer or null if error
+   */
+  async function getWallStoneModel(downscaled: boolean, path: string): Promise<ArrayBuffer | null> {
+    const cacheKey = `${downscaled}:${path}`;
+    console.log(cacheKey)
+    if (wallStoneCache.value[cacheKey]) {
+      return wallStoneCache.value[cacheKey];
+    }
+
+    loading.value = true;
+    error.value = null;
+
+    try {
+      const filePath = `${downscaled?"downscaled":"original"}/01_Microstructures_data/${path}`;
+      console.log(`Fetching wall data from: ${filePath}`);
+      const response = await api.get(`/files/get/${filePath}`, {
+        params: {
+          d: false
+        },
+        responseType: 'arraybuffer'
+      });
+
+      wallStoneCache.value[cacheKey] = response.data;
+      return response.data;
+    } catch (err) {
+      error.value = err instanceof Error ? err.message : 'An unknown error occurred';
+      return null;
+    } finally {
+      loading.value = false;
+    }
+  };
+
   async function getWallImage(id: string): Promise<ArrayBuffer | null> {
     const cacheKey = id;
     if (wallImageCache.value[cacheKey]) {
@@ -57,6 +130,34 @@ export const useWallsStore = defineStore('walls', () => {
     }
 
     const filePath = `original/02_Rendered_walls_photos/${id}.png`;
+    loading.value = true;
+    error.value = null;
+
+    try {
+      const response = await api.get(`/files/get/${filePath}`, {
+        params: {
+          d: false
+        },
+        responseType: 'arraybuffer'
+      });
+      wallImageCache.value[cacheKey] = response.data;
+      return response.data;
+    } catch (err) {
+      error.value = err instanceof Error ? err.message : 'An unknown error occurred';
+      return null;
+    } finally {
+      loading.value = false;
+    }
+  }
+
+  async function getWallPropertiesCSVFile(id: string): Promise<ArrayBuffer | null> {
+    console.log(id);
+    const cacheKey = id;
+    if (wallPropertiesCSVCache.value[cacheKey]) {
+      return wallPropertiesCSVCache.value[cacheKey];
+    }
+
+    const filePath = `original/03_Stones_geometric_properties/${id}.csv`;
     loading.value = true;
     error.value = null;
 
@@ -115,6 +216,9 @@ export const useWallsStore = defineStore('walls', () => {
     wallImages,
     loadingImages,
     getWall,
+    getWallStonesList,
+    getWallStoneModel,
+    getWallPropertiesCSVFile,
     getWallImage,
     loadWallImage,
     revokeWallImageUrl,
