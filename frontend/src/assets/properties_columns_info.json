@@ -65,7 +65,7 @@
     "precision": 2
   },
   {
-    "key": "Percentage of  volumetric stone ratio",
+    "key": "Percentage of volumetric stone ratio",
     "label": "Volumetric stone ratio",
     "unit": "%",
     "type": "float",
@@ -193,7 +193,7 @@
     "precision": 2
   },
   {
-    "key": "Out-of-plan_GMQI",
+    "key": "Out-of-plane_GMQI",
     "label": "Out-of-plane MQI",
     "type": "float",
     "precision": 2
@@ -209,7 +209,7 @@
     "type": "string"
   },
   {
-    "key": "out-of-plane_GMQI_class",
+    "key": "Out-of-plane_GMQI_class",
     "label": "Out-of-plane MQI class",
     "type": "string"
   },

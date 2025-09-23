@@ -30,7 +30,7 @@ class Properties:
                 status_code=404,
                 detail=f"Properties file not found at {properties_full_path}",
             )
-        data = pd.read_excel(body, config.PROPERTIES_SHEET)
+        data = pd.read_csv(StringIO(body.decode("utf-8")))
         self._data = data
         return data
 
