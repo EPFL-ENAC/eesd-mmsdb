@@ -105,16 +105,16 @@ def init_lfs_data():
         logger.info("LFS_GIT_REF is not set. Using local data.")
         return
 
-    if not os.path.exists(config.LFS_CLONED_REPO_PATH):
-        lfs_server_url = config.LFS_SERVER_URL.replace(
-            "https://", f"https://{config.LFS_USERNAME}:{config.LFS_PASSWORD}@"
-        )
-        credentials_line = f"{lfs_server_url}\n"
-        git_credentials_path = Path.home() / ".git-credentials"
-        with open(git_credentials_path, "a") as f:
-            f.write(credentials_line)
-        cmd("git config --global credential.helper store")
+    lfs_server_url = config.LFS_SERVER_URL.replace(
+        "https://", f"https://{config.LFS_USERNAME}:{config.LFS_PASSWORD}@"
+    )
+    credentials_line = f"{lfs_server_url}\n"
+    git_credentials_path = Path.home() / ".git-credentials"
+    with open(git_credentials_path, "a") as f:
+        f.write(credentials_line)
+    cmd("git config --global credential.helper store")
 
+    if not os.path.exists(config.LFS_CLONED_REPO_PATH):
         logger.info("Creating parent directories for LFS repository clone...")
         os.makedirs(config.LFS_CLONED_REPO_PATH, exist_ok=True)
         logger.info("Cloning LFS repository...")
