@@ -217,5 +217,26 @@
     "key": "Microstructure type",
     "label": "Microstructure type",
     "type": "string"
+  },
+  {
+    "key": "Not Fulfill (l<20 cm) [%]",
+    "label": "Not Fulfilled (< 20 cm)",
+    "unit": "%",
+    "type": "float",
+    "precision": 2
+  },
+  {
+    "key": "Partial Fulfill (20cm-40cm) [%]",
+    "label": "Partially Fulfilled (20 cm - 40 cm)",
+    "unit": "%",
+    "type": "float",
+    "precision": 2
+  },
+  {
+    "key": "Fulfill (l>40cm) [%]",
+    "label": "Fulfilled (> 40 cm)",
+    "unit": "%",
+    "type": "float",
+    "precision": 2
   }
 ]
