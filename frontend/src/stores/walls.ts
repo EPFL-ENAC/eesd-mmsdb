@@ -95,7 +95,6 @@ export const useWallsStore = defineStore('walls', () => {
    */
   async function getWallStoneModel(downscaled: boolean, path: string): Promise<ArrayBuffer | null> {
     const cacheKey = `${downscaled}:${path}`;
-    console.log(cacheKey)
     if (wallStoneCache.value[cacheKey]) {
       return wallStoneCache.value[cacheKey];
     }
@@ -151,7 +150,6 @@ export const useWallsStore = defineStore('walls', () => {
   }
 
   async function getWallPropertiesCSVFile(id: string): Promise<ArrayBuffer | null> {
-    console.log(id);
     const cacheKey = id;
     if (wallPropertiesCSVCache.value[cacheKey]) {
       return wallPropertiesCSVCache.value[cacheKey];
@@ -168,7 +166,7 @@ export const useWallsStore = defineStore('walls', () => {
         },
         responseType: 'arraybuffer'
       });
-      wallImageCache.value[cacheKey] = response.data;
+      wallPropertiesCSVCache.value[cacheKey] = response.data;
       return response.data;
     } catch (err) {
       error.value = err instanceof Error ? err.message : 'An unknown error occurred';

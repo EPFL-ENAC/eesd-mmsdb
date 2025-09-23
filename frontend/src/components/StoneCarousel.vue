@@ -24,7 +24,7 @@
 </template>
 
 <script setup lang="ts">
-import type { WallStonesList } from 'src/stores/walls';
+import { useWallsStore, type WallStonesList } from 'stores/walls'
 import MicrostructureView from 'src/components/MicrostructureView.vue'
 
 const wallsStore = useWallsStore();
@@ -36,12 +36,11 @@ const props = defineProps<{
 
 const index = ref(0);
 const loading = ref(false);
-let currentStone: ArrayBuffer | null = null;
+const currentStone = ref<ArrayBuffer | null>(null);
 
 function nextStone() {
     index.value = (index.value + 1) % props.stones.files.length;
 }
-
 
 function previousStone() {
     index.value = (index.value - 1 + props.stones.files.length) % props.stones.files.length;
@@ -55,9 +54,9 @@ async function getStoneAtIndex(i: number): Promise<ArrayBuffer | null> {
 async function setCurrentStone(i: number) {
     loading.value = true;
 
-    currentStone = await getStoneAtIndex(i);
+    currentStone.value = await getStoneAtIndex(i);
 
-    // Preload next and previous stones, without awaiting them to not block ! The non-awaited nature is made explicite with the void operator.
+    // Preload next and previous stones, without awaiting them to not block ! The non-awaited nature is made explicit with the void operator.
     for (let offset = 1; offset <= (props.preloadNext || 0); offset++) {
         const nextIndex = (i + offset) % props.stones.files.length;
         void getStoneAtIndex(nextIndex);

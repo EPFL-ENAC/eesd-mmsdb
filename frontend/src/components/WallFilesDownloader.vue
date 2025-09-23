@@ -16,7 +16,7 @@
 </template>
 
 <script setup lang="ts">
-import type { WallStonesList } from 'src/stores/walls';
+import { useWallsStore, type WallStonesList } from 'stores/walls';
 import { type DownloadableFile, downloadFilesAsZip } from 'src/utils/download';
 import { ref } from 'vue'
 
