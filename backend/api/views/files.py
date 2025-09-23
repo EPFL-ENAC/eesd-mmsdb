@@ -6,9 +6,11 @@ from functools import cache as functools_cache
 from pathlib import Path
 import multiprocessing
 import os
+import re
 import subprocess
 import mimetypes
 from logging import getLogger
+from typing import List
 
 from fastapi import APIRouter, HTTPException
 from fastapi.responses import Response
@@ -262,6 +264,42 @@ async def get_wall_path(
     wall_path = wall_paths[0]
     wall_path = wall_path[: wall_path.index("/02_Wall_data")]
     return wall_path
+
+
+# regex to capture the number from filenames like "OM01_stone_21.ply"
+STONE_NUMBER_REGEX = re.compile(r"_stone_(\d+)\.ply$")
+
+
+def extract_stone_number(filename: str) -> int:
+    match = STONE_NUMBER_REGEX.search(filename)
+    return int(match.group(1)) if match else -1  # fallback if unexpected format
+
+
+class StonesResponse(BaseModel):
+    folder: str
+    files: List[str]
+
+
+@router.get(
+    "/wall-path/{wall_id}/stones",
+    status_code=200,
+    description='Get all the stones files paths for a given wall ID, in the form { folder: "/path/to/folder", files: ["stone1.ply", "stone2.ply"] }',
+)
+async def get_wall_stones_paths_by_wall_id(
+    wall_id: str,
+) -> StonesResponse | None:
+    wall_path = await get_wall_path(wall_id)
+    if not wall_path:
+        return None
+
+    stones_dir = f"{wall_path}/01_Stones_data"
+    stone_files = (
+        await list_files(f"downscaled/01_Microstructures_data/{stones_dir}")
+    )["files"]
+    stone_files = [Path(f).name for f in stone_files if f.endswith(".ply")]
+    stone_files.sort(key=extract_stone_number)
+
+    return StonesResponse(folder=stones_dir, files=stone_files)
 
 
 multiprocessing.set_start_method("fork", force=True)

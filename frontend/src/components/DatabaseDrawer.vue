@@ -3,7 +3,7 @@
     <div class="text-h6 q-mb-md">Filters</div>
 
     <div v-for="key in columnFilters" :key="key" class="q-mb-xs">
-      <diV class="text-subtitle2 q-mb-xs">{{ propertiesStore.getColumnLabel(key) }}
+      <div class="text-subtitle2 q-mb-xs">{{ propertiesStore.getColumnLabel(key) }}
         <template v-if="tooltips[key]">
           <q-icon
             name="help_outline"

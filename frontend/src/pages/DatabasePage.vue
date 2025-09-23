@@ -7,11 +7,7 @@
     </div>
 
     <div class="microstructure-grid">
-      <div
-        v-for="wallId in filteredWallIds"
-        :key="wallId"
-        class="microstructure-card"
-      >
+      <div v-for="wallId in filteredWallIds" :key="wallId" class="microstructure-card">
         <q-card class="cursor-pointer" @click="openWallDialog(wallId)">
           <q-card-section class="text-center q-mt-sm q-pa-none">
             <div class="wall-image-title">{{ wallId }}</div>
@@ -19,12 +15,8 @@
 
           <q-card-section class="q-pa-sm">
             <div class="wall-image-container">
-              <img
-                v-if="wallImages[wallId]"
-                :src="wallImages[wallId]"
-                :alt="`Wall ${wallId} preview`"
-                class="wall-image"
-              />
+              <img v-if="wallImages[wallId]" :src="wallImages[wallId]" :alt="`Wall ${wallId} preview`"
+                class="wall-image" />
               <div v-else class="wall-image-placeholder">
                 <q-spinner v-if="loadingImages[wallId]" color="primary" size="2em" />
                 <q-icon v-else name="image" size="3em" color="grey-5" />
@@ -35,28 +27,19 @@
       </div>
     </div>
 
-    <simple-dialog
-      v-model="showWallDialog"
-      :title="`Wall ${selectedWallId}`"
-      size="lg"
-    >
+    <simple-dialog v-model="showWallDialog" :title="`Wall ${selectedWallId}`" size="lg">
       <div v-if="selectedWallId" class="wall-dialog-content">
-        <microstructure-view
-          :ply-data="wallData[selectedWallId] || null"
-          :width="400"
-          :height="400"
-          sliceable
-          class="microstructure-item"
-        />
+        <microstructure-view :ply-data="wallData[selectedWallId] || null" :width="400" :height="400" sliceable
+          class="microstructure-item" />
+
+        <div v-if="wallStoneList[selectedWallId]">
+          <stone-carousel :stones="wallStoneList[selectedWallId]!" :preload-next="5" :preload-previous="5" />
+        </div>
 
         <div class="parameters-section">
           <div class="text-h6 q-mb-md">Parameters</div>
           <div class="parameters-grid">
-            <div
-              v-for="param in selectedWallParameters"
-              :key="param.name"
-              class="parameter-item"
-            >
+            <div v-for="param in selectedWallParameters" :key="param.name" class="parameter-item">
               <div class="parameter-name">{{ param.name }}</div>
               <div class="parameter-value">{{ param.value }} {{ param.unit }}</div>
             </div>
@@ -66,14 +49,14 @@
         <div class="stones-section q-mt-md">
           <div class="text-h6 q-mb-md">Stones</div>
           <div class="parameters-grid">
-            <stone-property-histogram
-              v-for="column of stoneColumns"
-              :key="column"
-              :title="stonePropertiesStore.getColumnLabel?.(column)"
-              :wallID="selectedWallId"
-              :columnName="column"
-            />
+            <stone-property-histogram v-for="column of stoneColumns" :key="column"
+              :title="stonePropertiesStore.getColumnLabel?.(column)" :wallID="selectedWallId" :columnName="column" />
           </div>
+        </div>
+
+        <div>
+          <div class="text-h6 q-mb-md">Download</div>
+          <wall-files-downloader :wallId="selectedWallId" :stones="wallStoneList[selectedWallId]!" />
         </div>
       </div>
     </simple-dialog>
@@ -83,12 +66,14 @@
 <script setup lang="ts">
 import { usePropertiesStore } from 'stores/properties'
 import { useStonePropertiesStore } from 'stores/stone_properties'
-import { useWallsStore } from 'stores/walls'
+import { useWallsStore, type WallStonesList } from 'stores/walls'
 import { useDatabaseFiltersStore } from 'stores/database_filters'
 import type { Column } from '../models';
 import MicrostructureView from 'src/components/MicrostructureView.vue'
+import StoneCarousel from 'src/components/StoneCarousel.vue'
 import SimpleDialog from 'src/components/SimpleDialog.vue'
 import StonePropertyHistogram from 'src/components/StonePropertyHistogram.vue'
+import WallFilesDownloader from 'src/components/WallFilesDownloader.vue'
 
 const dialogColumns = ["Microstructure type", "Typology based on Italian Code", "No of leaves", "Vertical loading_GMQI_class", "In-plane_GMQI_class", "Out-of-plane_GMQI_class", "Average vertical LMT", "Average horizontal LMT", "Average shape factor"]
 const dimensionsColumns = ["Length [cm]", "Height [cm]", "Width [cm]"]
@@ -103,6 +88,8 @@ const allWallIds = computed(() => databaseFiltersStore.allWallIds)
 
 
 const wallData = ref<Record<string, ArrayBuffer | null>>({})
+const wallStoneData = ref<Record<string, ArrayBuffer | null>>({})
+const wallStoneList = ref<Record<string, WallStonesList | null>>({})
 const loadingWallData = ref(false)
 
 const wallImages = computed(() => wallsStore.wallImages)
@@ -173,6 +160,13 @@ async function openWallDialog(wallId: string) {
     loadingWallData.value = true
     try {
       wallData.value[wallId] = await wallsStore.getWall(true, wallId)
+
+      const stoneList = await wallsStore.getWallStonesList(wallId)
+      wallStoneList.value[wallId] = stoneList
+
+      const firstStonePath = `${stoneList?.folder}/${stoneList?.files[0] || ""}`;
+      const firstStone = await wallsStore.getWallStoneModel(true, firstStonePath)
+      wallStoneData.value[wallId] = firstStone
     } catch (error) {
       console.error(`Failed to load wall data for ${wallId}:`, error)
       wallData.value[wallId] = null
@@ -223,7 +217,8 @@ onUnmounted(() => {
 .wall-image {
   width: 100%;
   height: 100%;
-  object-fit: contain; /* Show the whole image, don't crop */
+  object-fit: contain;
+  /* Show the whole image, don't crop */
 }
 
 .wall-image-placeholder {
