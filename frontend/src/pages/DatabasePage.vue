@@ -133,18 +133,18 @@ const selectedWallParameters = computed(() => {
     }
   }
 
-  const properties = propertiesStore.properties
-    .filter(col => dialogColumns.includes(col.name))
-    .map(toDisplayedParameters)
+  const properties = dialogColumns
+    .map(col => ({ name: col, values: propertiesStore.getColumnValues(col) || [] }))
+    .map(toDisplayedParameters);
 
-  const dimensions = propertiesStore.properties
-    .filter(col => dimensionsColumns.includes(col.name))
+  const dimensions = dimensionsColumns
+    .map(col => ({ name: col, values: propertiesStore.getColumnValues(col) || [] }))
     .map(toDisplayedParameters)
     .reduce((acc, dimensionsString) => {
       if (acc.length > 0) acc += ' × '
       acc += `${dimensionsString.value} ${dimensionsString.unit}`
       return acc
-    }, '')
+    }, '');
 
   properties.push({
     name: 'Dimensions',
