@@ -128,13 +128,13 @@ def init_lfs_data():
         logger.info(
             "LFS repository already cloned. Checking out the specified git ref and pulling..."
         )
-        cleanup_git_lock(config.LFS_CLONED_REPO_PATH)
         cmd("git reset --hard", working_directory=config.LFS_CLONED_REPO_PATH)
         cmd("git clean -fdx", working_directory=config.LFS_CLONED_REPO_PATH)
         cmd(
             f"git checkout {config.LFS_GIT_REF}",
             working_directory=config.LFS_CLONED_REPO_PATH,
         )
+        cmd("git pull", working_directory=config.LFS_CLONED_REPO_PATH)
         cmd("git lfs pull", working_directory=config.LFS_CLONED_REPO_PATH)
 
     logger.info("LFS data initialized.")
@@ -146,6 +146,8 @@ def _init_lfs_data_wrapper():
     except Exception as e:
         logger.error(f"Failed to initialize LFS data (subprocess): {e}")
         logger.warning("Continuing without up to date LFS data (subprocess).")
+    finally:
+        cleanup_git_lock(config.LFS_CLONED_REPO_PATH)
 
 
 def get_local_file_content(file_path: Path) -> tuple[bytes | None, str | None]:
