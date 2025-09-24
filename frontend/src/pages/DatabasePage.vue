@@ -37,7 +37,7 @@
         </div>
 
         <div class="parameters-section">
-          <div class="text-h6 q-mb-md">Parameters</div>
+          <div class="text-h6 q-mb-md">Wall properties</div>
           <div class="parameters-grid">
             <div v-for="param in selectedWallParameters" :key="param.name" class="parameter-item">
               <div class="parameter-name">{{ param.name }}</div>
