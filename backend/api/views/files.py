@@ -6,12 +6,11 @@ from functools import cache as functools_cache
 from pathlib import Path
 import multiprocessing
 import os
-import re
 import subprocess
 import mimetypes
 from logging import getLogger
-from typing import List
 
+from api.models.files import StonesResponse, extract_stone_number
 from fastapi import APIRouter, HTTPException
 from fastapi.responses import Response
 from fastapi_cache.decorator import cache
@@ -264,20 +263,6 @@ async def get_wall_path(
     wall_path = wall_paths[0]
     wall_path = wall_path[: wall_path.index("/02_Wall_data")]
     return wall_path
-
-
-# regex to capture the number from filenames like "OM01_stone_21.ply"
-STONE_NUMBER_REGEX = re.compile(r"_stone_(\d+)\.ply$")
-
-
-def extract_stone_number(filename: str) -> int:
-    match = STONE_NUMBER_REGEX.search(filename)
-    return int(match.group(1)) if match else -1  # fallback if unexpected format
-
-
-class StonesResponse(BaseModel):
-    folder: str
-    files: List[str]
 
 
 @router.get(

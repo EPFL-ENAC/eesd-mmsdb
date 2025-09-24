@@ -1,16 +1,16 @@
 <template>
     <div class="stone-carousel q-mb-md">
         <div class="q-mb-sm">
-            <div class="q-mb-xs text-h6">Individual stones</div>
-            <div class="q-mb-xs">Current file: {{ props.stones.files[index] }} ({{ index }}/{{ props.stones.files.length - 1 }})</div>
-            <q-input dense v-model.number="index" label="Stone #" type="number" min="0" :max="props.stones.files.length - 1" filled />
+            <div class="text-h6">Individual stones</div>
+            <q-badge class="q-mb-xs">{{ index }}/{{ props.stones.files.length - 1 }} : {{ props.stones.files[index] }}</q-badge>
+            <q-slider v-model="index" :min="0" :max="props.stones.files.length - 1" color="primary" />
         </div>
 
         <div class="carousel-controls">
             <q-btn flat round icon="chevron_left" @click="previousStone" />
             <div class="stone-image-container">
                 <div v-if="currentStone">
-                    <microstructure-view :ply-data="currentStone" :width="300" :height="300" />
+                    <microstructure-view :ply-data="currentStone" :width="200" :height="200" />
                 </div>
 
                 <div :class="['spinner-container', loading ? 'shown' : '']">
@@ -24,8 +24,9 @@
 </template>
 
 <script setup lang="ts">
-import { useWallsStore, type WallStonesList } from 'stores/walls'
+import { useWallsStore } from 'stores/walls'
 import MicrostructureView from 'src/components/MicrostructureView.vue'
+import type { WallStonesList } from 'src/models';
 
 const wallsStore = useWallsStore();
 const props = defineProps<{
@@ -66,7 +67,9 @@ async function setCurrentStone(i: number) {
         void getStoneAtIndex(prevIndex);
     }
 
-    loading.value = false;
+    if (i === index.value) { // Only hide the loading if we are still on the same stone (in case of fast navigation)
+        loading.value = false;
+    }
 }
 
 watch(index, async (newIndex) => {
