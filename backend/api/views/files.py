@@ -270,6 +270,7 @@ async def get_wall_path(
     status_code=200,
     description='Get all the stones files paths for a given wall ID, in the form { folder: "/path/to/folder", files: ["stone1.ply", "stone2.ply"] }',
 )
+@cache()
 async def get_wall_stones_paths_by_wall_id(
     wall_id: str,
 ) -> StonesResponse | None:
