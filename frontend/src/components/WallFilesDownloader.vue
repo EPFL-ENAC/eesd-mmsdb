@@ -16,9 +16,10 @@
 </template>
 
 <script setup lang="ts">
-import { useWallsStore, type WallStonesList } from 'stores/walls';
+import { useWallsStore } from 'stores/walls';
 import { type DownloadableFile, downloadFilesAsZip } from 'src/utils/download';
 import { ref } from 'vue'
+import type { WallStonesList } from 'src/models';
 
 const props = defineProps<{
     wallId: string;

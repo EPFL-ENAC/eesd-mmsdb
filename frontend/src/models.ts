@@ -55,3 +55,9 @@ export interface LineComputeResult {
     "height_scale": number,
   },
 }
+
+export interface WallStonesList {
+  wallId: string;
+  folder: string;
+  files: string[];
+}

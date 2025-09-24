@@ -1,12 +1,8 @@
 import { defineStore } from 'pinia';
 import { api } from 'src/boot/api';
+import type { WallStonesList } from 'src/models';
 // import axios from 'axios';
 
-export interface WallStonesList {
-  wallId: string;
-  folder: string;
-  files: string[];
-}
 
 export const useWallsStore = defineStore('walls', () => {
   const loading = ref(false);
