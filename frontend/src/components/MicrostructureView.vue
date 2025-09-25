@@ -20,6 +20,7 @@
         v-if="slicing"
         size=sm
         color=blue
+        @click="downloadSlice"
       >
         Download slice
       </q-btn>
@@ -276,6 +277,88 @@ const handleResize = () => {
   renderer.setSize(props.width, props.height)
 }
 
+const createSliceImage = async (): Promise<ArrayBuffer | null> => {
+  if (!sliceRenderTarget || !props.plyData) {
+    console.error('Error creating slice image: No slice data available')
+    return null
+  }
+
+  const pixelData = new Uint8Array(sliceResolution * sliceResolution * 4)
+  renderer.readRenderTargetPixels(sliceRenderTarget, 0, 0, sliceResolution, sliceResolution, pixelData)
+  console.log(pixelData.reduce((acc, val) => acc.add(val), new Set()))
+
+  // Create a canvas to generate the binary image
+  const canvas = document.createElement('canvas')
+  canvas.width = sliceResolution
+  canvas.height = sliceResolution
+  const ctx = canvas.getContext('2d')
+
+  if (!ctx) {
+    throw new Error('Could not get canvas context')
+  }
+
+  const imageData = ctx.createImageData(sliceResolution, sliceResolution)
+
+  for (let i = 0; i < pixelData.length / 4; i++) {
+    const r = pixelData[4 * i]
+    const g = pixelData[4 * i + 1]
+    const b = pixelData[4 * i + 2]
+    const a = pixelData[4 * i + 3]
+
+    const isStone = (a == 255)
+    const iYFlipped = (sliceResolution - Math.floor(i / sliceResolution)) * sliceResolution + i % sliceResolution
+
+    imageData.data[4 * iYFlipped] = isStone ? 0 : 255
+    imageData.data[4 * iYFlipped + 1] = isStone ? 0 : 255
+    imageData.data[4 * iYFlipped + 2] = isStone ? 0 : 255
+    imageData.data[4 * iYFlipped + 3] = 255
+  }
+
+  ctx.putImageData(imageData, 0, 0)
+
+  return new Promise((resolve, reject) => {
+    canvas.toBlob((blob) => {
+      if (blob) {
+        const reader = new FileReader()
+        reader.onload = () => {
+          resolve(reader.result as ArrayBuffer)
+        }
+        reader.onerror = () => {
+          reject(new Error('Failed to read blob as ArrayBuffer'))
+        }
+        reader.readAsArrayBuffer(blob)
+      } else {
+        reject(new Error('Failed to create blob from canvas'))
+      }
+    }, 'image/png')
+  })
+}
+
+const downloadSlice = async () => {
+  try {
+    const imageBuffer = await createSliceImage()
+    if (!imageBuffer) {
+      console.error('No image buffer to download')
+      return
+    }
+    const blob = new Blob([imageBuffer], { type: 'image/png' })
+    const url = URL.createObjectURL(blob)
+    const link = document.createElement('a')
+    link.href = url
+    link.download = `slice-x_${sliceX.value.toFixed(2)}.png`
+
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+
+    URL.revokeObjectURL(url)
+    console.log('Slice image downloaded successfully')
+  } catch (error) {
+    console.error('Error downloading slice:', error)
+  } finally {
+  }
+}
+
 const toggleSlicing = () => {
   if (!renderer || !sliceClipPlane) return
   slicing.value = !slicing.value
@@ -353,6 +436,10 @@ watch(sliceX, () => {
   if (sliceClipPlane) {
     sliceClipPlane.constant = -sliceX.value;
   }
+})
+
+defineExpose({
+  createBinaryImageFromRenderTarget: createSliceImage
 })
 </script>
 
