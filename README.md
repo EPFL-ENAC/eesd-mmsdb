@@ -26,7 +26,7 @@ Then, run:
 make install
 ```
 
-Then, edit the `.env` file in the root directory of the repository with the following content (most field must be left empty for local deployment):
+Then, edit the `.env` file in the root directory of the repository with the following content (most fields must be left empty for local deployment):
 
 ```env
 PATH_PREFIX=
