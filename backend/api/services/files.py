@@ -2,11 +2,16 @@ from functools import cache as functools_cache
 from logging import getLogger
 import os
 from pathlib import Path
+import shutil
 import subprocess
 import mimetypes
 import multiprocessing
+from datetime import datetime
+
+from fastapi import UploadFile
 
 from api.config import config
+from api.models.files import FileInfo, UploadInfo
 
 
 logger = getLogger("uvicorn.error")
@@ -165,6 +170,73 @@ def list_local_files(directory_path: Path) -> list[str]:
             files.append(str(item))
 
     return files
+
+
+def upload_local_files(
+    relative_path: str,
+    files: list[UploadFile],
+    contributor: str | None = None,
+    comments: str | None = None,
+) -> UploadInfo:
+    """Upload a file to the temporary upload directory."""
+    base_path = Path(config.UPLOAD_FILES_PATH)
+    folder_path = (base_path / relative_path).resolve()
+
+    try:
+        folder_path.relative_to(base_path.resolve())
+    except ValueError:
+        raise ValueError("Access denied: Path outside allowed directory")
+
+    folder_path.mkdir(parents=True, exist_ok=True)
+
+    files_info = []
+    for file_obj in files:
+        full_file_path = folder_path / file_obj.filename
+        with open(full_file_path, "wb") as f:
+            f.write(file_obj.file.read())
+            # read local file size
+            size = os.path.getsize(full_file_path)
+            files_info.append(FileInfo(name=file_obj.filename, size=size))
+    total_size = sum(file.size for file in files_info)
+
+    info = UploadInfo(
+        path=relative_path,
+        date=datetime.now().isoformat(),
+        total_size=total_size,
+        files=files_info,
+        contributor=contributor,
+        comments=comments,
+    )
+    # dump info to json file in the same directory
+    with open(folder_path / "info.json", "w") as f:
+        f.write(info.model_dump_json(indent=2))
+    return info
+
+
+def delete_local_upload_folder(relative_path: str) -> None:
+    """Delete a folder from the temporary upload directory."""
+    base_path = Path(config.UPLOAD_FILES_PATH)
+    folder_path = (base_path / relative_path).resolve()
+
+    try:
+        folder_path.relative_to(base_path.resolve())
+    except ValueError:
+        raise ValueError("Access denied: Path outside allowed directory")
+
+    if not folder_path.exists():
+        # Nothing to do, silently return
+        return
+    if not folder_path.is_dir():
+        raise ValueError("Provided path is not a directory")
+
+    # Check there is a info.json file in the folder
+    info_file = folder_path / "info.json"
+    if not info_file.exists():
+        raise FileNotFoundError("Upload info file does not exist in folder")
+
+    shutil.rmtree(folder_path)
+
+    return
 
 
 multiprocessing.set_start_method("fork", force=True)

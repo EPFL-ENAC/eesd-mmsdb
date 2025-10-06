@@ -11,6 +11,9 @@ class Config(BaseSettings):
     LFS_GIT_REF: str
     LFS_CLONED_REPO_PATH: str
 
+    UPLOAD_FILES_PATH: str = "/tmp/mmsdb_upload"
+    UPLOAD_FILES_SUFFIX: str = ".ply,.obj,.stl,.zip"
+
     PROPERTIES_PATH: str = "original/04_StoneMasonryMicrostructureDatabase.csv"
     STONE_PROPERTIES_DIR_PATH: str = "original/03_Stones_geometric_properties"
 

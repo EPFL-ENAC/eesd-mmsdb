@@ -14,3 +14,18 @@ def extract_stone_number(filename: str) -> int:
 class StonesResponse(BaseModel):
     folder: str
     files: List[str]
+
+
+class FileInfo(BaseModel):
+    name: str
+    size: int
+
+
+class UploadInfo(BaseModel):
+    path: str
+    date: str
+    files: List[FileInfo]
+    total_size: int
+    state: str = "uploaded"
+    contributor: str
+    comments: str | None = None
