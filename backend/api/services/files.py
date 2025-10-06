@@ -1,6 +1,7 @@
 from functools import cache as functools_cache
 from logging import getLogger
 import os
+import json
 from pathlib import Path
 import shutil
 import subprocess
@@ -11,10 +12,15 @@ from datetime import datetime
 from fastapi import UploadFile
 
 from api.config import config
-from api.models.files import FileInfo, UploadInfo
+from api.models.files import Contribution, FileInfo, UploadInfo
 
 
 logger = getLogger("uvicorn.error")
+
+
+ALLOWED_UPLOAD_SUFFIXES = [
+    s.lower().strip() for s in config.UPLOAD_FILES_SUFFIX.split(",") if s
+]
 
 
 def cleanup_git_lock(repo_path: str):
@@ -175,10 +181,23 @@ def list_local_files(directory_path: Path) -> list[str]:
 def upload_local_files(
     relative_path: str,
     files: list[UploadFile],
-    contributor: str | None = None,
-    comments: str | None = None,
+    contribution: Contribution | None = None,
 ) -> UploadInfo:
-    """Upload a file to the temporary upload directory."""
+    """Upload a file to the temporary upload directory, expand zip files if needed and ensure file suffixes are allowed."""
+    if not ALLOWED_UPLOAD_SUFFIXES:
+        raise ValueError("No valid UPLOAD_FILES_SUFFIX configured")
+    # Check if all files have valid extensions
+    valid_suffixes = ALLOWED_UPLOAD_SUFFIXES[:]
+    valid_suffixes.append(".zip")
+    if not any(
+        file.filename.lower().endswith(suffix)
+        for file in files
+        for suffix in valid_suffixes
+    ):
+        raise ValueError(
+            f"Invalid file extension. Allowed extensions: {', '.join(valid_suffixes)}"
+        )
+
     base_path = Path(config.UPLOAD_FILES_PATH)
     folder_path = (base_path / relative_path).resolve()
 
@@ -194,9 +213,34 @@ def upload_local_files(
         full_file_path = folder_path / file_obj.filename
         with open(full_file_path, "wb") as f:
             f.write(file_obj.file.read())
-            # read local file size
-            size = os.path.getsize(full_file_path)
-            files_info.append(FileInfo(name=file_obj.filename, size=size))
+            if file_obj.content_type == "application/zip":
+                # If zip file, unzip it in the same directory and remove the zip file
+                shutil.unpack_archive(full_file_path, folder_path)
+                full_file_path.unlink()
+                # get list of unzipped files
+                unzipped_files = [p for p in folder_path.rglob("*") if p.is_file()]
+                for unzipped_file in unzipped_files:
+                    # check if the unzipped file has a valid suffix
+                    if not any(
+                        unzipped_file.name.lower().endswith(suffix)
+                        for suffix in ALLOWED_UPLOAD_SUFFIXES
+                    ):
+                        # remove the unzipped file
+                        unzipped_file.unlink()
+                        continue
+                    # read local file size
+                    size = os.path.getsize(unzipped_file)
+                    unzipped_file_relative_path = unzipped_file.relative_to(folder_path)
+                    logger.debug(
+                        f"Uploaded file: {unzipped_file_relative_path} ({size} bytes)"
+                    )
+                    files_info.append(
+                        FileInfo(name=unzipped_file_relative_path.as_posix(), size=size)
+                    )
+            else:
+                # read local file size
+                size = os.path.getsize(full_file_path)
+                files_info.append(FileInfo(name=file_obj.filename, size=size))
     total_size = sum(file.size for file in files_info)
 
     info = UploadInfo(
@@ -204,8 +248,7 @@ def upload_local_files(
         date=datetime.now().isoformat(),
         total_size=total_size,
         files=files_info,
-        contributor=contributor,
-        comments=comments,
+        contribution=contribution,
     )
     # dump info to json file in the same directory
     with open(folder_path / "info.json", "w") as f:
@@ -235,6 +278,35 @@ def delete_local_upload_folder(relative_path: str) -> None:
         raise FileNotFoundError("Upload info file does not exist in folder")
 
     shutil.rmtree(folder_path)
+
+    return
+
+
+def update_local_upload_info_state(relative_path: str, state: str) -> None:
+    """Update the state field in the info.json file in the specified upload folder."""
+    base_path = Path(config.UPLOAD_FILES_PATH)
+    folder_path = (base_path / relative_path).resolve()
+
+    try:
+        folder_path.relative_to(base_path.resolve())
+    except ValueError:
+        raise ValueError("Access denied: Path outside allowed directory")
+
+    if not folder_path.exists() or not folder_path.is_dir():
+        raise FileNotFoundError("Upload folder does not exist")
+
+    info_file = folder_path / "info.json"
+    if not info_file.exists():
+        raise FileNotFoundError("Upload info file does not exist in folder")
+
+    try:
+        with open(info_file, "r", encoding="utf-8") as f:
+            data = json.load(f)
+        data["state"] = state
+        with open(info_file, "w", encoding="utf-8") as f:
+            json.dump(data, f, indent=2)
+    except Exception as e:
+        raise ValueError(f"Failed to update state in info file: {e}")
 
     return
 

@@ -6,9 +6,10 @@ from io import BytesIO
 from pathlib import Path
 from uuid import uuid4
 import zipfile
+import json
 
 from api.models.files import StonesResponse, extract_stone_number
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Form
 from fastapi.responses import Response, StreamingResponse
 from fastapi_cache.decorator import cache
 from fastapi.datastructures import UploadFile
@@ -20,15 +21,11 @@ from api.services.files import (
     list_local_files,
     upload_local_files,
     delete_local_upload_folder,
+    update_local_upload_info_state,
 )
-from api.models.files import UploadInfo
+from api.models.files import UploadInfo, Contribution
 
 router = APIRouter()
-
-
-ALLOWED_UPLOAD_SUFFIXES = [
-    s.lower().strip() for s in config.UPLOAD_FILES_SUFFIX.split(",") if s
-]
 
 
 @router.get(
@@ -140,53 +137,53 @@ async def get_wall_stones_paths_by_wall_id(
 @router.post(
     "/upload",
     status_code=200,
-    description="Upload a file to the server (for admin use only)",
+    description="Upload some files to the server",
     response_model=UploadInfo,
 )
 async def upload_file(
     files: list[UploadFile] = File(description="multiple file upload"),
-    contributor: str = "",
-    comments: str | None = None,
+    contribution: str | None = Form(
+        None, description="JSON string containing contribution information"
+    ),
 ) -> UploadInfo:
     """Upload a file to the server in the temporary upload directory, for further processing.
 
     Args:
         files (list[UploadFile]): List of files to upload
-        contributor (str | None): Name or email of the contributor
-        comments (str | None): Additional comments (optional)
+        contribution (str | None): JSON string containing contribution information
 
     Raises:
         ValueError: If no valid upload file suffixes are configured
         HTTPException: If the file extension is invalid
         HTTPException: If the file upload fails
         HTTPException: If the file path is invalid
+        HTTPException: If the contribution JSON is invalid
 
     Returns:
         UploadInfo: Information about the uploaded files
     """
-    if contributor.strip() == "":
-        raise HTTPException(
-            status_code=400, detail="Contributor name or email is required"
-        )
-    if not ALLOWED_UPLOAD_SUFFIXES:
-        raise ValueError("No valid UPLOAD_FILES_SUFFIX configured")
-    # Check if all files have valid extensions
-    if not any(
-        file.filename.lower().endswith(suffix)
-        for file in files
-        for suffix in ALLOWED_UPLOAD_SUFFIXES
+    # Parse contribution JSON if provided
+    contribution_obj = None
+    if contribution:
+        try:
+            contribution_data = json.loads(contribution)
+            contribution_obj = Contribution(**contribution_data)
+        except (json.JSONDecodeError, ValueError) as e:
+            raise HTTPException(
+                status_code=400, detail=f"Invalid contribution JSON: {str(e)}"
+            )
+
+    if not contribution_obj or (
+        not contribution_obj.name and not contribution_obj.email
     ):
         raise HTTPException(
-            status_code=400,
-            detail=f"Invalid file extension. Allowed extensions: {', '.join(ALLOWED_UPLOAD_SUFFIXES)}",
+            status_code=400, detail="Contributor name or email is required"
         )
 
     try:
         # Upload to folder path based on uuid4
         folder = str(uuid4())
-        info = upload_local_files(
-            folder, files=files, contributor=contributor, comments=comments
-        )
+        info = upload_local_files(folder, files=files, contribution=contribution_obj)
         return info
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error uploading file: {str(e)}")
@@ -275,3 +272,136 @@ async def download_upload_folder(folder: str):
         media_type="application/x-zip-compressed",
         headers={"Content-Disposition": f"attachment; filename={folder_path.name}.zip"},
     )
+
+
+@router.get(
+    "/upload-info",
+    status_code=200,
+    description="Get information about an upload folder (for admin use only)",
+    response_model=list[UploadInfo],
+)
+async def get_upload_folders_info() -> list[UploadInfo]:
+    """Get information about all upload folders.
+
+    Returns:
+        list[UploadInfo]: Information about the uploaded files
+    """
+    base_path = Path(config.UPLOAD_FILES_PATH)
+
+    if not base_path.exists() or not base_path.is_dir():
+        return []
+    upload_folders = [f for f in base_path.iterdir() if f.is_dir()]
+    infos = []
+    for folder_path in upload_folders:
+        info_file_path = folder_path / "info.json"
+        if not info_file_path.exists() or not info_file_path.is_file():
+            continue
+        try:
+            with info_file_path.open("r", encoding="utf-8") as f:
+                data = json.load(f)
+                infos.append(UploadInfo(**data))
+        except Exception:
+            continue
+    return infos
+
+
+@router.get(
+    "/upload-info/{folder}",
+    status_code=200,
+    description="Get information about an upload folder (for admin use only)",
+    response_model=UploadInfo,
+)
+async def get_upload_folder_info(folder: str) -> UploadInfo:
+    """Get information about an upload folder.
+
+    Args:
+        folder (str): Folder name to get information about
+    Raises:
+        HTTPException: If the folder does not exist or reading info fails
+    Returns:
+        UploadInfo: Information about the uploaded files
+    """
+    base_path = Path(config.UPLOAD_FILES_PATH)
+    folder_path = (base_path / folder).resolve()
+
+    try:
+        folder_path.relative_to(base_path.resolve())
+    except ValueError:
+        raise HTTPException(
+            status_code=403, detail="Access denied: Path outside allowed directory"
+        )
+
+    if not folder_path.exists() or not folder_path.is_dir():
+        raise HTTPException(status_code=404, detail="Folder not found")
+
+    info_file_path = folder_path / "info.json"
+    if not info_file_path.exists() or not info_file_path.is_file():
+        raise HTTPException(status_code=404, detail="Info file not found in folder")
+
+    try:
+        with info_file_path.open("r", encoding="utf-8") as f:
+            data = json.load(f)
+            return UploadInfo(**data)
+    except Exception as e:
+        raise HTTPException(
+            status_code=500, detail=f"Error reading info file: {str(e)}"
+        )
+
+
+@router.delete(
+    "/upload-info/{folder}",
+    status_code=200,
+    description="Delete an upload folder from the temporary upload directory (for admin use only)",
+)
+async def delete_upload_folder_info(folder: str):
+    """Delete an upload folder from the temporary upload directory.
+
+    Args:
+        folder (str): Folder name to delete
+    Raises:
+        HTTPException: If the folder does not exist or deletion fails
+
+    Returns:
+        dict: Success message
+    """
+    # Note: for consistency with list and get, we keep the same endpoint
+    return delete_upload_folder(folder)
+
+
+@router.put(
+    "/upload-info/{folder}/_state",
+    status_code=200,
+    description="Update the state of an upload folder (for admin use only)",
+    response_model=UploadInfo,
+)
+async def update_upload_folder_state(folder: str, state: str) -> UploadInfo:
+    """Update the state of an upload folder in the temporary upload directory.
+
+    Args:
+        folder (str): Folder name to update
+        state (str): New state value
+    Raises:
+        HTTPException: If the folder does not exist or update fails
+    Returns:
+        UploadInfo: Updated information about the uploaded files
+    """
+    base_path = Path(config.UPLOAD_FILES_PATH)
+    folder_path = (base_path / folder).resolve()
+
+    try:
+        folder_path.relative_to(base_path.resolve())
+    except ValueError:
+        raise HTTPException(
+            status_code=403, detail="Access denied: Path outside allowed directory"
+        )
+
+    if not folder_path.exists() or not folder_path.is_dir():
+        raise HTTPException(status_code=404, detail="Folder not found")
+
+    try:
+        update_local_upload_info_state(folder, state)
+        return await get_upload_folder_info(folder)
+    except Exception as e:
+        raise HTTPException(
+            status_code=500, detail=f"Error updating info file: {str(e)}"
+        )

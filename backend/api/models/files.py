@@ -21,11 +21,20 @@ class FileInfo(BaseModel):
     size: int
 
 
+class Contribution(BaseModel):
+    name: str
+    email: str
+    affiliation: str | None = None
+    comments: str | None = None
+    type: str | None = None  # Microstructure type: Real or Virtual
+    method: str | None = None  # Photogrammetry, CT scan, Procedural, Other
+    reference: str | None = None  # Reference to a publication or project
+
+
 class UploadInfo(BaseModel):
     path: str
     date: str
     files: List[FileInfo]
     total_size: int
     state: str = "uploaded"
-    contributor: str
-    comments: str | None = None
+    contribution: Contribution | None = None
