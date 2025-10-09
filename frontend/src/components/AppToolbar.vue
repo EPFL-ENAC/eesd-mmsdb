@@ -25,6 +25,7 @@
       <q-route-tab :label="t('correlations')" :title="t('correlations')" to="/correlations" exact />
       <q-route-tab :label="t('quality_index')" :title="t('quality_index_info')" to="/quality-index" exact />
       <q-route-tab :label="t('others')" :title="t('others_info')" to="/others" exact />
+      <q-route-tab :label="t('contribute.title')" :title="t('contribute.info')" to="/contribute" exact />
       <q-route-tab :label="t('about')" :title="t('about_info')" to="/about" exact />
     </q-tabs>
 

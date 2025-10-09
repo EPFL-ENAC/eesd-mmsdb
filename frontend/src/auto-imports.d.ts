@@ -185,6 +185,7 @@ declare module 'vue' {
     readonly triggerRef: UnwrapRef<typeof import('vue')['triggerRef']>
     readonly unref: UnwrapRef<typeof import('vue')['unref']>
     readonly useAttrs: UnwrapRef<typeof import('vue')['useAttrs']>
+    readonly useContributeStore: UnwrapRef<typeof import('./stores/contribute')['useContributeStore']>
     readonly useCorrelationsFiltersStore: UnwrapRef<typeof import('./stores/correlations_filters')['useCorrelationsFiltersStore']>
     readonly useCssModule: UnwrapRef<typeof import('vue')['useCssModule']>
     readonly useCssVars: UnwrapRef<typeof import('vue')['useCssVars']>

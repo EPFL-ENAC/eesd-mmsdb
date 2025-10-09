@@ -66,3 +66,27 @@ export interface WallStonesList {
   folder: string;
   files: string[];
 }
+
+export interface FileInfo {
+  name: string;
+  size: number;
+}
+
+export interface Contribution {
+  name: string;
+  email: string;
+  affiliation?: string;
+  type: string;  // Microstructure type: Real or Virtual
+  method?: string;  // Photogrammetry, CT scan, Procedural, Other
+  reference?: string;  // Reference to a publication or project
+  comments?: string;
+}
+
+export interface UploadInfo {
+  path: string;
+  date: string;
+  files: FileInfo[];
+  total_size: number;
+  state: string;
+  contribution: Contribution | null;
+}
