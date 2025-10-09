@@ -189,10 +189,9 @@ def upload_local_files(
     # Check if all files have valid extensions
     valid_suffixes = ALLOWED_UPLOAD_SUFFIXES[:]
     valid_suffixes.append(".zip")
-    if not any(
-        file.filename is not None and file.filename.lower().endswith(suffix)
+    if not all(
+        any(file.filename.lower().endswith(suffix) for suffix in valid_suffixes)
         for file in files
-        for suffix in valid_suffixes
     ):
         raise ValueError(
             f"Invalid file extension. Allowed extensions: {', '.join(valid_suffixes)}"
@@ -208,7 +207,7 @@ def upload_local_files(
 
     folder_path.mkdir(parents=True, exist_ok=True)
 
-    files_info = []
+    files_info: list[FileInfo] = []
     for file_obj in files:
         full_file_path = folder_path / file_obj.filename
         # Check it is not relative path
@@ -234,12 +233,17 @@ def upload_local_files(
                     # read local file size
                     size = os.path.getsize(unzipped_file)
                     unzipped_file_relative_path = unzipped_file.relative_to(folder_path)
-                    logger.debug(
+                    logger.info(
                         f"Uploaded file: {unzipped_file_relative_path} ({size} bytes)"
                     )
-                    files_info.append(
-                        FileInfo(name=unzipped_file_relative_path.as_posix(), size=size)
-                    )
+                    posix_path = unzipped_file_relative_path.as_posix()
+                    # Check file info does not already exist (could happen if multiple files uploaded)
+                    if any(f.name == posix_path for f in files_info):
+                        logger.warning(
+                            f"File info already exists for {unzipped_file_relative_path}, skipping."
+                        )
+                        continue
+                    files_info.append(FileInfo(name=posix_path, size=size))
             else:
                 # read local file size
                 size = os.path.getsize(full_file_path)
