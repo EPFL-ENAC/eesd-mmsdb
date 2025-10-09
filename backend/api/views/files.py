@@ -7,6 +7,8 @@ from pathlib import Path
 from uuid import uuid4
 import zipfile
 import json
+import re
+from urllib.parse import quote, unquote
 
 from api.models.files import StonesResponse, extract_stone_number
 from fastapi import APIRouter, HTTPException, Form
@@ -51,7 +53,7 @@ async def get_file(
         body, content_type = get_local_file_content(full_file_path)
         if body is not None:
             headers = {
-                "Content-Disposition": f"attachment; filename={Path(file_path).name}"
+                "Content-Disposition": content_disposition(f"{Path(file_path).name}")
             }
             return Response(content=body, media_type=content_type, headers=headers)
         else:
@@ -226,52 +228,62 @@ async def delete_upload_folder(folder: str):
 
 
 @router.get(
-    "/upload/{folder}",
+    "/upload/{path:path}",
     status_code=200,
-    description="Download an upload folder as a zip file (for admin use only)",
+    description="Download an upload folder as a zip file or an upload file as a single file (for admin use only)",
 )
-async def download_upload_folder(folder: str):
-    """Download an upload folder as a zip file.
+async def download_upload_file(path: str):
+    """Download an upload folder as a zip file or an upload file as a single file.
 
     Args:
-        folder (str): Folder name to download
+        path (str): Path of the file or folder to download
     Raises:
-        HTTPException: If the folder does not exist or download fails
+        HTTPException: If the file or folder does not exist or download fails
     Returns:
-        Response: Zip file response
+        Response: Zip file response or single file response
     """
     base_path = Path(config.UPLOAD_FILES_PATH)
-    folder_path = (base_path / folder).resolve()
+    # URL decode path
+    decoded_path = unquote(path)
+    file_path = (base_path / decoded_path).resolve()
 
     try:
-        folder_path.relative_to(base_path.resolve())
+        file_path.relative_to(base_path.resolve())
     except ValueError:
         raise HTTPException(
             status_code=403, detail="Access denied: Path outside allowed directory"
         )
 
-    if not folder_path.exists() or not folder_path.is_dir():
-        raise HTTPException(status_code=404, detail="Folder not found")
+    if not file_path.exists():
+        raise HTTPException(status_code=404, detail="File not found")
 
-    # Create an in-memory bytes buffer
-    zip_buffer = BytesIO()
+    if file_path.is_file():
+        body, content_type = get_local_file_content(file_path)
+        if body is not None:
+            headers = {"Content-Disposition": content_disposition(f"{file_path.name}")}
+            return Response(content=body, media_type=content_type, headers=headers)
+        else:
+            raise HTTPException(status_code=404, detail="File not found")
+    else:
+        # Create an in-memory bytes buffer
+        zip_buffer = BytesIO()
+        # Create a ZIP file in memory
+        with zipfile.ZipFile(zip_buffer, "w", zipfile.ZIP_DEFLATED) as zip_file:
+            for f_path in file_path.rglob("*"):
+                if f_path.is_file():
+                    # Write file into zip, maintaining relative path
+                    zip_file.write(f_path, arcname=f_path.relative_to(file_path))
+        # Move cursor back to start of buffer
+        zip_buffer.seek(0)
 
-    # Create a ZIP file in memory
-    with zipfile.ZipFile(zip_buffer, "w", zipfile.ZIP_DEFLATED) as zip_file:
-        for file_path in folder_path.rglob("*"):
-            if file_path.is_file():
-                # Write file into zip, maintaining relative path
-                zip_file.write(file_path, arcname=file_path.relative_to(folder_path))
-
-    # Move cursor back to start of buffer
-    zip_buffer.seek(0)
-
-    # Stream response
-    return StreamingResponse(
-        zip_buffer,
-        media_type="application/x-zip-compressed",
-        headers={"Content-Disposition": f"attachment; filename={folder_path.name}.zip"},
-    )
+        # Stream response
+        return StreamingResponse(
+            zip_buffer,
+            media_type="application/x-zip-compressed",
+            headers={
+                "Content-Disposition": content_disposition(f"{file_path.name}.zip")
+            },
+        )
 
 
 @router.get(
@@ -405,3 +417,18 @@ async def update_upload_folder_state(folder: str, state: str) -> UploadInfo:
         raise HTTPException(
             status_code=500, detail=f"Error updating info file: {str(e)}"
         )
+
+
+def content_disposition(filename: str) -> str:
+    """Generate a Content-Disposition header value that supports UTF-8 filenames."""
+    safe_ascii = filename.encode("ascii", "ignore").decode()
+    if not safe_ascii:
+        safe_ascii = "download"
+
+    # Sanitize ASCII fallback
+    safe_ascii = re.sub(r"[^A-Za-z0-9._-]", "_", safe_ascii)
+
+    # UTF-8 encoded filename for filename*
+    utf8_filename = quote(filename)
+
+    return f"attachment; filename=\"{safe_ascii}\"; filename*=UTF-8''{utf8_filename}"

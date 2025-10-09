@@ -190,7 +190,7 @@ def upload_local_files(
     valid_suffixes = ALLOWED_UPLOAD_SUFFIXES[:]
     valid_suffixes.append(".zip")
     if not any(
-        file.filename.lower().endswith(suffix)
+        file.filename is not None and file.filename.lower().endswith(suffix)
         for file in files
         for suffix in valid_suffixes
     ):
@@ -211,6 +211,9 @@ def upload_local_files(
     files_info = []
     for file_obj in files:
         full_file_path = folder_path / file_obj.filename
+        # Check it is not relative path
+        if ".." in file_obj.filename or file_obj.filename.startswith("/"):
+            raise ValueError("Invalid file name")
         with open(full_file_path, "wb") as f:
             f.write(file_obj.file.read())
             if file_obj.content_type == "application/zip":
