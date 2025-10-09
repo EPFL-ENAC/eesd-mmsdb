@@ -42,11 +42,19 @@
         Download (high resolution, xxxMB)
       </q-btn>
 
+      <q-btn
+        v-if="slicing"
+        size=sm
+        @click="toggleAxis"
+      >
+        Swap slicing axis
+      </q-btn>
+
       <q-slider
-        v-model=sliceX
+        v-model=sliceCoord
         v-if=slicing
-        :min=-0.3
-        :max=0.3
+        :min=-0.5
+        :max=0.5
         :step=0.01
       ></q-slider>
     </div>
@@ -58,7 +66,7 @@ import { ref, onMounted, onUnmounted, watch } from 'vue'
 import * as THREE from 'three'
 import { PLYLoader } from 'three/examples/jsm/loaders/PLYLoader.js'
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
-const sliceSize = 1.1
+const sliceSize = 1.05
 const sliceResolution = 768
 
 interface Props {
@@ -80,7 +88,8 @@ const props = withDefaults(defineProps<Props>(), {
 const container = ref<HTMLDivElement>()
 const isLoading = ref(false)
 const slicing = ref(false)
-const sliceX = ref(0)
+const sliceCoord = ref(0)
+const swappedAxis = ref(false)
 
 let scene: THREE.Scene
 let camera: THREE.PerspectiveCamera
@@ -94,6 +103,7 @@ let animationId: number
 let sliceScene: THREE.Scene
 let sliceCamera: THREE.OrthographicCamera
 let sliceRenderTarget: THREE.WebGLRenderTarget
+let slicePlaneMaterial: THREE.MeshBasicMaterial
 let sliceOutsideMesh: THREE.Mesh
 let sliceInsideMesh: THREE.Mesh
 
@@ -158,9 +168,6 @@ const initThreeJS = () => {
   }
 
   sliceScene = new THREE.Scene()
-  sliceCamera = new THREE.OrthographicCamera(-sliceSize / 2, sliceSize / 2, sliceSize / 2, -sliceSize / 2, 0.1, 10)
-  sliceCamera.position.set(2, 0, 0)
-  sliceCamera.lookAt(0, 0, 0)
 
   sliceRenderTarget = new THREE.WebGLRenderTarget(sliceResolution, sliceResolution, {
     minFilter: THREE.LinearFilter,
@@ -168,17 +175,33 @@ const initThreeJS = () => {
     format: THREE.RGBAFormat,
     depthBuffer: true,
   })
-
-  const slicePlaneGeometry = new THREE.PlaneGeometry(sliceSize, sliceSize, 1, 1)
-  const slicePlaneMaterial = new THREE.MeshBasicMaterial({
+  slicePlaneMaterial = new THREE.MeshBasicMaterial({
     map: sliceRenderTarget.texture,
     side: THREE.DoubleSide,
     transparent: true,
   })
-  slicePlane = new THREE.Mesh(slicePlaneGeometry, slicePlaneMaterial)
-  slicePlane.rotateY(Math.PI / 2)
 
-  sliceClipPlane = new THREE.Plane(new THREE.Vector3(-1, 0, 0), 0)
+  configureSlice()
+}
+
+const configureSlice = () => {
+  sliceCamera = new THREE.OrthographicCamera(-sliceSize / 2, sliceSize / 2, sliceSize / 2, -sliceSize / 2, 0.1, 10)
+  if (swappedAxis.value) {
+    sliceCamera.position.set(0, 0, -2)
+  } else {
+    sliceCamera.position.set(2, 0, 0)
+  }
+  sliceCamera.lookAt(0, 0, 0)
+
+  const slicePlaneGeometry = new THREE.PlaneGeometry(sliceSize, sliceSize, 1, 1)
+  slicePlane = new THREE.Mesh(slicePlaneGeometry, slicePlaneMaterial)
+  if (swappedAxis.value) {
+    slicePlane.rotateY(Math.PI)
+    sliceClipPlane = new THREE.Plane(new THREE.Vector3(0, 0, 1), 0)
+  } else {
+    slicePlane.rotateY(Math.PI / 2)
+    sliceClipPlane = new THREE.Plane(new THREE.Vector3(-1, 0, 0), 0)
+  }
 }
 
 const loadPlyFromBuffer = () => {
@@ -230,7 +253,7 @@ const loadPlyFromBuffer = () => {
     sliceScene.add(sliceOutsideMesh)
 
     const insideMaterial = new THREE.MeshBasicMaterial({
-      color: 0xbb0000,
+      color: 0x990000,
       side: THREE.BackSide,
     })
     sliceInsideMesh = new THREE.Mesh(geometry.clone(), insideMaterial)
@@ -255,7 +278,11 @@ const animate = () => {
   controls.update()
 
   if (sliceClipPlane) {
-    sliceClipPlane.constant = -sliceX.value
+    if (swappedAxis.value) {
+      sliceClipPlane.constant = sliceCoord.value
+    } else {
+      sliceClipPlane.constant = -sliceCoord.value
+    }
   }
 
   if (slicing.value && sliceRenderTarget && sliceInsideMesh && sliceOutsideMesh) {
@@ -300,9 +327,9 @@ const createSliceImage = async (): Promise<ArrayBuffer | null> => {
   const imageData = ctx.createImageData(sliceResolution, sliceResolution)
 
   for (let i = 0; i < pixelData.length / 4; i++) {
-    const r = pixelData[4 * i]
-    const g = pixelData[4 * i + 1]
-    const b = pixelData[4 * i + 2]
+    // const r = pixelData[4 * i]
+    // const g = pixelData[4 * i + 1]
+    // const b = pixelData[4 * i + 2]
     const a = pixelData[4 * i + 3]
 
     const isStone = (a == 255)
@@ -345,7 +372,11 @@ const downloadSlice = async () => {
     const url = URL.createObjectURL(blob)
     const link = document.createElement('a')
     link.href = url
-    link.download = `slice-x_${sliceX.value.toFixed(2)}.png`
+    if (swappedAxis.value) {
+      link.download = `slice-x_${sliceCoord.value.toFixed(2)}.png`
+    } else {
+      link.download = `slice-z_${(-sliceCoord.value).toFixed(2)}.png`
+    }
 
     document.body.appendChild(link)
     link.click()
@@ -355,7 +386,6 @@ const downloadSlice = async () => {
     console.log('Slice image downloaded successfully')
   } catch (error) {
     console.error('Error downloading slice:', error)
-  } finally {
   }
 }
 
@@ -364,17 +394,21 @@ const toggleSlicing = () => {
   slicing.value = !slicing.value
 
   if (slicing.value) {
-    sliceX.value = 0
+    sliceCoord.value = 0
     scene.add(slicePlane)
-    if (mesh) mesh.material.clippingPlanes = [sliceClipPlane]
-    if (sliceOutsideMesh) sliceOutsideMesh.material.clippingPlanes = [sliceClipPlane]
-    if (sliceInsideMesh) sliceInsideMesh.material.clippingPlanes = [sliceClipPlane]
+    if (mesh) (mesh.material as THREE.Material).clippingPlanes = [sliceClipPlane]
+    if (sliceOutsideMesh) (sliceOutsideMesh.material as THREE.Material).clippingPlanes = [sliceClipPlane]
+    if (sliceInsideMesh) (sliceInsideMesh.material as THREE.Material).clippingPlanes = [sliceClipPlane]
   } else {
     scene.remove(slicePlane)
-    if (mesh) mesh.material.clippingPlanes = []
-    if (sliceOutsideMesh) sliceOutsideMesh.material.clippingPlanes = []
-    if (sliceInsideMesh) sliceInsideMesh.material.clippingPlanes = []
+    if (mesh) (mesh.material as THREE.Material).clippingPlanes = []
+    if (sliceOutsideMesh) (sliceOutsideMesh.material as THREE.Material).clippingPlanes = []
+    if (sliceInsideMesh) (sliceInsideMesh.material as THREE.Material).clippingPlanes = []
   }
+}
+
+const toggleAxis = () => {
+  swappedAxis.value = !swappedAxis.value
 }
 
 onMounted(() => {
@@ -429,13 +463,38 @@ watch(() => props.plyData, () => {
   }
 })
 
-watch(sliceX, () => {
+watch(sliceCoord, () => {
   if (!slicePlane) return;
-  slicePlane.position.x = -sliceX.value;
+  if (swappedAxis.value) {
+    slicePlane.position.z = -sliceCoord.value;
+  } else {
+    slicePlane.position.x = -sliceCoord.value;
+  }
 
   if (sliceClipPlane) {
-    sliceClipPlane.constant = -sliceX.value;
+    if (swappedAxis.value) {
+      sliceClipPlane.constant = sliceCoord.value;
+    } else {
+      sliceClipPlane.constant = -sliceCoord.value;
+    }
   }
+})
+
+watch(swappedAxis, () => {
+  if (slicing.value && slicePlane) {
+  scene.remove(slicePlane)
+  }
+
+  configureSlice()
+
+  if (slicing.value && sliceClipPlane) {
+    scene.add(slicePlane)
+    if (mesh) (mesh.material as THREE.Material).clippingPlanes = [sliceClipPlane]
+    if (sliceOutsideMesh) (sliceOutsideMesh.material as THREE.Material).clippingPlanes = [sliceClipPlane]
+    if (sliceInsideMesh) (sliceInsideMesh.material as THREE.Material).clippingPlanes = [sliceClipPlane]
+  }
+
+  sliceCoord.value = 0
 })
 
 defineExpose({
