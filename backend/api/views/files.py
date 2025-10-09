@@ -2,16 +2,30 @@
 Handle local file operations
 """
 
+from io import BytesIO
 from pathlib import Path
+from uuid import uuid4
+import zipfile
+import json
+import re
+from urllib.parse import quote, unquote
 
 from api.models.files import StonesResponse, extract_stone_number
-from fastapi import APIRouter, HTTPException
-from fastapi.responses import Response
+from fastapi import APIRouter, HTTPException, Form
+from fastapi.responses import Response, StreamingResponse
 from fastapi_cache.decorator import cache
+from fastapi.datastructures import UploadFile
+from fastapi.param_functions import File
 
 from api.config import config
-from api.services.files import get_local_file_content, list_local_files
-
+from api.services.files import (
+    get_local_file_content,
+    list_local_files,
+    upload_local_files,
+    delete_local_upload_folder,
+    update_local_upload_info_state,
+)
+from api.models.files import UploadInfo, Contribution
 
 router = APIRouter()
 
@@ -39,7 +53,7 @@ async def get_file(
         body, content_type = get_local_file_content(full_file_path)
         if body is not None:
             headers = {
-                "Content-Disposition": f"attachment; filename={Path(file_path).name}"
+                "Content-Disposition": content_disposition(f"{Path(file_path).name}")
             }
             return Response(content=body, media_type=content_type, headers=headers)
         else:
@@ -120,3 +134,301 @@ async def get_wall_stones_paths_by_wall_id(
     stone_files.sort(key=extract_stone_number)
 
     return StonesResponse(folder=stones_dir, files=stone_files)
+
+
+@router.post(
+    "/upload",
+    status_code=200,
+    description="Upload some files to the server",
+    response_model=UploadInfo,
+)
+async def upload_file(
+    files: list[UploadFile] = File(description="multiple file upload"),
+    contribution: str | None = Form(
+        None, description="JSON string containing contribution information"
+    ),
+) -> UploadInfo:
+    """Upload a file to the server in the temporary upload directory, for further processing.
+
+    Args:
+        files (list[UploadFile]): List of files to upload
+        contribution (str | None): JSON string containing contribution information
+
+    Raises:
+        ValueError: If no valid upload file suffixes are configured
+        HTTPException: If the file extension is invalid
+        HTTPException: If the file upload fails
+        HTTPException: If the file path is invalid
+        HTTPException: If the contribution JSON is invalid
+
+    Returns:
+        UploadInfo: Information about the uploaded files
+    """
+    # Parse contribution JSON if provided
+    contribution_obj = None
+    if contribution:
+        try:
+            contribution_data = json.loads(contribution)
+            contribution_obj = Contribution(**contribution_data)
+        except (json.JSONDecodeError, ValueError) as e:
+            raise HTTPException(
+                status_code=400, detail=f"Invalid contribution JSON: {str(e)}"
+            )
+
+    if not contribution_obj or (
+        not contribution_obj.name and not contribution_obj.email
+    ):
+        raise HTTPException(
+            status_code=400, detail="Contributor name or email is required"
+        )
+
+    try:
+        # Upload to folder path based on uuid4
+        folder = str(uuid4())
+        info = upload_local_files(folder, files=files, contribution=contribution_obj)
+        return info
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error uploading file: {str(e)}")
+
+
+@router.delete(
+    "/upload/{folder}",
+    status_code=200,
+    description="Delete an upload folder from the temporary upload directory (for admin use only)",
+)
+async def delete_upload_folder(folder: str):
+    """Delete an upload folder from the temporary upload directory.
+
+    Args:
+        folder (str): Folder name to delete
+    Raises:
+        HTTPException: If the folder does not exist or deletion fails
+
+    Returns:
+        dict: Success message
+    """
+    base_path = Path(config.UPLOAD_FILES_PATH)
+    folder_path = (base_path / folder).resolve()
+
+    try:
+        folder_path.relative_to(base_path.resolve())
+    except ValueError:
+        raise HTTPException(
+            status_code=403, detail="Access denied: Path outside allowed directory"
+        )
+
+    if not folder_path.exists() or not folder_path.is_dir():
+        raise HTTPException(status_code=404, detail="Folder not found")
+
+    try:
+        delete_local_upload_folder(folder)
+        return {"detail": "Folder deleted successfully"}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error deleting folder: {str(e)}")
+
+
+@router.get(
+    "/upload/{path:path}",
+    status_code=200,
+    description="Download an upload folder as a zip file or an upload file as a single file (for admin use only)",
+)
+async def download_upload_file(path: str):
+    """Download an upload folder as a zip file or an upload file as a single file.
+
+    Args:
+        path (str): Path of the file or folder to download
+    Raises:
+        HTTPException: If the file or folder does not exist or download fails
+    Returns:
+        Response: Zip file response or single file response
+    """
+    base_path = Path(config.UPLOAD_FILES_PATH)
+    # URL decode path
+    decoded_path = unquote(path)
+    file_path = (base_path / decoded_path).resolve()
+
+    try:
+        file_path.relative_to(base_path.resolve())
+    except ValueError:
+        raise HTTPException(
+            status_code=403, detail="Access denied: Path outside allowed directory"
+        )
+
+    if not file_path.exists():
+        raise HTTPException(status_code=404, detail="File not found")
+
+    if file_path.is_file():
+        body, content_type = get_local_file_content(file_path)
+        if body is not None:
+            headers = {"Content-Disposition": content_disposition(f"{file_path.name}")}
+            return Response(content=body, media_type=content_type, headers=headers)
+        else:
+            raise HTTPException(status_code=404, detail="File not found")
+    else:
+        # Create an in-memory bytes buffer
+        zip_buffer = BytesIO()
+        # Create a ZIP file in memory
+        with zipfile.ZipFile(zip_buffer, "w", zipfile.ZIP_DEFLATED) as zip_file:
+            for f_path in file_path.rglob("*"):
+                if f_path.is_file():
+                    # Write file into zip, maintaining relative path
+                    zip_file.write(f_path, arcname=f_path.relative_to(file_path))
+        # Move cursor back to start of buffer
+        zip_buffer.seek(0)
+
+        # Stream response
+        return StreamingResponse(
+            zip_buffer,
+            media_type="application/x-zip-compressed",
+            headers={
+                "Content-Disposition": content_disposition(f"{file_path.name}.zip")
+            },
+        )
+
+
+@router.get(
+    "/upload-info",
+    status_code=200,
+    description="Get information about an upload folder (for admin use only)",
+    response_model=list[UploadInfo],
+)
+async def get_upload_folders_info() -> list[UploadInfo]:
+    """Get information about all upload folders.
+
+    Returns:
+        list[UploadInfo]: Information about the uploaded files
+    """
+    base_path = Path(config.UPLOAD_FILES_PATH)
+
+    if not base_path.exists() or not base_path.is_dir():
+        return []
+    upload_folders = [f for f in base_path.iterdir() if f.is_dir()]
+    infos = []
+    for folder_path in upload_folders:
+        info_file_path = folder_path / "info.json"
+        if not info_file_path.exists() or not info_file_path.is_file():
+            continue
+        try:
+            with info_file_path.open("r", encoding="utf-8") as f:
+                data = json.load(f)
+                infos.append(UploadInfo(**data))
+        except Exception:
+            continue
+    return infos
+
+
+@router.get(
+    "/upload-info/{folder}",
+    status_code=200,
+    description="Get information about an upload folder (for admin use only)",
+    response_model=UploadInfo,
+)
+async def get_upload_folder_info(folder: str) -> UploadInfo:
+    """Get information about an upload folder.
+
+    Args:
+        folder (str): Folder name to get information about
+    Raises:
+        HTTPException: If the folder does not exist or reading info fails
+    Returns:
+        UploadInfo: Information about the uploaded files
+    """
+    base_path = Path(config.UPLOAD_FILES_PATH)
+    folder_path = (base_path / folder).resolve()
+
+    try:
+        folder_path.relative_to(base_path.resolve())
+    except ValueError:
+        raise HTTPException(
+            status_code=403, detail="Access denied: Path outside allowed directory"
+        )
+
+    if not folder_path.exists() or not folder_path.is_dir():
+        raise HTTPException(status_code=404, detail="Folder not found")
+
+    info_file_path = folder_path / "info.json"
+    if not info_file_path.exists() or not info_file_path.is_file():
+        raise HTTPException(status_code=404, detail="Info file not found in folder")
+
+    try:
+        with info_file_path.open("r", encoding="utf-8") as f:
+            data = json.load(f)
+            return UploadInfo(**data)
+    except Exception as e:
+        raise HTTPException(
+            status_code=500, detail=f"Error reading info file: {str(e)}"
+        )
+
+
+@router.delete(
+    "/upload-info/{folder}",
+    status_code=200,
+    description="Delete an upload folder from the temporary upload directory (for admin use only)",
+)
+async def delete_upload_folder_info(folder: str):
+    """Delete an upload folder from the temporary upload directory.
+
+    Args:
+        folder (str): Folder name to delete
+    Raises:
+        HTTPException: If the folder does not exist or deletion fails
+
+    Returns:
+        dict: Success message
+    """
+    # Note: for consistency with list and get, we keep the same endpoint
+    return delete_upload_folder(folder)
+
+
+@router.put(
+    "/upload-info/{folder}/_state",
+    status_code=200,
+    description="Update the state of an upload folder (for admin use only)",
+    response_model=UploadInfo,
+)
+async def update_upload_folder_state(folder: str, state: str) -> UploadInfo:
+    """Update the state of an upload folder in the temporary upload directory.
+
+    Args:
+        folder (str): Folder name to update
+        state (str): New state value
+    Raises:
+        HTTPException: If the folder does not exist or update fails
+    Returns:
+        UploadInfo: Updated information about the uploaded files
+    """
+    base_path = Path(config.UPLOAD_FILES_PATH)
+    folder_path = (base_path / folder).resolve()
+
+    try:
+        folder_path.relative_to(base_path.resolve())
+    except ValueError:
+        raise HTTPException(
+            status_code=403, detail="Access denied: Path outside allowed directory"
+        )
+
+    if not folder_path.exists() or not folder_path.is_dir():
+        raise HTTPException(status_code=404, detail="Folder not found")
+
+    try:
+        update_local_upload_info_state(folder, state)
+        return await get_upload_folder_info(folder)
+    except Exception as e:
+        raise HTTPException(
+            status_code=500, detail=f"Error updating info file: {str(e)}"
+        )
+
+
+def content_disposition(filename: str) -> str:
+    """Generate a Content-Disposition header value that supports UTF-8 filenames."""
+    safe_ascii = filename.encode("ascii", "ignore").decode()
+    if not safe_ascii:
+        safe_ascii = "download"
+
+    # Sanitize ASCII fallback
+    safe_ascii = re.sub(r"[^A-Za-z0-9._-]", "_", safe_ascii)
+
+    # UTF-8 encoded filename for filename*
+    utf8_filename = quote(filename)
+
+    return f"attachment; filename=\"{safe_ascii}\"; filename*=UTF-8''{utf8_filename}"
