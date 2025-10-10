@@ -9,6 +9,12 @@
           link="https://masonrydb.epfl.ch/"
           icon="table_view"
         />
+        <essential-link
+          title="Stone Masonry Database"
+          caption="Stone Masonry Database"
+          link="https://eesd-epfl.github.io/StoneMasonryDatabase/"
+          icon="table_view"
+        />
       </q-list>
     </div>
   </q-page>
