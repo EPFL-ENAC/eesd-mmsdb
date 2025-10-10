@@ -336,6 +336,20 @@ const computeLine = async () => {
   });
 };
 
+onMounted(() => {
+  if (sliceStore.sliceImageData) {
+    uploadedImage.value = new File([new Blob([sliceStore.sliceImageData])], 'slice_image.png', { type: 'image/png' });
+    onFileSelected(uploadedImage.value);
+  }
+});
+
+watch(() => sliceStore.sliceImageData, (newData) => {
+  if (newData) {
+    uploadedImage.value = new File([new Blob([newData])], 'slice_image.png', { type: 'image/png' });
+    onFileSelected(uploadedImage.value);
+  }
+});
+
 watch([startX, startY, endX, endY, () => lineStore.result?.path_coordinates], () => {
   if (imageLoaded.value) {
     redrawCanvas();
