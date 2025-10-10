@@ -98,7 +98,7 @@
           </div>
         </div>
 
-        <div class="q-mt-md">
+        <div class="q-mb-lg">
           <div class="text-subtitle2 q-mb-xs">Analysis Type</div>
           <q-select
             v-model="analysisType"
@@ -118,22 +118,27 @@
             icon="calculate"
           />
         </div>
+
+        <div v-if="lineStore.result?.total_length" class="q-mt-md">
+          <div class="text-subtitle2 q-mt-md">Total length</div>
+          <div>{{ lineStore.result.total_length.toFixed(2) }} cm</div>
+        </div>
+
+        <q-banner v-if="!lineStore.result?.success && lineStore.result?.error" class="bg-negative text-white">
+          <template v-slot:avatar>
+            <q-icon name="error" />
+          </template>
+          {{ lineStore.result.error }}
+        </q-banner>
+
+        <q-banner v-if="lineStore.error" class="bg-negative text-white q-mt-md">
+          <template v-slot:avatar>
+            <q-icon name="error" />
+          </template>
+          {{ lineStore.error }}
+        </q-banner>
       </q-card-section>
     </q-card>
-
-    <q-card v-if="lineStore.result" class="q-mt-md">
-      <q-card-section>
-        <div class="text-h6 q-mb-md">Computation Result</div>
-        <pre>{{ JSON.stringify(lineStore.result, null, 2) }}</pre>
-      </q-card-section>
-    </q-card>
-
-    <q-banner v-if="lineStore.error" class="bg-negative text-white q-mt-md">
-      <template v-slot:avatar>
-        <q-icon name="error" />
-      </template>
-      {{ lineStore.error }}
-    </q-banner>
 
     <q-card class="q-pa-md q-mt-md">
       <div class="text-h4">Masonry Quality Index computation</div>
@@ -150,14 +155,12 @@ import { useSliceStore } from '../stores/slice';
 const lineStore = useLineStore();
 const sliceStore = useSliceStore();
 
-// File and image handling
 const uploadedImage = ref<File | null>(null);
 const canvasRef = ref<HTMLCanvasElement | null>(null);
 const imageLoaded = ref(false);
 const imageWidth = ref(0);
 const imageHeight = ref(0);
 
-// Line parameters
 const startX = ref(0);
 const startY = ref(0);
 const endX = ref(500);
@@ -173,11 +176,9 @@ watch(analysisType, () => {
   console.log(analysisType.value);
 });
 
-// Canvas interaction
 const isDrawing = ref(false);
 const ctx = ref<CanvasRenderingContext2D | null>(null);
 
-// Computed properties
 const canCompute = computed(() => {
   return imageLoaded.value &&
     uploadedImage.value &&
@@ -187,7 +188,6 @@ const canCompute = computed(() => {
     endY.value >= 0 && endY.value <= imageHeight.value;
 });
 
-// File selection handler
 const onFileSelected = (file: File | null) => {
   if (!file) {
     imageLoaded.value = false;
@@ -223,7 +223,6 @@ const onFileSelected = (file: File | null) => {
   img.src = URL.createObjectURL(file);
 };
 
-// Helper function to convert display coordinates to canvas coordinates
 const getCanvasCoordinates = (event: MouseEvent) => {
   if (!canvasRef.value) return { x: 0, y: 0 };
 
@@ -237,7 +236,6 @@ const getCanvasCoordinates = (event: MouseEvent) => {
   return { x, y };
 };
 
-// Canvas interaction handlers
 const onCanvasMouseDown = (event: MouseEvent) => {
   if (!canvasRef.value) return;
 
@@ -259,25 +257,22 @@ const onCanvasMouseMove = (event: MouseEvent) => {
 
   endX.value = coords.x;
   endY.value = coords.y;
-
-  redrawCanvas();
 };
 
 const onCanvasMouseUp = () => {
   isDrawing.value = false;
 };
 
-// Canvas drawing functions
 const redrawCanvas = () => {
   if (!canvasRef.value || !ctx.value || !uploadedImage.value) return;
 
-  // Clear canvas and redraw image
   const img = new Image();
   img.onload = () => {
     if (ctx.value) {
       ctx.value.clearRect(0, 0, canvasRef.value!.width, canvasRef.value!.height);
       ctx.value.drawImage(img, 0, 0);
       drawLine();
+      drawResults();
     }
   };
   img.src = URL.createObjectURL(uploadedImage.value);
@@ -306,7 +301,25 @@ const drawLine = () => {
   ctx.value.fill();
 };
 
-// Compute line handler
+const drawResults = () => {
+  if (!ctx.value || !lineStore.result?.path_coordinates) return;
+
+  ctx.value.beginPath();
+  ctx.value.strokeStyle = '#00d000';
+  ctx.value.lineWidth = 8;
+  ctx.value.setLineDash([]);
+
+  lineStore.result.path_coordinates.pixel_coordinates.forEach((point: [number, number], index: number) => {
+    if (index === 0) {
+      ctx.value!.moveTo(point[0], point[1]);
+    } else {
+      ctx.value!.lineTo(point[0], point[1]);
+    }
+  });
+
+  ctx.value.stroke();
+}
+
 const computeLine = async () => {
   if (!uploadedImage.value || !canCompute.value) return;
 
@@ -323,8 +336,7 @@ const computeLine = async () => {
   });
 };
 
-// Watch for parameter changes to redraw line
-watch([startX, startY, endX, endY], () => {
+watch([startX, startY, endX, endY, () => lineStore.result?.path_coordinates], () => {
   if (imageLoaded.value) {
     redrawCanvas();
   }
