@@ -6,21 +6,37 @@
                 <q-badge class="q-mb-xs">{{ index }}/{{ stones.files.length - 1 }} : {{ stones.files[index] }}</q-badge>
                 <q-slider v-model="index" :min="0" :max="stones.files.length - 1" color="primary" />
             </div>
-            <div v-else>Loading...</div>
+            <div v-else>
+                <q-skeleton type="QBadge" />
+            </div>
         </div>
 
-        <div class="carousel-controls">
-            <q-btn flat round icon="chevron_left" @click="previousStone" />
-            <div class="stone-image-container">
-                <div v-if="currentStone">
-                    <microstructure-view :ply-data="currentStone" :width="200" :height="200" />
+        <div class="carousel-wrapper">
+            <div class="carousel-controls">
+                <q-btn flat round icon="chevron_left" @click="previousStone" />
+                <div class="stone-image-container">
+                    <div v-if="currentStone">
+                        <microstructure-view :ply-data="currentStone" :width="200" :height="200" />
+                    </div>
+    
+                    <div :class="['spinner-container', loading ? 'shown' : '']">
+                        <q-spinner color="primary" size="3em" />
+                    </div>
                 </div>
+                <q-btn flat round icon="chevron_right" @click="nextStone" />
+            </div>
 
-                <div :class="['spinner-container', loading ? 'shown' : '']">
-                    <q-spinner color="primary" size="3em" />
+            <div>
+                <div v-if="currentStoneProperties" class="stone-infos">
+                    <div v-for="prop in currentStoneProperties" :key="prop.name" class="q-mb-sm">
+                        <div class="text-subtitle2 small-line-height">{{ prop.name }}</div>
+                        <div class="text-body1">{{ prop.value }} {{ prop.unit }}</div>
+                    </div>
+                </div>
+                <div v-else>
+                    <q-skeleton width="100%" height="200px" />
                 </div>
             </div>
-            <q-btn flat round icon="chevron_right" @click="nextStone" />
         </div>
     </div>
 
@@ -29,19 +45,23 @@
 <script setup lang="ts">
 import { useWallsStore } from 'stores/walls'
 import MicrostructureView from 'src/components/MicrostructureView.vue'
-import type { WallStonesList } from 'src/models';
+import type { Table, WallStonesList } from 'src/models';
 
 const wallsStore = useWallsStore();
+const stonePropertiesStore = useStonePropertiesStore();
+
 const props = defineProps<{
     wallId: string;
     preloadNext?: number;
     preloadPrevious?: number;
 }>();
 
+
 const index = ref(0);
 const loading = ref(false);
 const currentStone = ref<ArrayBuffer | null>(null);
 const stones = ref<WallStonesList | null>(null);
+const stonesProperties = ref<Table | null>(null);
 
 function nextStone() {
     if (!stones.value) return;
@@ -87,12 +107,27 @@ async function setCurrentStone(i: number) {
     }
 }
 
+const currentStoneProperties = computed(() => {
+    if (!stonesProperties.value) return null;
+
+    const properties = [];
+    for (const col of stonesProperties.value) {
+        properties.push({
+            name: stonePropertiesStore.getColumnLabel(col.name) || col.name,
+            value: col.values[index.value] || 'N/A',
+            unit: stonePropertiesStore.getColumnUnit(col.name) || '',
+        });
+    }
+    return properties;
+})
+
 watch(index, async (newIndex) => {
     await setCurrentStone(newIndex);
 });
 
 onMounted(async () => {
-    await setCurrentStone(index.value);
+    void setCurrentStone(index.value);
+    stonesProperties.value = await stonePropertiesStore.getProperties(props.wallId);
 });
 
 </script>
@@ -125,5 +160,27 @@ onMounted(async () => {
 
 .spinner-container.shown {
     opacity: 1;
+}
+
+.carousel-wrapper {
+    display: flex;
+    gap: 16px;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+}
+
+.carousel-wrapper > div {
+    flex: 1 1 300px;
+}
+
+.stone-infos {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 8px 12px;
+}
+
+.small-line-height {
+    line-height: 1;
 }
 </style>
