@@ -32,8 +32,8 @@
         <microstructure-view :ply-data="wallData[selectedWallId] || null" :width="400" :height="400" sliceable
           class="microstructure-item" />
 
-        <div v-if="wallStoneList[selectedWallId]">
-          <stone-carousel :stones="wallStoneList[selectedWallId]!" :preload-next="5" :preload-previous="5" />
+        <div>
+          <stone-carousel :wall-id="selectedWallId" :preload-next="5" :preload-previous="5" />
         </div>
 
         <div class="parameters-section">
@@ -56,7 +56,7 @@
 
         <div>
           <div class="text-h6 q-mb-md">Download</div>
-          <wall-files-downloader :wallId="selectedWallId" :stones="wallStoneList[selectedWallId]!" />
+          <wall-files-downloader :wallId="selectedWallId" />
         </div>
       </div>
     </simple-dialog>
@@ -74,7 +74,6 @@ import StoneCarousel from 'src/components/StoneCarousel.vue'
 import SimpleDialog from 'src/components/SimpleDialog.vue'
 import StonePropertyHistogram from 'src/components/StonePropertyHistogram.vue'
 import WallFilesDownloader from 'src/components/WallFilesDownloader.vue'
-import type { WallStonesList } from 'src/models'
 
 const dialogColumns = ["Microstructure type", "Typology based on Italian Code", "No of leaves", "Vertical loading_GMQI_class", "In-plane_GMQI_class", "Out-of-plane_GMQI_class", "Average vertical LMT", "Average horizontal LMT", "Average shape factor"]
 const dimensionsColumns = ["Length [cm]", "Height [cm]", "Width [cm]"]
@@ -89,8 +88,6 @@ const allWallIds = computed(() => databaseFiltersStore.allWallIds)
 
 
 const wallData = ref<Record<string, ArrayBuffer | null>>({})
-const wallStoneData = ref<Record<string, ArrayBuffer | null>>({})
-const wallStoneList = ref<Record<string, WallStonesList | null>>({})
 const loadingWallData = ref(false)
 
 const wallImages = computed(() => wallsStore.wallImages)
@@ -161,13 +158,6 @@ async function openWallDialog(wallId: string) {
     loadingWallData.value = true
     try {
       wallData.value[wallId] = await wallsStore.getWall(true, wallId)
-
-      const stoneList = await wallsStore.getWallStonesList(wallId)
-      wallStoneList.value[wallId] = stoneList
-
-      const firstStonePath = `${stoneList?.folder}/${stoneList?.files[0] || ""}`;
-      const firstStone = await wallsStore.getWallStoneModel(true, firstStonePath)
-      wallStoneData.value[wallId] = firstStone
     } catch (error) {
       console.error(`Failed to load wall data for ${wallId}:`, error)
       wallData.value[wallId] = null

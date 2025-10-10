@@ -2,8 +2,11 @@
     <div class="stone-carousel q-mb-md">
         <div class="q-mb-sm">
             <div class="text-h6">Individual stones</div>
-            <q-badge class="q-mb-xs">{{ index }}/{{ props.stones.files.length - 1 }} : {{ props.stones.files[index] }}</q-badge>
-            <q-slider v-model="index" :min="0" :max="props.stones.files.length - 1" color="primary" />
+            <div v-if="stones">
+                <q-badge class="q-mb-xs">{{ index }}/{{ stones.files.length - 1 }} : {{ stones.files[index] }}</q-badge>
+                <q-slider v-model="index" :min="0" :max="stones.files.length - 1" color="primary" />
+            </div>
+            <div v-else>Loading...</div>
         </div>
 
         <div class="carousel-controls">
@@ -30,7 +33,8 @@ import type { WallStonesList } from 'src/models';
 
 const wallsStore = useWallsStore();
 const props = defineProps<{
-    stones: WallStonesList;
+    wallId: string;
+    // stones: WallStonesList;
     preloadNext?: number;
     preloadPrevious?: number;
 }>();
@@ -38,32 +42,44 @@ const props = defineProps<{
 const index = ref(0);
 const loading = ref(false);
 const currentStone = ref<ArrayBuffer | null>(null);
+const stones = ref<WallStonesList | null>(null);
 
 function nextStone() {
-    index.value = (index.value + 1) % props.stones.files.length;
+    if (!stones.value) return;
+    index.value = (index.value + 1) % stones.value.files.length;
 }
 
 function previousStone() {
-    index.value = (index.value - 1 + props.stones.files.length) % props.stones.files.length;
+    if (!stones.value) return;
+    index.value = (index.value - 1 + stones.value.files.length) % stones.value.files.length;
 }
 
 async function getStoneAtIndex(i: number): Promise<ArrayBuffer | null> {
-    const stonePath = `${props.stones.folder}/${props.stones.files[i] || ""}`;
+    if (!stones.value) return null;
+    const stonePath = `${stones.value.folder}/${stones.value.files[i] || ""}`;
     return await wallsStore.getWallStoneModel(true, stonePath);
 }
 
 async function setCurrentStone(i: number) {
     loading.value = true;
 
+    if (!stones.value) {
+        stones.value = await wallsStore.getWallStonesList(props.wallId);
+        if (!stones.value) {
+            loading.value = false;
+            return;
+        }
+    }
+
     currentStone.value = await getStoneAtIndex(i);
 
     // Preload next and previous stones, without awaiting them to not block ! The non-awaited nature is made explicit with the void operator.
     for (let offset = 1; offset <= (props.preloadNext || 0); offset++) {
-        const nextIndex = (i + offset) % props.stones.files.length;
+        const nextIndex = (i + offset) % stones.value.files.length;
         void getStoneAtIndex(nextIndex);
     }
     for (let offset = 1; offset <= (props.preloadPrevious || 0); offset++) {
-        const prevIndex = (i - offset + props.stones.files.length) % props.stones.files.length;
+        const prevIndex = (i - offset + stones.value.files.length) % stones.value.files.length;
         void getStoneAtIndex(prevIndex);
     }
 
