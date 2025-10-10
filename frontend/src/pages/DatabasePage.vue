@@ -29,7 +29,7 @@
 
     <simple-dialog v-model="showWallDialog" :title="`Wall ${selectedWallId}`" size="lg">
       <div v-if="selectedWallId" class="wall-dialog-content">
-        <microstructure-view :ply-data="wallData[selectedWallId] || null" :width="400" :height="400" sliceable
+        <microstructure-view :ply-data="wallData[selectedWallId] || null" :width="400" :height="400" sliceable :wall-size="propertiesStore.getWallMaxSize(selectedWallId) || 100"
           class="microstructure-item" />
 
         <div v-if="wallStoneList[selectedWallId]">

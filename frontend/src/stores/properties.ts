@@ -76,6 +76,30 @@ export const usePropertiesStore = defineStore('properties', () => {
     }) || null;
   }
 
+  const getWallProperty = (wallID: string, propertyKey: string): string | null => {
+    if (!properties.value) {
+      return null;
+    }
+    const wallIndex = getColumnValues("Wall ID")?.findIndex(id => id === wallID);
+    if (wallIndex === undefined || wallIndex === -1) {
+      return null;
+    }
+
+    const column = getColumnValues(propertyKey);
+    if (!column) {
+      return null;
+    }
+
+    return column[wallIndex] || null;
+  }
+
+  const getWallMaxSize = (wallID: string): number | null => {
+    const wallLength = parseFloat(getWallProperty(wallID, "Length [cm]") || "0");
+    const wallHeight = parseFloat(getWallProperty(wallID, "Height [cm]") || "0");
+    const wallWidth = parseFloat(getWallProperty(wallID, "Width [cm]") || "0");
+    return Math.max(wallLength, wallHeight, wallWidth);
+  }
+
   return {
     properties,
     loading,
@@ -90,5 +114,7 @@ export const usePropertiesStore = defineStore('properties', () => {
     getColumnKeyFromLabel,
     getColumnValues,
     getBinnedProperties,
+    getWallProperty,
+    getWallMaxSize
   };
 });

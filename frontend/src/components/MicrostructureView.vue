@@ -26,12 +26,20 @@
       </q-btn>
 
       <q-btn
-        v-if="sliceable"
+        v-if="slicing"
+        color=green
         size=sm
-        :color="slicing ? undefined : 'blue'"
-        @click="toggleSlicing"
+        @click="computeLMT"
       >
-        {{ slicing ? "Cancel" : "Compute slice" }}
+        compute LMT
+      </q-btn>
+
+      <q-btn
+        v-if="slicing"
+        size=sm
+        @click="toggleAxis"
+      >
+        Swap slicing axis
       </q-btn>
 
       <q-btn
@@ -43,11 +51,12 @@
       </q-btn>
 
       <q-btn
-        v-if="slicing"
+        v-if="sliceable"
         size=sm
-        @click="toggleAxis"
+        :color="slicing ? undefined : 'blue'"
+        @click="toggleSlicing"
       >
-        Swap slicing axis
+        {{ slicing ? "Cancel" : "Compute slice" }}
       </q-btn>
 
       <q-slider
@@ -62,12 +71,17 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted, watch } from 'vue'
 import * as THREE from 'three'
 import { PLYLoader } from 'three/examples/jsm/loaders/PLYLoader.js'
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
-const sliceSize = 1.05
+import { useLineStore } from '../stores/line';
+import { useSliceStore } from '../stores/slice';
+const router = useRouter()
+const lineStore = useLineStore();
+const sliceStore = useSliceStore();
+const sliceSize = 1.0
 const sliceResolution = 768
+
 
 interface Props {
   plyData?: ArrayBuffer | null
@@ -76,6 +90,7 @@ interface Props {
   backgroundColor?: string
   sliceable?: boolean
   downloadUrl?: string
+  wallSize?: number
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -312,7 +327,6 @@ const createSliceImage = async (): Promise<ArrayBuffer | null> => {
 
   const pixelData = new Uint8Array(sliceResolution * sliceResolution * 4)
   renderer.readRenderTargetPixels(sliceRenderTarget, 0, 0, sliceResolution, sliceResolution, pixelData)
-  console.log(pixelData.reduce((acc, val) => acc.add(val), new Set()))
 
   // Create a canvas to generate the binary image
   const canvas = document.createElement('canvas')
@@ -332,7 +346,7 @@ const createSliceImage = async (): Promise<ArrayBuffer | null> => {
     // const b = pixelData[4 * i + 2]
     const a = pixelData[4 * i + 3]
 
-    const isStone = (a == 255)
+    const isStone = (a === 255)
     const iYFlipped = (sliceResolution - Math.floor(i / sliceResolution)) * sliceResolution + i % sliceResolution
 
     imageData.data[4 * iYFlipped] = isStone ? 0 : 255
@@ -411,6 +425,21 @@ const toggleAxis = () => {
   swappedAxis.value = !swappedAxis.value
 }
 
+const computeLMT = async () => {
+  try {
+    const imageBuffer = await createSliceImage()
+    if (!imageBuffer) {
+      console.error('No image buffer to compute LMT')
+      return
+    }
+    sliceStore.setSliceData(imageBuffer, props.wallSize || 100, props.wallSize || 100)
+    lineStore.clearResult()
+    await router.push("/quality-index")
+  } catch (error) {
+    console.error('Error computing LMT:', error)
+  }
+}
+
 onMounted(() => {
   initThreeJS()
   if (props.plyData) {
@@ -482,7 +511,7 @@ watch(sliceCoord, () => {
 
 watch(swappedAxis, () => {
   if (slicing.value && slicePlane) {
-  scene.remove(slicePlane)
+    scene.remove(slicePlane)
   }
 
   configureSlice()

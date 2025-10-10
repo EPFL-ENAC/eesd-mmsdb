@@ -24,8 +24,15 @@ export const useSliceStore = defineStore('slice', () => {
     }
   };
 
+  const setSliceData = (imageData: ArrayBuffer, length: number, height: number) => {
+    sliceImageData.value = imageData;
+    realLength.value = length;
+    realHeight.value = height;
+  };
+
   return {
     sliceImageData,
+    setSliceData,
     realLength,
     realHeight,
     boundaryMargin,

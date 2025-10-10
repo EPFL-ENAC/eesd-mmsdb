@@ -1,10 +1,11 @@
 <template>
   <q-page>
     <microstructure-view
-      :ply-data="result"
+      :ply-data="wallPlyData"
       :width="Math.min(400, q.screen.width)"
       :height="400"
       sliceable
+      :wall-size="wallSize || 100"
       class="microstructure-container"
     />
 
@@ -32,13 +33,23 @@ import DonutCharts from 'src/components/DonutCharts.vue';
 import ParallelCategoriesDiagram from 'src/components/ParallelCategoriesDiagram.vue';
 import citationItems from 'src/assets/citation_items.json';
 import { useWallsStore } from 'src/stores/walls';
+import { usePropertiesStore } from 'src/stores/properties';
 
 const q = useQuasar();
 const wallsStore = useWallsStore();
-const result = ref<ArrayBuffer | null>(null)
+const propertiesStore = usePropertiesStore();
+const wallPlyData = ref<ArrayBuffer | null>(null)
+const wallSize = ref<number | null>(null);
 
 onMounted(async () => {
-  result.value = await wallsStore.getWall(true, "OC01");
+  const wallID = "OC01";
+  wallPlyData.value = await wallsStore.getWall(true, wallID);
+  wallSize.value = propertiesStore.getWallMaxSize(wallID);
+});
+
+watch(() => propertiesStore.loading, () => {
+  if (!propertiesStore.properties || wallSize.value) return;
+  wallSize.value = propertiesStore.getWallMaxSize("OC01");
 });
 
 const { t } = useI18n();

@@ -172,10 +172,6 @@ const analysisTypeOptions = [
 ];
 const analysisType = ref(analysisTypeOptions[0]);
 
-watch(analysisType, () => {
-  console.log(analysisType.value);
-});
-
 const isDrawing = ref(false);
 const ctx = ref<CanvasRenderingContext2D | null>(null);
 
@@ -331,7 +327,7 @@ const computeLine = async () => {
     image: uploadedImage.value,
     realLength: sliceStore.realLength,
     realHeight: sliceStore.realHeight,
-    analysisType: (analysisType.value as { label: string; value: number }).value,
+    analysisType: (analysisType.value as typeof analysisTypeOptions[0]).value,
     boundaryMargin: sliceStore.boundaryMargin,
   });
 };
@@ -350,7 +346,7 @@ watch(() => sliceStore.sliceImageData, (newData) => {
   }
 });
 
-watch([startX, startY, endX, endY, () => lineStore.result?.path_coordinates], () => {
+watch([startX, startY, endX, endY, () => lineStore.result], () => {
   if (imageLoaded.value) {
     redrawCanvas();
   }
