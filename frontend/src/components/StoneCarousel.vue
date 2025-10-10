@@ -34,7 +34,6 @@ import type { WallStonesList } from 'src/models';
 const wallsStore = useWallsStore();
 const props = defineProps<{
     wallId: string;
-    // stones: WallStonesList;
     preloadNext?: number;
     preloadPrevious?: number;
 }>();
