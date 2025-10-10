@@ -33,6 +33,10 @@ export interface LineComputeParams {
   endX: number;
   endY: number;
   image: File;
+  realLength: number;
+  realHeight: number;
+  analysisType: number;
+  boundaryMargin: number;
 }
 
 export interface LineComputeResult {

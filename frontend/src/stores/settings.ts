@@ -1,7 +1,7 @@
 import { defineStore } from 'pinia';
 import { LocalStorage } from 'quasar';
 
-const APP_STORAGE_NAME = 'iaq_settings';
+const APP_STORAGE_NAME = 'mmsdb_settings';
 
 export type Settings = {
   intro_shown: boolean;

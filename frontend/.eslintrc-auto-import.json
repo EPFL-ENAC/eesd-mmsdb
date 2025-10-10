@@ -110,6 +110,7 @@
     "useDatabaseFiltersStore": true,
     "useStonePropertiesStore": true,
     "useCorrelationsFiltersStore": true,
-    "useLineStore": true
+    "useLineStore": true,
+    "useSliceStore": true
   }
 }

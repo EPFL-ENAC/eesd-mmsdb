@@ -21,6 +21,10 @@ export const useLineStore = defineStore('line', () => {
         start_y: params.startY.toString(),
         end_x: params.endX.toString(),
         end_y: params.endY.toString(),
+        real_length: params.realLength.toString(),
+        real_height: params.realHeight.toString(),
+        analysis_type: params.analysisType.toString(),
+        boundary_margin: params.boundaryMargin.toString(),
       });
 
       const response = await api.post(`/compute/line?${queryParams}`, formData, {

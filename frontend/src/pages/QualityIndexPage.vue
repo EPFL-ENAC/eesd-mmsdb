@@ -19,7 +19,7 @@
       </q-card-section>
 
       <q-card-section v-show="imageLoaded">
-        <div class="canvas-container flex justify-center" style="position: relative; display: inline-block;">
+        <div class="canvas-container q-mb-md">
           <canvas
             ref="canvasRef"
             @mousedown="onCanvasMouseDown"
@@ -30,8 +30,30 @@
 
         <div class="text-h6 q-mb-md">Parameters</div>
 
-        <div class="row q-gutter-md">
-          <div class="col-md-2 col-sm-5 col-xs-12">
+        <div class="row q-col-gutter-md q-mb-md">
+          <div class="col-md-6 col-sm-6 col-xs-12">
+            <div class="text-subtitle2 q-mb-xs">Real length (in cm)</div>
+            <q-input
+              v-model.number="sliceStore.realLength"
+              type="number"
+              filled
+              dense
+            />
+          </div>
+
+          <div class="col-md-6 col-sm-6 col-xs-12">
+            <div class="text-subtitle2 q-mb-xs">Real height (in cm)</div>
+            <q-input
+              v-model.number="sliceStore.realHeight"
+              type="number"
+              filled
+              dense
+            />
+          </div>
+        </div>
+
+        <div class="row q-col-gutter-md">
+          <div class="col-md-3 col-sm-6 col-xs-12">
             <div class="text-subtitle2 q-mb-xs">Start X</div>
             <q-slider
               v-model="startX"
@@ -42,7 +64,7 @@
             />
           </div>
 
-          <div class="col-md-2 col-sm-5 col-xs-12">
+          <div class="col-md-3 col-sm-6 col-xs-12">
             <div class="text-subtitle2 q-mb-xs">Start Y</div>
             <q-slider
               v-model="startY"
@@ -53,7 +75,7 @@
             />
           </div>
 
-          <div class="col-md-2 col-sm-5 col-xs-12">
+          <div class="col-md-3 col-sm-6 col-xs-12">
             <div class="text-subtitle2 q-mb-xs">End X</div>
             <q-slider
               v-model="endX"
@@ -64,7 +86,7 @@
             />
           </div>
 
-          <div class="col-md-2 col-sm-5 col-xs-12">
+          <div class="col-md-3 col-sm-6 col-xs-12">
             <div class="text-subtitle2 q-mb-xs">End Y</div>
             <q-slider
               v-model="endY"
@@ -74,6 +96,16 @@
               label
             />
           </div>
+        </div>
+
+        <div class="q-mt-md">
+          <div class="text-subtitle2 q-mb-xs">Analysis Type</div>
+          <q-select
+            v-model="analysisType"
+            :options="analysisTypeOptions"
+            filled
+            dense
+          />
         </div>
 
         <div class="q-mt-md">
@@ -113,8 +145,10 @@
 <script setup lang="ts">
 import QualityIndexWizard from '../components/qualityIndex/QualityIndexWizard.vue'
 import { useLineStore } from '../stores/line';
+import { useSliceStore } from '../stores/slice';
 
 const lineStore = useLineStore();
+const sliceStore = useSliceStore();
 
 // File and image handling
 const uploadedImage = ref<File | null>(null);
@@ -126,8 +160,18 @@ const imageHeight = ref(0);
 // Line parameters
 const startX = ref(0);
 const startY = ref(0);
-const endX = ref(100);
-const endY = ref(100);
+const endX = ref(500);
+const endY = ref(500);
+const analysisTypeOptions = [
+  { label: 'Vertical joints', value: 0 },
+  { label: 'Horizontal bed joints', value: 1 },
+  { label: 'Wall leaf connections', value: 2 },
+];
+const analysisType = ref(analysisTypeOptions[0]);
+
+watch(analysisType, () => {
+  console.log(analysisType.value);
+});
 
 // Canvas interaction
 const isDrawing = ref(false);
@@ -170,9 +214,10 @@ const onFileSelected = (file: File | null) => {
 
     imageLoaded.value = true;
 
-    // Set default end coordinates
-    endX.value = Math.min(100, img.width);
-    endY.value = Math.min(100, img.height);
+    startX.value = Math.floor(img.width / 2);
+    startY.value = 0;
+    endX.value = Math.floor(img.width / 2);
+    endY.value = img.height;
   };
 
   img.src = URL.createObjectURL(file);
@@ -201,6 +246,8 @@ const onCanvasMouseDown = (event: MouseEvent) => {
   if (!isDrawing.value) {
     startX.value = coords.x;
     startY.value = coords.y;
+    endX.value = coords.x;
+    endY.value = coords.y;
     isDrawing.value = true;
   }
 };
@@ -268,7 +315,11 @@ const computeLine = async () => {
     startY: startY.value,
     endX: endX.value,
     endY: endY.value,
-    image: uploadedImage.value
+    image: uploadedImage.value,
+    realLength: sliceStore.realLength,
+    realHeight: sliceStore.realHeight,
+    analysisType: (analysisType.value as { label: string; value: number }).value,
+    boundaryMargin: sliceStore.boundaryMargin,
   });
 };
 
@@ -282,8 +333,10 @@ watch([startX, startY, endX, endY], () => {
 
 <style scoped>
 .canvas-container {
-  max-width: 100%;
   overflow: auto;
+  position: relative;
+  display: flex;
+  justify-content: center;
 }
 
 canvas {

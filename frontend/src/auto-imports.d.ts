@@ -96,6 +96,7 @@ declare global {
   const useRoute: typeof import('vue-router')['useRoute']
   const useRouter: typeof import('vue-router')['useRouter']
   const useSettingsStore: typeof import('./stores/settings')['useSettingsStore']
+  const useSliceStore: typeof import('./stores/slice')['useSliceStore']
   const useSlots: typeof import('vue')['useSlots']
   const useStonePropertiesStore: typeof import('./stores/stone_properties')['useStonePropertiesStore']
   const useTemplateRef: typeof import('vue')['useTemplateRef']
@@ -197,6 +198,7 @@ declare module 'vue' {
     readonly useRoute: UnwrapRef<typeof import('vue-router')['useRoute']>
     readonly useRouter: UnwrapRef<typeof import('vue-router')['useRouter']>
     readonly useSettingsStore: UnwrapRef<typeof import('./stores/settings')['useSettingsStore']>
+    readonly useSliceStore: UnwrapRef<typeof import('./stores/slice')['useSliceStore']>
     readonly useSlots: UnwrapRef<typeof import('vue')['useSlots']>
     readonly useStonePropertiesStore: UnwrapRef<typeof import('./stores/stone_properties')['useStonePropertiesStore']>
     readonly useTemplateRef: UnwrapRef<typeof import('vue')['useTemplateRef']>

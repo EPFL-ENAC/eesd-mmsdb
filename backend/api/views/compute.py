@@ -26,6 +26,10 @@ async def compute_line_minimum_trace(
     start_y: int,
     end_x: int,
     end_y: int,
+    real_length: float,
+    real_height: float,
+    analysis_type: int,
+    boundary_margin: int,
 ) -> dict:
     """Compute the line of minimum trace."""
     if (
@@ -41,7 +45,14 @@ async def compute_line_minimum_trace(
 
         try:
             result = calculate_line_minimum_trace(
-                temp_image.name, [start_x, start_y], [end_x, end_y], return_plot=False
+                temp_image.name,
+                start_coords=[start_x, start_y],
+                end_coords=[end_x, end_y],
+                real_length=real_length,
+                real_height=real_height,
+                calculate_LMT=analysis_type,
+                boundary_margin=boundary_margin,
+                return_plot=False,
             )
             return result
         except Exception as e:
