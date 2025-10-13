@@ -63,3 +63,13 @@ function toggleLeftDrawer() {
 }
 
 </script>
+
+<style scoped lang="scss">
+.q-toolbar {
+  height: 64px;
+}
+
+:deep(.q-tabs .q-tab .q-tab__label) {
+  font-size: 1.2rem;
+}
+</style>
