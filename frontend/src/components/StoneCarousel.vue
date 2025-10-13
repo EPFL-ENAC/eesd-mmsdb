@@ -18,7 +18,7 @@
                     <div v-if="currentStone">
                         <microstructure-view :ply-data="currentStone" :width="200" :height="200" />
                     </div>
-    
+
                     <div :class="['spinner-container', loading ? 'shown' : '']">
                         <q-spinner color="primary" size="3em" />
                     </div>
@@ -44,6 +44,7 @@
 
 <script setup lang="ts">
 import { useWallsStore } from 'stores/walls'
+import { toDisplayedProperties, getDimensionsColumn, dimensionsColumnsStones } from 'src/utils/properties'
 import MicrostructureView from 'src/components/MicrostructureView.vue'
 import type { Table, WallStonesList } from 'src/models';
 
@@ -110,14 +111,18 @@ async function setCurrentStone(i: number) {
 const currentStoneProperties = computed(() => {
     if (!stonesProperties.value) return null;
 
-    const properties = [];
-    for (const col of stonesProperties.value) {
-        properties.push({
-            name: stonePropertiesStore.getColumnLabel(col.name) || col.name,
-            value: col.values[index.value] || 'N/A',
-            unit: stonePropertiesStore.getColumnUnit(col.name) || '',
-        });
-    }
+    const properties = stonesProperties.value
+        .filter(col => !dimensionsColumnsStones.includes(col.name))
+        .map(toDisplayedProperties(stonePropertiesStore, index.value));
+
+    const dimensions = getDimensionsColumn(stonePropertiesStore, index.value, key => stonePropertiesStore.getColumnValues(props.wallId, key), true);
+
+    properties.push({
+        name: 'Dimensions',
+        value: dimensions,
+        unit: '',
+    });
+
     return properties;
 })
 

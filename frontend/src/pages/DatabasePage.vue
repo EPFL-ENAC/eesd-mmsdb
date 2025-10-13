@@ -36,19 +36,19 @@
           <stone-carousel :wall-id="selectedWallId" :preload-next="5" :preload-previous="5" />
         </div>
 
-        <div class="parameters-section">
+        <div class="properties-section">
           <div class="text-h6 q-mb-md">Wall properties</div>
-          <div class="parameters-grid">
-            <div v-for="param in selectedWallParameters" :key="param.name" class="parameter-item">
-              <div class="parameter-name">{{ param.name }}</div>
-              <div class="parameter-value">{{ param.value }} {{ param.unit }}</div>
+          <div class="properties-grid">
+            <div v-for="prop in selectedWallProperties" :key="prop.name" class="property-item">
+              <div class="property-name">{{ prop.name }}</div>
+              <div class="property-value">{{ prop.value }} {{ prop.unit }}</div>
             </div>
           </div>
         </div>
 
         <div class="stones-section q-mt-md">
-          <div class="text-h6 q-mb-md">Stones</div>
-          <div class="parameters-grid">
+          <div class="text-h6 q-mb-md">Stones properties</div>
+          <div class="properties-grid">
             <stone-property-histogram v-for="column of stoneColumns" :key="column"
               :title="stonePropertiesStore.getColumnLabel?.(column)" :wallID="selectedWallId" :columnName="column" />
           </div>
@@ -68,7 +68,7 @@ import { usePropertiesStore } from 'stores/properties'
 import { useStonePropertiesStore } from 'stores/stone_properties'
 import { useWallsStore } from 'stores/walls'
 import { useDatabaseFiltersStore } from 'stores/database_filters'
-import type { Column } from '../models';
+import { toDisplayedProperties, getDimensionsColumn } from 'src/utils/properties'
 import MicrostructureView from 'src/components/MicrostructureView.vue'
 import StoneCarousel from 'src/components/StoneCarousel.vue'
 import SimpleDialog from 'src/components/SimpleDialog.vue'
@@ -76,7 +76,6 @@ import StonePropertyHistogram from 'src/components/StonePropertyHistogram.vue'
 import WallFilesDownloader from 'src/components/WallFilesDownloader.vue'
 
 const dialogColumns = ["Microstructure type", "Typology based on Italian Code", "No of leaves", "Vertical loading_GMQI_class", "In-plane_GMQI_class", "Out-of-plane_GMQI_class", "Average vertical LMT", "Average horizontal LMT", "Average shape factor"]
-const dimensionsColumns = ["Length [cm]", "Height [cm]", "Width [cm]"]
 const stoneColumns = ["Stone length [m]", "Elongation [-]", "Aspect ratio [-]"]
 const propertiesStore = usePropertiesStore()
 const stonePropertiesStore = useStonePropertiesStore()
@@ -96,40 +95,17 @@ const loadingImages = computed(() => wallsStore.loadingImages)
 const showWallDialog = ref(false)
 const selectedWallId = ref<string | null>(null)
 
-const selectedWallParameters = computed(() => {
+const selectedWallProperties = computed(() => {
   if (!selectedWallId.value || !Array.isArray(propertiesStore.properties)) return []
 
   const index = propertiesStore.getColumnValues("Wall ID")?.findIndex(id => id === selectedWallId.value)
   if (index === undefined || index === -1) return []
 
-  const toDisplayedParameters = (col: Column) => {
-    const precision = propertiesStore.getColumnPrecision(col.name)
-    let value = col.values[index] as string
-
-    if (precision !== undefined) {
-      const numberValue = Math.floor(parseFloat(value) * Math.pow(10, precision)) / Math.pow(10, precision)
-      value = numberValue.toString()
-    }
-
-    return {
-      name: propertiesStore.getColumnLabel(col.name) || col.name,
-      value: value,
-      unit: propertiesStore.getColumnUnit(col.name) || '',
-    }
-  }
-
   const properties = dialogColumns
     .map(col => ({ name: col, values: propertiesStore.getColumnValues(col) || [] }))
-    .map(toDisplayedParameters);
+    .map(toDisplayedProperties(propertiesStore, index));
 
-  const dimensions = dimensionsColumns
-    .map(col => ({ name: col, values: propertiesStore.getColumnValues(col) || [] }))
-    .map(toDisplayedParameters)
-    .reduce((acc, dimensionsString) => {
-      if (acc.length > 0) acc += ' × '
-      acc += `${dimensionsString.value} ${dimensionsString.unit}`
-      return acc
-    }, '');
+  const dimensions = getDimensionsColumn(propertiesStore, index, propertiesStore.getColumnValues);
 
   properties.push({
     name: 'Dimensions',
@@ -244,27 +220,27 @@ onUnmounted(() => {
   border-radius: 8px;
 }
 
-.parameters-grid {
+.properties-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
   gap: 16px;
 }
 
-.parameter-item {
+.property-item {
   padding: 12px;
   border: 1px solid #e0e0e0;
   border-radius: 8px;
   background-color: #fafafa;
 }
 
-.parameter-name {
+.property-name {
   font-weight: 500;
   color: #424242;
   font-size: 0.875rem;
   margin-bottom: 4px;
 }
 
-.parameter-value {
+.property-value {
   font-size: 1rem;
   color: #1976d2;
   font-weight: 600;
