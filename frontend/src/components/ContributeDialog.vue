@@ -136,7 +136,9 @@ watch(
     showDialog.value = value;
     if (value) {
       // Reset form if needed
-      contribution.value = JSON.parse(JSON.stringify(props.info?.contribution || {})) as Contribution;
+      contribution.value = JSON.parse(JSON.stringify(props.info?.contribution || { type: 'real' })) as Contribution;
+      files.value = [];
+      form.value?.resetValidation();
     }
   },
 );

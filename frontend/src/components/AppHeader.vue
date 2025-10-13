@@ -34,7 +34,7 @@
       flat
       round
       :title="t('upload')"
-      @click="showUpload = true"
+      to="/contribute"
     ></q-btn>
     <q-btn
       icon="handshake"
@@ -78,12 +78,6 @@
     </q-list>
   </simple-dialog>
 
-  <simple-dialog v-model="showUpload" :title="t('upload')">
-      <div v-html="t('upload_text', {
-        email_link: '<a href=\'mailto:mati.shah@epfl.ch\' target=\'_blank\' rel=\'noopener noreferrer\'>mati.shah@epfl.ch</a>',
-        transfer_link: '<a href=\'https://www.swisstransfer.com/\' target=\'_blank\' rel=\'noopener noreferrer\'>SwissTransfer</a>'
-      })"></div>
-  </simple-dialog>
 
   <simple-dialog v-model="showAcknowledgements" :title="t('acknowledgements')">
     <q-list separator class="q-mt-md">
@@ -109,7 +103,6 @@ import citationItems from 'src/assets/citation_items.json';
 const { t } = useI18n();
 const showCitation = ref(false);
 const showContact = ref(false);
-const showUpload = ref(false);
 const showAcknowledgements = ref(false);
 </script>
 

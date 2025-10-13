@@ -33,6 +33,11 @@ export const useContributeStore = defineStore('contribute', () => {
     return result as UploadInfo;
   }
 
+  async function deleteUpload(info: UploadInfo): Promise<void> {
+    await api.delete(`/files/upload/${info.path}`);
+    deleteUploadInfo(info);
+  }
+
   function saveUploadInfo(uploadInfoData: UploadInfo) {
     // update by name if already exists
     const index = uploadInfos.value.findIndex((info) => info.path === uploadInfoData.path);
@@ -45,10 +50,19 @@ export const useContributeStore = defineStore('contribute', () => {
     LocalStorage.set(CONTRIB_STORAGE_NAME, JSON.stringify(uploadInfos.value));
   }
 
+  function deleteUploadInfo(uploadInfoData: UploadInfo) {
+    const index = uploadInfos.value.findIndex((info) => info.path === uploadInfoData.path);
+    if (index !== -1) {
+      uploadInfos.value.splice(index, 1);
+      LocalStorage.set(CONTRIB_STORAGE_NAME, JSON.stringify(uploadInfos.value));
+    }
+  }
+
   return {
     uploadInfos,
     initUploadInfos,
     saveUploadInfo,
-    upload
+    upload,
+    deleteUpload
   };
 });

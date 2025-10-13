@@ -9,24 +9,7 @@
         </div>
         <q-list v-else bordered separator class="q-mt-md">
           <template v-for="uploadInfo in contributeStore.uploadInfos" :key="uploadInfo.path">
-            <q-item>
-              <q-item-section>
-                <q-item-label>
-                  <q-badge color="accent" :title="uploadInfo.path" class="q-mr-sm">{{ `${uploadInfo.path.substring(0, 8)}...` }}</q-badge>
-                </q-item-label>
-                <q-item-label caption>{{ new Date(uploadInfo.date).toLocaleString() }}</q-item-label>
-                <q-item-label caption>{{ t('contribute.uploaded_files', { count: uploadInfo.files.length, size: uploadInfo.total_size }) }}</q-item-label>
-                <q-item-label v-if="uploadInfo.contribution" caption>{{ t('contribute.uploaded_by', { name: uploadInfo.contribution.name, email: uploadInfo.contribution.email }) }}</q-item-label>
-              </q-item-section>
-              <q-item-section side>
-                <q-btn
-                  :label="t('delete')"
-                  color="negative"
-                  flat
-                  rounded
-                />
-              </q-item-section>
-            </q-item>
+            <upload-info-item :upload-info="uploadInfo" />
           </template>
         </q-list>
         <pre>{{  contributeStore.uploadInfos }}</pre>
@@ -43,6 +26,7 @@
 
 <script setup lang="ts">
 import ContributeDialog from 'src/components/ContributeDialog.vue';
+import UploadInfoItem from 'src/components/UploadInfoItem.vue';
 import type { UploadInfo } from 'src/models';
 
 const { t } = useI18n();
