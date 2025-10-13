@@ -37,7 +37,7 @@ async function getAllStonesFiles(): Promise<DownloadableFile[]> {
 
     const stoneToDownloadableFile = async (stoneId: string): Promise<DownloadableFile> => {
         const ply = await wallsStore.getWallStoneModel(false, `${stones?.folder}/${stoneId}`);
-        return { data: ply!, filename: `stones/stone_${stoneId}.ply`, mimeType: 'model/ply' };
+        return { data: ply!, filename: `stones/stone_${stoneId}`, mimeType: 'model/ply' };
     }
 
     const promises = stones.files.map(stoneId => stoneToDownloadableFile(stoneId));
