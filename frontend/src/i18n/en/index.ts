@@ -8,8 +8,10 @@ export default {
   contact: 'Contact information',
   contact_text: 'For more information, please contact:',
   contribute: {
+    all_uploads: 'All uploads',
     title: 'Contribute',
     info: 'Contribute to the database',
+    my_uploads: 'My uploads',
     no_files_uploaded: 'No files have been uploaded yet.',
     name: 'Name',
     name_hint: 'Your name',
@@ -32,6 +34,7 @@ export default {
     method_hint: 'e.g., Photogrammetry, CT scan, Procedural, Other',
     reference: 'Reference',
     reference_hint: 'Reference to a publication or project (optional)',
+    show_all: 'Show all contributions',
     type_options: {
       real: 'Real',
       virtual: 'Virtual',
@@ -39,6 +42,7 @@ export default {
     upload: 'Upload',
     upload_success: 'Files uploaded successfully!',
     upload_error: 'Error uploading files. Please try again.',
+    upload_info_fetch_error: 'Error fetching upload information. Please try again later.',
     uploaded_by: 'Contributed by {name} <{email}>',
     uploaded_on: 'on {date}',
     uploaded_files: 'Uploaded files: {count} ({size})',

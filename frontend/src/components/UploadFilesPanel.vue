@@ -50,7 +50,6 @@ function init() {
     insertFile(parts, file, root, 0);
   });
   fileTree.value = [{label: t('contribute.files'), path: '/', type: 'FOLDER', icon: 'folder', size: props.uploadInfo.total_size, children: (root.children || []) as FileNode[]}];
-  console.log(fileTree.value);
 }
 
 function insertFile(parts: string[], file: FileInfo, node: FileNode, idx: number) {

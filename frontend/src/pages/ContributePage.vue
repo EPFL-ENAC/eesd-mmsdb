@@ -2,17 +2,38 @@
   <q-page>
     <div class="q-pa-md">
       <h3>{{ t('contribute.title') }}</h3>
-      <div class="q-mt-md">
-        <div><q-btn :label="t('contribute.add')" color="primary" @click="onAdd" /></div>
-        <div v-if="contributeStore.uploadInfos.length === 0" class="q-mt-md">
-          {{ t('contribute.no_files_uploaded') }}
-        </div>
-        <q-list v-else bordered separator class="q-mt-md">
-          <template v-for="uploadInfo in contributeStore.uploadInfos" :key="uploadInfo.path">
-            <upload-info-item :upload-info="uploadInfo" @delete="onConfirmDelete" @comments="onShowComments" />
-          </template>
-        </q-list>
-      </div>
+
+      <q-tabs dense inline-label class="q-mt-md" align="left" v-model="tab" @update:model-value="tab === 'all_uploads' ? onShowAll() : null">
+        <q-tab name="my_uploads" :label="t('contribute.my_uploads')" />
+        <q-tab name="all_uploads" icon="lock" :label="t('contribute.all_uploads')" />
+      </q-tabs>
+      <q-separator />
+      <q-tab-panels v-model="tab">
+        <q-tab-panel name="my_uploads" class="q-pl-none q-pr-none">
+          <div><q-btn :label="t('contribute.add')" color="primary" @click="onAdd" /></div>
+          <div v-if="contributeStore.uploadInfos.length === 0" class="q-mt-md">
+            {{ t('contribute.no_files_uploaded') }}
+          </div>
+          <q-list v-else bordered separator class="q-mt-md" style="max-width: 800px;">
+            <template v-for="uploadInfo in contributeStore.uploadInfos" :key="uploadInfo.path">
+              <upload-info-item :upload-info="uploadInfo" @delete="onConfirmDelete" @comments="onShowComments" />
+            </template>
+          </q-list>
+        </q-tab-panel>
+        <q-tab-panel name="all_uploads" class="q-pl-none q-pr-none">
+          <q-spinner v-if="loading" size="2rem" class="q-mt-md" />
+          <div v-else>
+            <div v-if="contributeStore.allUploadInfos.length === 0">
+              {{ t('contribute.no_files_uploaded') }}
+            </div>
+            <q-list v-else bordered separator style="max-width: 800px;">
+              <template v-for="uploadInfo in contributeStore.allUploadInfos" :key="uploadInfo.path">
+                <upload-info-item :upload-info="uploadInfo" @delete="onConfirmDelete" @comments="onShowComments" />
+              </template>
+            </q-list>
+          </div>
+        </q-tab-panel>
+      </q-tab-panels>
     </div>
     <contribute-dialog
       v-model="showDialog"
@@ -53,13 +74,15 @@ const { t } = useI18n();
 const $q = useQuasar();
 const contributeStore = useContributeStore();
 
+const tab = ref('my_uploads');
 const showDialog = ref(false);
 const selectedInfo = ref<UploadInfo>();
 const showConfirmDialog = ref(false);
 const showCommentsDialog = ref(false);
+const loading = ref(false);
 
 onMounted(() => {
-  contributeStore.initUploadInfos();
+  contributeStore.initMyUploadInfos();
 });
 
 function onAdd() {
@@ -70,6 +93,16 @@ function onAdd() {
 function onConfirmDelete(info: UploadInfo) {
   selectedInfo.value = info;
   showConfirmDialog.value = true;
+}
+
+function onShowAll() {
+  loading.value = true;
+  contributeStore.initUploadInfos().catch((error) => {
+    console.error('Error fetching all upload infos:', error);
+    $q.notify({ type: 'negative', message: t('contribute.upload_info_fetch_error') });
+  }).finally(() => {
+    loading.value = false;
+  });
 }
 
 async function onDelete() {

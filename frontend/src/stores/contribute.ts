@@ -8,8 +8,9 @@ const CONTRIB_STORAGE_NAME = 'mms_contrib';
 export const useContributeStore = defineStore('contribute', () => {
 
   const uploadInfos = ref<UploadInfo[]>([]);
+  const allUploadInfos = ref<UploadInfo[]>([]);
 
-  function initUploadInfos(): UploadInfo[] {
+  function initMyUploadInfos(): UploadInfo[] {
     const uploadInfosSaved = LocalStorage.getItem(CONTRIB_STORAGE_NAME);
     if (uploadInfosSaved !== null) {
       if (typeof uploadInfosSaved === 'string') {
@@ -19,6 +20,13 @@ export const useContributeStore = defineStore('contribute', () => {
       }
     }
     return uploadInfos.value;
+  }
+
+  function initUploadInfos(): Promise<UploadInfo[]> {
+    return api.get('/files/upload-info').then((response) => {
+      allUploadInfos.value = response.data as UploadInfo[];
+      return allUploadInfos.value;
+    });
   }
 
   async function upload(files: File[], contribution: Contribution): Promise<UploadInfo> {
@@ -78,6 +86,8 @@ export const useContributeStore = defineStore('contribute', () => {
 
   return {
     uploadInfos,
+    allUploadInfos,
+    initMyUploadInfos,
     initUploadInfos,
     saveUploadInfo,
     upload,
