@@ -16,7 +16,7 @@
                 <q-btn flat round icon="chevron_left" @click="previousStone" />
                 <div class="stone-image-container">
                     <div v-if="currentStone">
-                        <microstructure-view :ply-data="currentStone" :width="200" :height="200" />
+                        <microstructure-view :ply-data="currentStone" :orientation="props.orientation || null" :width="200" :height="200" />
                     </div>
 
                     <loading-overlay :visible="loading" />
@@ -37,7 +37,6 @@
             </div>
         </div>
     </div>
-
 </template>
 
 <script setup lang="ts">
@@ -52,6 +51,7 @@ const stonePropertiesStore = useStonePropertiesStore();
 
 const props = defineProps<{
     wallId: string;
+    orientation?: string | null;
     preloadNext?: number;
     preloadPrevious?: number;
 }>();

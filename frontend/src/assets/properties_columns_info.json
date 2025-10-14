@@ -238,5 +238,10 @@
     "unit": "%",
     "type": "float",
     "precision": 2
+  },
+  {
+    "key": "Orientation (Up and Front)",
+    "label": "Orientation",
+    "type": "string"
   }
 ]

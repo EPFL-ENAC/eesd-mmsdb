@@ -2,6 +2,7 @@
   <q-page>
     <microstructure-view
       :ply-data="wallPlyData"
+      :orientation="wallOrientation"
       :width="Math.min(400, q.screen.width)"
       :height="400"
       sliceable
@@ -40,16 +41,19 @@ const wallsStore = useWallsStore();
 const propertiesStore = usePropertiesStore();
 const wallPlyData = ref<ArrayBuffer | null>(null)
 const wallSize = ref<number | null>(null);
+const wallOrientation = ref<string | null>(null);
+const wallID = "OC01";
 
 onMounted(async () => {
-  const wallID = "OC01";
   wallPlyData.value = await wallsStore.getWall(true, wallID);
   wallSize.value = propertiesStore.getWallMaxSize(wallID);
+  wallOrientation.value = propertiesStore.getWallProperty(wallID, "Orientation (Up and Front)");
 });
 
 watch(() => propertiesStore.loading, () => {
   if (!propertiesStore.properties || wallSize.value) return;
-  wallSize.value = propertiesStore.getWallMaxSize("OC01");
+  wallSize.value = propertiesStore.getWallMaxSize(wallID);
+  wallOrientation.value = propertiesStore.getWallProperty(wallID, "Orientation (Up and Front)");
 });
 
 const { t } = useI18n();

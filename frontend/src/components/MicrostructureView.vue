@@ -85,6 +85,7 @@ const sliceResolution = 768
 
 interface Props {
   plyData?: ArrayBuffer | null
+  orientation?: string | null
   width?: number
   height?: number
   backgroundColor?: string
@@ -95,6 +96,7 @@ interface Props {
 
 const props = withDefaults(defineProps<Props>(), {
   plyData: null,
+  orientation: 'UF',
   width: 300,
   height: 300,
   backgroundColor: '#ffffff'
@@ -220,7 +222,7 @@ const configureSlice = () => {
 }
 
 const loadPlyFromBuffer = () => {
-  if (!props.plyData) return
+  if (!props.plyData || !props.orientation) return
 
   isLoading.value = true
   const loader = new PLYLoader()
@@ -241,12 +243,24 @@ const loadPlyFromBuffer = () => {
 
     geometry.translate(-center.x, -center.y, -center.z)
     geometry.scale(scale, scale, scale)
-    geometry.rotateX(-Math.PI / 2)
-    if (size.x > size.y) {
-      geometry.rotateY(Math.PI / 2)
-    }
-    if (size.x > size.z && size.y > size.z) {
-      geometry.rotateZ(-Math.PI / 2)
+    switch (props.orientation) {
+      case 'UF':
+      case null:
+        break;
+      case 'FR':
+        geometry.rotateX(-Math.PI / 2)
+        geometry.rotateY(Math.PI / 2)
+        break;
+      case 'LF':
+        geometry.rotateX(-Math.PI / 2)
+        geometry.rotateY(Math.PI)
+        break;
+      case 'LB':
+        geometry.rotateZ(-Math.PI / 2)
+        geometry.rotateY(-Math.PI / 2)
+        break;
+      default:
+        console.warn(`Unknown orientation: ${props.orientation}`)
     }
 
     const material = new THREE.MeshPhongMaterial({
@@ -442,7 +456,7 @@ const computeLMT = async () => {
 
 onMounted(() => {
   initThreeJS()
-  if (props.plyData) {
+  if (props.plyData && props.orientation) {
     loadPlyFromBuffer()
   }
   animate()
@@ -474,7 +488,7 @@ onUnmounted(() => {
   }
 })
 
-watch(() => props.plyData, () => {
+watch(() => [props.plyData, props.orientation], () => {
   if (scene && mesh) {
     scene.remove(mesh)
     mesh.geometry.dispose()
@@ -487,7 +501,7 @@ watch(() => props.plyData, () => {
     sliceScene.remove(sliceInsideMesh)
     sliceInsideMesh.geometry.dispose()
   }
-  if (props.plyData) {
+  if (props.plyData && props.orientation) {
     loadPlyFromBuffer()
   }
 })

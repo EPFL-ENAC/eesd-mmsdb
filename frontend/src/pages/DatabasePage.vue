@@ -29,11 +29,23 @@
 
     <simple-dialog v-model="showWallDialog" :title="`Wall ${selectedWallId}`" size="lg">
       <div v-if="selectedWallId" class="wall-dialog-content">
-        <microstructure-view :ply-data="wallData[selectedWallId] || null" :width="400" :height="400" sliceable :wall-size="propertiesStore.getWallMaxSize(selectedWallId) || 100"
-          class="microstructure-item" />
+        <microstructure-view
+          :ply-data="wallData[selectedWallId] || null"
+          :orientation="propertiesStore.getWallProperty(selectedWallId, 'Orientation (Up and Front)')"
+          :width="400"
+          :height="400"
+          sliceable
+          :wall-size="propertiesStore.getWallMaxSize(selectedWallId) || 100"
+          class="microstructure-item"
+        />
 
         <div>
-          <stone-carousel :wall-id="selectedWallId" :preload-next="5" :preload-previous="5" />
+          <stone-carousel
+            :wall-id="selectedWallId"
+            :orientation="propertiesStore.getWallProperty(selectedWallId, 'Orientation (Up and Front)')"
+            :preload-next="5"
+            :preload-previous="5"
+          />
         </div>
 
         <div class="properties-section">
