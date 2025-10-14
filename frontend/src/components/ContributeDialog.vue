@@ -14,7 +14,7 @@
               <div class="col">
                 <q-input
                   v-model="contribution.name"
-                  :label="t('contribute.name')"
+                  :label="t('contribute.name') + ' *'"
                   :hint="t('contribute.name_hint')"
                   type="text"
                   filled
@@ -23,7 +23,7 @@
                 />
                 <q-input
                   v-model="contribution.email"
-                  :label="t('contribute.email')"
+                  :label="t('contribute.email') + ' *'"
                   :hint="t('contribute.email_hint')"
                   type="text"
                   :rules="[(v) => /.+@.+\..+/.test(v) || t('contribute.email_invalid')]"
@@ -79,7 +79,7 @@
             />
             <q-file
               v-model="files"
-              :label="t('contribute.files')"
+              :label="t('contribute.files') + ' *'"
               :hint="t('contribute.files_hint')"
               filled
               clearable
@@ -93,7 +93,6 @@
               </template>
             </q-file>
           </q-form>
-          <pre>{{ contribution }}</pre>
         </div>
       </q-card-section>
       <q-card-actions v-if="$q.screen.gt.xs" align="right">

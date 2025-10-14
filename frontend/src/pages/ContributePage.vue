@@ -12,7 +12,6 @@
             <upload-info-item :upload-info="uploadInfo" />
           </template>
         </q-list>
-        <pre>{{  contributeStore.uploadInfos }}</pre>
       </div>
     </div>
     <contribute-dialog

@@ -38,6 +38,24 @@ export const useContributeStore = defineStore('contribute', () => {
     deleteUploadInfo(info);
   }
 
+  async function downloadUpload(path: string) {
+    const response = await api.get(`/files/upload/${encodeURIComponent(path)}`, {
+      responseType: 'blob'
+    });
+    const contentDisposition = response.headers['content-disposition'];
+    const filenameMatch = contentDisposition && contentDisposition.match(/filename="?([^"]+)"?/);
+    const filename = filenameMatch ? filenameMatch[1] : 'download.zip';
+    const blob = new Blob([response.data], { type: 'application/zip' });
+    const url = window.URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.setAttribute('download', filename);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    window.URL.revokeObjectURL(url);
+  }
+
   function saveUploadInfo(uploadInfoData: UploadInfo) {
     // update by name if already exists
     const index = uploadInfos.value.findIndex((info) => info.path === uploadInfoData.path);
@@ -63,6 +81,7 @@ export const useContributeStore = defineStore('contribute', () => {
     initUploadInfos,
     saveUploadInfo,
     upload,
-    deleteUpload
+    deleteUpload,
+    downloadUpload,
   };
 });

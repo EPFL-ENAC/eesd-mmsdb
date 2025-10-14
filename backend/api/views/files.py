@@ -8,7 +8,7 @@ from uuid import uuid4
 import zipfile
 import json
 import re
-from urllib.parse import quote, unquote
+from urllib.parse import unquote
 
 from api.models.files import StonesResponse, extract_stone_number
 from fastapi import APIRouter, HTTPException, Form
@@ -260,7 +260,10 @@ async def download_upload_file(path: str):
     if file_path.is_file():
         body, content_type = get_local_file_content(file_path)
         if body is not None:
-            headers = {"Content-Disposition": content_disposition(f"{file_path.name}")}
+            headers = {
+                "Access-Control-Expose-Headers": "Content-Disposition",
+                "Content-Disposition": content_disposition(f"{file_path.name}"),
+            }
             return Response(content=body, media_type=content_type, headers=headers)
         else:
             raise HTTPException(status_code=404, detail="File not found")
@@ -281,7 +284,8 @@ async def download_upload_file(path: str):
             zip_buffer,
             media_type="application/x-zip-compressed",
             headers={
-                "Content-Disposition": content_disposition(f"{file_path.name}.zip")
+                "Access-Control-Expose-Headers": "Content-Disposition",
+                "Content-Disposition": content_disposition(f"{file_path.name}.zip"),
             },
         )
 
@@ -428,7 +432,4 @@ def content_disposition(filename: str) -> str:
     # Sanitize ASCII fallback
     safe_ascii = re.sub(r"[^A-Za-z0-9._-]", "_", safe_ascii)
 
-    # UTF-8 encoded filename for filename*
-    utf8_filename = quote(filename)
-
-    return f"attachment; filename=\"{safe_ascii}\"; filename*=UTF-8''{utf8_filename}"
+    return f'attachment; filename="{safe_ascii}"'
