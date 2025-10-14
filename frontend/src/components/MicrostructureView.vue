@@ -81,10 +81,12 @@ const lineStore = useLineStore();
 const sliceStore = useSliceStore();
 const sliceSize = 1.0
 const sliceResolution = 768
+const highlightScale = 1.02
 
 
 interface Props {
   plyData?: ArrayBuffer | null
+  plyDataHighlight?: ArrayBuffer | null
   orientation?: string | null
   width?: number
   height?: number
@@ -96,6 +98,7 @@ interface Props {
 
 const props = withDefaults(defineProps<Props>(), {
   plyData: null,
+  plyDataHighlight: null,
   orientation: 'UF',
   width: 300,
   height: 300,
@@ -113,9 +116,13 @@ let camera: THREE.PerspectiveCamera
 let renderer: THREE.WebGLRenderer
 let controls: OrbitControls
 let mesh: THREE.Mesh
+let highlightMesh: THREE.Mesh | null = null
 let slicePlane: THREE.Mesh
 let sliceClipPlane: THREE.Plane | undefined = undefined
 let animationId: number
+let worldTranslate: THREE.Vector3
+let worldScale: number
+
 
 let sliceScene: THREE.Scene
 let sliceCamera: THREE.OrthographicCamera
@@ -221,7 +228,28 @@ const configureSlice = () => {
   }
 }
 
-const loadPlyFromBuffer = () => {
+const fixOrientation = (geometry: THREE.BufferGeometry) => {
+  switch (props.orientation) {
+    case 'UF':
+      break;
+    case 'FR':
+      geometry.rotateX(-Math.PI / 2)
+      geometry.rotateY(Math.PI / 2)
+      break;
+    case 'LF':
+      geometry.rotateX(-Math.PI / 2)
+      geometry.rotateY(Math.PI)
+      break;
+    case 'LB':
+      geometry.rotateZ(-Math.PI / 2)
+      geometry.rotateY(-Math.PI / 2)
+      break;
+    default:
+      console.warn(`Unknown orientation: ${props.orientation}`)
+  }
+}
+
+const loadPly = () => {
   if (!props.plyData || !props.orientation) return
 
   isLoading.value = true
@@ -239,29 +267,12 @@ const loadPlyFromBuffer = () => {
     const center = boundingBox.getCenter(new THREE.Vector3())
     const size = boundingBox.getSize(new THREE.Vector3())
     const maxDim = Math.max(size.x, size.y, size.z)
-    const scale = 1 / maxDim
+    worldScale = 1 / maxDim
+    worldTranslate = center.multiplyScalar(-1)
 
-    geometry.translate(-center.x, -center.y, -center.z)
-    geometry.scale(scale, scale, scale)
-    switch (props.orientation) {
-      case 'UF':
-      case null:
-        break;
-      case 'FR':
-        geometry.rotateX(-Math.PI / 2)
-        geometry.rotateY(Math.PI / 2)
-        break;
-      case 'LF':
-        geometry.rotateX(-Math.PI / 2)
-        geometry.rotateY(Math.PI)
-        break;
-      case 'LB':
-        geometry.rotateZ(-Math.PI / 2)
-        geometry.rotateY(-Math.PI / 2)
-        break;
-      default:
-        console.warn(`Unknown orientation: ${props.orientation}`)
-    }
+    geometry.translate(worldTranslate.x, worldTranslate.y, worldTranslate.z)
+    geometry.scale(worldScale, worldScale, worldScale)
+    fixOrientation(geometry)
 
     const material = new THREE.MeshPhongMaterial({
       color: 0xefefee,
@@ -291,6 +302,51 @@ const loadPlyFromBuffer = () => {
     camera.position.set(2, 1, -1.3)
     camera.lookAt(0, 0, 0)
     controls.update()
+
+    console.log(`PLY loaded successfully (${geometry.attributes.position?.count} vertices)`)
+
+  } catch (error) {
+    console.error('Error loading PLY:', error)
+  } finally {
+    isLoading.value = false
+  }
+}
+
+const loadPlyHighlight = () => {
+  if (!props.plyData || !props.plyDataHighlight || !props.orientation) return
+
+  isLoading.value = true
+  const loader = new PLYLoader()
+
+  try {
+    const geometry = loader.parse(props.plyDataHighlight)
+
+    if (!geometry.attributes.normal) {
+      geometry.computeVertexNormals()
+    }
+
+    geometry.computeBoundingBox()
+    const boundingBox = geometry.boundingBox!
+    const center = boundingBox.getCenter(new THREE.Vector3())
+    geometry.translate(-center.x, -center.y, -center.z)
+    geometry.scale(highlightScale, highlightScale, highlightScale)
+    geometry.translate(center.x, center.y, center.z)
+
+    geometry.translate(worldTranslate.x, worldTranslate.y, worldTranslate.z)
+    geometry.scale(worldScale, worldScale, worldScale)
+    fixOrientation(geometry)
+
+    const material = new THREE.MeshPhongMaterial({
+      color: 0xff0000,
+      specular: 0xaaaaaa,
+      shininess: 1,
+      flatShading: true,
+    })
+    if (slicing.value && sliceClipPlane) material.clippingPlanes = [sliceClipPlane]
+    highlightMesh = new THREE.Mesh(geometry, material)
+    highlightMesh.castShadow = false
+    highlightMesh.receiveShadow = true
+    scene.add(highlightMesh)
 
     console.log(`PLY loaded successfully (${geometry.attributes.position?.count} vertices)`)
 
@@ -425,11 +481,13 @@ const toggleSlicing = () => {
     sliceCoord.value = 0
     scene.add(slicePlane)
     if (mesh) (mesh.material as THREE.Material).clippingPlanes = [sliceClipPlane]
+    if (highlightMesh) (highlightMesh.material as THREE.Material).clippingPlanes = [sliceClipPlane]
     if (sliceOutsideMesh) (sliceOutsideMesh.material as THREE.Material).clippingPlanes = [sliceClipPlane]
     if (sliceInsideMesh) (sliceInsideMesh.material as THREE.Material).clippingPlanes = [sliceClipPlane]
   } else {
     scene.remove(slicePlane)
     if (mesh) (mesh.material as THREE.Material).clippingPlanes = []
+    if (highlightMesh) (highlightMesh.material as THREE.Material).clippingPlanes = []
     if (sliceOutsideMesh) (sliceOutsideMesh.material as THREE.Material).clippingPlanes = []
     if (sliceInsideMesh) (sliceInsideMesh.material as THREE.Material).clippingPlanes = []
   }
@@ -457,7 +515,10 @@ const computeLMT = async () => {
 onMounted(() => {
   initThreeJS()
   if (props.plyData && props.orientation) {
-    loadPlyFromBuffer()
+    loadPly()
+    if (props.plyDataHighlight) {
+      loadPlyHighlight()
+    }
   }
   animate()
 
@@ -502,7 +563,21 @@ watch(() => [props.plyData, props.orientation], () => {
     sliceInsideMesh.geometry.dispose()
   }
   if (props.plyData && props.orientation) {
-    loadPlyFromBuffer()
+    loadPly()
+    if (props.plyDataHighlight) {
+      loadPlyHighlight()
+    }
+  }
+})
+
+watch(() => props.plyDataHighlight, () => {
+  if (highlightMesh) {
+    scene.remove(highlightMesh)
+    highlightMesh.geometry.dispose()
+    highlightMesh = null
+  }
+  if (props.plyData && props.plyDataHighlight && props.orientation) {
+    loadPlyHighlight()
   }
 })
 
@@ -533,6 +608,7 @@ watch(swappedAxis, () => {
   if (slicing.value && sliceClipPlane) {
     scene.add(slicePlane)
     if (mesh) (mesh.material as THREE.Material).clippingPlanes = [sliceClipPlane]
+    if (highlightMesh) (highlightMesh.material as THREE.Material).clippingPlanes = [sliceClipPlane]
     if (sliceOutsideMesh) (sliceOutsideMesh.material as THREE.Material).clippingPlanes = [sliceClipPlane]
     if (sliceInsideMesh) (sliceInsideMesh.material as THREE.Material).clippingPlanes = [sliceClipPlane]
   }

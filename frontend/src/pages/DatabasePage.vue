@@ -31,6 +31,7 @@
       <div v-if="selectedWallId" class="wall-dialog-content">
         <microstructure-view
           :ply-data="wallData[selectedWallId] || null"
+          :ply-data-highlight="currentStoneData"
           :orientation="propertiesStore.getWallProperty(selectedWallId, 'Orientation (Up and Front)')"
           :width="400"
           :height="400"
@@ -41,6 +42,7 @@
 
         <div>
           <stone-carousel
+            ref="stoneCarouselRef"
             :wall-id="selectedWallId"
             :orientation="propertiesStore.getWallProperty(selectedWallId, 'Orientation (Up and Front)')"
             :preload-next="5"
@@ -93,6 +95,7 @@ const propertiesStore = usePropertiesStore()
 const stonePropertiesStore = useStonePropertiesStore()
 const wallsStore = useWallsStore()
 const databaseFiltersStore = useDatabaseFiltersStore()
+const stoneCarouselRef = ref()
 
 const filteredWallIds = computed(() => databaseFiltersStore.filteredWallIds)
 const allWallIds = computed(() => databaseFiltersStore.allWallIds)
@@ -100,6 +103,7 @@ const allWallIds = computed(() => databaseFiltersStore.allWallIds)
 
 const wallData = ref<Record<string, ArrayBuffer | null>>({})
 const loadingWallData = ref(false)
+const currentStoneData = computed(() => stoneCarouselRef.value?.currentStone || null)
 
 const wallImages = computed(() => wallsStore.wallImages)
 const loadingImages = computed(() => wallsStore.loadingImages)

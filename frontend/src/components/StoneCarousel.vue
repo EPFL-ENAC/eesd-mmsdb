@@ -56,12 +56,15 @@ const props = defineProps<{
     preloadPrevious?: number;
 }>();
 
-
 const index = ref(0);
 const loading = ref(false);
 const currentStone = ref<ArrayBuffer | null>(null);
 const stones = ref<WallStonesList | null>(null);
 const stonesProperties = ref<Table | null>(null);
+
+defineExpose({
+    currentStone,
+});
 
 function nextStone() {
     if (!stones.value) return;
