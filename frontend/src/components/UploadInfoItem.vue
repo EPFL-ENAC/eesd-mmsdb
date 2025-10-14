@@ -26,25 +26,19 @@
 </template>
 
 <script setup lang="ts">
-import { useQuasar } from 'quasar';
 import type { UploadInfo } from 'src/models';
 import UploadFilesPanel from './UploadFilesPanel.vue';
 
 const { t } = useI18n();
-const $q = useQuasar();
-const contributeStore = useContributeStore();
 
 defineProps<{
   uploadInfo: UploadInfo;
 }>();
 
-async function onDelete(info: UploadInfo) {
-  try {
-    await contributeStore.deleteUpload(info);
-    $q.notify({ type: 'positive', message: t('contribute.upload_delete_success') });
-  } catch (error) {
-    console.error('Error deleting upload:', error);
-    $q.notify({ type: 'negative', message: t('contribute.upload_delete_error') });
-  }
+const emit = defineEmits(['delete']);
+
+function onDelete(info: UploadInfo) {
+  emit('delete', info);
 }
+
 </script>
