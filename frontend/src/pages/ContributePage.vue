@@ -9,7 +9,7 @@
         </div>
         <q-list v-else bordered separator class="q-mt-md">
           <template v-for="uploadInfo in contributeStore.uploadInfos" :key="uploadInfo.path">
-            <upload-info-item :upload-info="uploadInfo" @delete="onConfirmDelete" />
+            <upload-info-item :upload-info="uploadInfo" @delete="onConfirmDelete" @comments="onShowComments" />
           </template>
         </q-list>
       </div>
@@ -31,6 +31,14 @@
         </q-card-actions>
       </q-card>
     </q-dialog>
+    <simple-dialog v-model="showCommentsDialog" :title="t('contribute.comments')" size="md">
+      <div v-if="selectedInfo?.contribution?.comments">
+        <pre class="bg-grey-2 q-pa-md">{{ selectedInfo.contribution.comments }}</pre>
+      </div>
+      <div v-else>
+        {{ t('contribute.no_comments') }}
+      </div>
+    </simple-dialog>
   </q-page>
 </template>
 
@@ -38,6 +46,7 @@
 import { useQuasar } from 'quasar';
 import ContributeDialog from 'src/components/ContributeDialog.vue';
 import UploadInfoItem from 'src/components/UploadInfoItem.vue';
+import SimpleDialog from 'src/components/SimpleDialog.vue';
 import type { UploadInfo } from 'src/models';
 
 const { t } = useI18n();
@@ -47,6 +56,7 @@ const contributeStore = useContributeStore();
 const showDialog = ref(false);
 const selectedInfo = ref<UploadInfo>();
 const showConfirmDialog = ref(false);
+const showCommentsDialog = ref(false);
 
 onMounted(() => {
   contributeStore.initUploadInfos();
@@ -70,5 +80,10 @@ async function onDelete() {
     console.error('Error deleting upload:', error);
     $q.notify({ type: 'negative', message: t('contribute.upload_delete_error') });
   }
+}
+
+function onShowComments(info: UploadInfo) {
+  selectedInfo.value = info;
+  showCommentsDialog.value = true;
 }
 </script>
