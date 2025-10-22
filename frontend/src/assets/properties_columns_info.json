@@ -151,7 +151,7 @@
   },
   {
     "key": "Average LMT for wall leaf connection",
-    "label": "Average lMT for wall-leaf connection",
+    "label": "Average LMT for wall-leaf connection",
     "type": "float",
     "precision": 2,
     "bins": [

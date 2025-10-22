@@ -72,4 +72,8 @@ function toggleLeftDrawer() {
 :deep(.q-tabs .q-tab .q-tab__label) {
   font-size: 1.2rem;
 }
+
+:deep(.q-tab:not(.q-router-link--active)) {
+  color: black;
+}
 </style>
