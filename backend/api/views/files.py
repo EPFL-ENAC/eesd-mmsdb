@@ -10,10 +10,9 @@ import zipfile
 import json
 import re
 from urllib.parse import unquote
-import asyncio
 
 from api.models.files import StonesResponse, extract_stone_number
-from fastapi import APIRouter, HTTPException, Form
+from fastapi import APIRouter, HTTPException, Form, BackgroundTasks
 from fastapi.responses import Response, StreamingResponse
 from fastapi_cache.decorator import cache
 from fastapi.datastructures import UploadFile
@@ -146,6 +145,7 @@ async def get_wall_stones_paths_by_wall_id(
     response_model=UploadInfo,
 )
 async def upload_file(
+    background_tasks: BackgroundTasks,
     files: list[UploadFile] = File(description="multiple file upload"),
     contribution: str | None = Form(
         None, description="JSON string containing contribution information"
@@ -190,7 +190,7 @@ async def upload_file(
         folder = str(uuid4())
         info = upload_local_files(folder, files=files, contribution=contribution_obj)
 
-        asyncio.create_task(send_data_uploaded_email(info))
+        background_tasks.add_task(send_data_uploaded_email, info)
 
         return info
     except Exception as e:

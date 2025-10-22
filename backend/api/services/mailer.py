@@ -33,7 +33,7 @@ class Mailer:
             "contribution": info.contribution,
         }
         # Send email to all administrators
-        for email in config.MAIL_ADMINISTRATORS.split(","):
+        for email in (e.strip() for e in config.MAIL_ADMINISTRATORS.split(",")):
             await self.send_email(email, subject, "data_uploaded.html", context)
 
     async def send_email(
