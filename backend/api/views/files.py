@@ -3,12 +3,14 @@ Handle local file operations
 """
 
 from io import BytesIO
+import logging
 from pathlib import Path
 from uuid import uuid4
 import zipfile
 import json
 import re
 from urllib.parse import unquote
+import asyncio
 
 from api.models.files import StonesResponse, extract_stone_number
 from fastapi import APIRouter, HTTPException, Form
@@ -25,6 +27,7 @@ from api.services.files import (
     delete_local_upload_folder,
     update_local_upload_info_state,
 )
+from api.services.mailer import Mailer
 from api.models.files import UploadInfo, Contribution
 
 router = APIRouter()
@@ -186,6 +189,9 @@ async def upload_file(
         # Upload to folder path based on uuid4
         folder = str(uuid4())
         info = upload_local_files(folder, files=files, contribution=contribution_obj)
+
+        asyncio.create_task(send_data_uploaded_email(info))
+
         return info
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error uploading file: {str(e)}")
@@ -433,3 +439,13 @@ def content_disposition(filename: str) -> str:
     safe_ascii = re.sub(r"[^A-Za-z0-9._-]", "_", safe_ascii)
 
     return f'attachment; filename="{safe_ascii}"'
+
+
+async def send_data_uploaded_email(info: UploadInfo):
+    """Send an email notification when data is uploaded."""
+    try:
+        mailer = Mailer()
+        await mailer.send_data_uploaded_email(info)
+    except Exception as e:
+        # Log error but do not block upload
+        logging.error(f"Failed to send upload notification email: {e}")

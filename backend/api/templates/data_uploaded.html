@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+<body>
+    <p>Dear MMSDB administrator,</p>
+    <p>There is a new data contribution: <strong>{{ id }}</strong>.</p>
+    <p>To review this contribution, please visit: <a href="{{ url }}">{{ url }}</a></p>
+    <p>Contribution Details:</p>
+    <ul>
+        <li><strong>Name:</strong> {{ contribution.name }}</li>
+        <li><strong>Email:</strong> <a href="mailto:{{ contribution.email }}">{{ contribution.email }}</a></li>
+        {% if contribution.affiliation %}
+            <li><strong>Affiliation:</strong> {{ contribution.affiliation }}</li>
+        {% endif %}
+        <li><strong>Type:</strong> {{ contribution.type }}</li>
+        {% if contribution.method %}
+            <li><strong>Method:</strong> {{ contribution.method }}</li>
+        {% endif %}
+        {% if contribution.reference %}
+            <li><strong>Reference:</strong> {{ contribution.reference }}</li>
+        {% endif %}
+    </ul>
+    <p>Best regards,</p>
+    <p>The MMSDB web application</p>
+</body>
+</html>
