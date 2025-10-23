@@ -5,7 +5,6 @@
         <q-badge color="accent" :title="uploadInfo.path" class="q-mr-sm">{{ `${uploadInfo.path.substring(0, 8)}...` }}</q-badge>
       </q-item-label>
       <q-item-label caption>
-
         {{ t('contribute.uploaded_by', { name: uploadInfo?.contribution?.name, email: uploadInfo?.contribution?.email }) }}
         {{ uploadInfo?.contribution?.affiliation ? ` [${uploadInfo.contribution.affiliation}]` : '' }}
         {{ t('contribute.uploaded_on', { date: new Date(uploadInfo.date).toLocaleString() }) }}

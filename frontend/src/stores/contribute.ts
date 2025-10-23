@@ -1,34 +1,92 @@
 import { defineStore } from 'pinia';
 import { LocalStorage } from 'quasar';
 import { api } from 'src/boot/api';
-import type { UploadInfo, Contribution } from 'src/models';
+import type { UploadInfo, Contribution, UploadInfoState } from 'src/models';
 
 const CONTRIB_STORAGE_NAME = 'mms_contrib';
 
 export const useContributeStore = defineStore('contribute', () => {
 
+  const apiKey = ref<string>();
   const uploadInfos = ref<UploadInfo[]>([]);
   const allUploadInfos = ref<UploadInfo[]>([]);
 
-  function initMyUploadInfos(): UploadInfo[] {
-    const uploadInfosSaved = LocalStorage.getItem(CONTRIB_STORAGE_NAME);
-    if (uploadInfosSaved !== null) {
-      if (typeof uploadInfosSaved === 'string') {
-        uploadInfos.value = JSON.parse(uploadInfosSaved);
-      } else if (typeof uploadInfosSaved === 'object') {
-        uploadInfos.value = uploadInfosSaved as UploadInfo[];
-      }
+  const hasApiKey = computed(() => {
+    return apiKey.value !== undefined && apiKey.value !== null && apiKey.value.length > 0;
+  });
+
+  /**
+   * Set the API key for authentication.
+   * @param key API key string.
+   */
+  function setApiKey(key: string) {
+    apiKey.value = key;
+    // add api key to headers
+    if (hasApiKey.value) {
+      api.defaults.headers.common['X-API-Key'] = apiKey.value;
+    } else {
+      delete api.defaults.headers.common['X-API-Key'];
     }
-    return uploadInfos.value;
   }
 
+  /**
+   * Initialize the user's upload infos from local storage and verify their state from the server.
+   * If the upload is no longer accessible, it is removed from the list.
+   *
+   * @returns Promise<UploadInfo[]>
+   */
+  function initMyUploadInfos(): Promise<UploadInfo[]> {
+    const uploadInfosSaved = LocalStorage.getItem(CONTRIB_STORAGE_NAME);
+    let parsed: UploadInfo[] = [];
+    if (uploadInfosSaved !== null) {
+      if (typeof uploadInfosSaved === 'string') {
+        parsed = JSON.parse(uploadInfosSaved);
+      } else if (typeof uploadInfosSaved === 'object') {
+        parsed = uploadInfosSaved as UploadInfo[];
+      }
+      return Promise.all(parsed.map(async (info) => {
+        return api.get(`/files/upload/${encodeURIComponent(info.path)}/_state`)
+        .then((response) => {
+          const state = response.data as UploadInfoState;
+          return { ...info, ...state };
+        }).catch(() => {
+          // either missing or not accessible anymore
+          return null;
+        });
+      })).then((results) => {
+        const filtered = results.filter((info): info is UploadInfo => info !== null);
+        uploadInfos.value = filtered;
+        // sort by most recent first
+        uploadInfos.value.sort(uploadInfoSorter);
+        LocalStorage.set(CONTRIB_STORAGE_NAME, JSON.stringify(uploadInfos.value));
+        return uploadInfos.value;
+      });
+    } else {
+      uploadInfos.value = parsed;
+    }
+    return Promise.resolve(uploadInfos.value);
+  }
+
+  /**
+   * Initialize all upload infos from the server (requires API key).
+   *
+   * @returns Promise<UploadInfo[]>
+   */
   function initUploadInfos(): Promise<UploadInfo[]> {
     return api.get('/files/upload-info').then((response) => {
       allUploadInfos.value = response.data as UploadInfo[];
+      // sort by most recent first
+      allUploadInfos.value.sort(uploadInfoSorter);
       return allUploadInfos.value;
     });
   }
 
+  /**
+   * Upload files with contribution metadata.
+   * @param files Array of files to upload.
+   * @param contribution Contribution metadata.
+   * @returns Promise<UploadInfo>
+   */
   async function upload(files: File[], contribution: Contribution): Promise<UploadInfo> {
     const formData = new FormData();
     files.forEach((file) => {
@@ -41,11 +99,19 @@ export const useContributeStore = defineStore('contribute', () => {
     return result as UploadInfo;
   }
 
+  /**
+   * Delete an upload by its info.
+   * @param info UploadInfo to delete.
+   */
   async function deleteUpload(info: UploadInfo): Promise<void> {
     await api.delete(`/files/upload/${info.path}`);
     deleteUploadInfo(info);
   }
 
+  /**
+   * Download an upload by its path.
+   * @param path Path of the upload to download.
+   */
   async function downloadUpload(path: string) {
     const response = await api.get(`/files/upload/${encodeURIComponent(path)}`, {
       responseType: 'blob'
@@ -64,6 +130,10 @@ export const useContributeStore = defineStore('contribute', () => {
     window.URL.revokeObjectURL(url);
   }
 
+  /**
+   * Save or update an upload info in local storage.
+   * @param uploadInfoData UploadInfo to save.
+   */
   function saveUploadInfo(uploadInfoData: UploadInfo) {
     // update by name if already exists
     const index = uploadInfos.value.findIndex((info) => info.path === uploadInfoData.path);
@@ -73,9 +143,15 @@ export const useContributeStore = defineStore('contribute', () => {
       return;
     }
     uploadInfos.value.push(uploadInfoData);
+    // sort my most recent first
+    uploadInfos.value.sort(uploadInfoSorter);
     LocalStorage.set(CONTRIB_STORAGE_NAME, JSON.stringify(uploadInfos.value));
   }
 
+  /**
+   * Delete an upload info from local storage.
+   * @param uploadInfoData UploadInfo to delete.
+   */
   function deleteUploadInfo(uploadInfoData: UploadInfo) {
     const index = uploadInfos.value.findIndex((info) => info.path === uploadInfoData.path);
     if (index !== -1) {
@@ -84,9 +160,23 @@ export const useContributeStore = defineStore('contribute', () => {
     }
   }
 
+  /**
+   * Sorts upload information by date.
+   * @param a First upload info to compare.
+   * @param b Second upload info to compare.
+   * @returns A negative number if a is more recent than b, a positive number if b is more recent than a, and 0 if they are equal.
+   */
+  function uploadInfoSorter(a: UploadInfo, b: UploadInfo): number {
+    const dateA = new Date(a.date);
+    const dateB = new Date(b.date);
+    return dateB.getTime() - dateA.getTime();
+  }
+
   return {
+    hasApiKey,
     uploadInfos,
     allUploadInfos,
+    setApiKey,
     initMyUploadInfos,
     initUploadInfos,
     saveUploadInfo,

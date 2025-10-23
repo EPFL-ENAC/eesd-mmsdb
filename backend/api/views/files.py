@@ -12,7 +12,7 @@ import re
 from urllib.parse import unquote
 
 from api.models.files import StonesResponse, extract_stone_number
-from fastapi import APIRouter, HTTPException, Form, BackgroundTasks
+from fastapi import APIRouter, HTTPException, Form, Security, BackgroundTasks
 from fastapi.responses import Response, StreamingResponse
 from fastapi_cache.decorator import cache
 from fastapi.datastructures import UploadFile
@@ -27,7 +27,8 @@ from api.services.files import (
     update_local_upload_info_state,
 )
 from api.services.mailer import Mailer
-from api.models.files import UploadInfo, Contribution
+from api.models.files import UploadInfo, Contribution, UploadInfoState
+from api.auth import get_api_key
 
 router = APIRouter()
 
@@ -200,7 +201,7 @@ async def upload_file(
 @router.delete(
     "/upload/{folder}",
     status_code=200,
-    description="Delete an upload folder from the temporary upload directory (for admin use only)",
+    description="Delete an upload folder from the temporary upload directory",
 )
 async def delete_upload_folder(folder: str):
     """Delete an upload folder from the temporary upload directory.
@@ -234,9 +235,39 @@ async def delete_upload_folder(folder: str):
 
 
 @router.get(
+    "/upload/{folder}/_state",
+    status_code=200,
+    description="Get the state of an upload folder",
+    response_model=UploadInfoState,
+)
+async def get_upload_folder_state(folder: str):
+    """Get the state of an upload folder in the temporary upload directory."""
+    base_path = Path(config.UPLOAD_FILES_PATH)
+    folder_path = (base_path / folder).resolve()
+
+    try:
+        folder_path.relative_to(base_path.resolve())
+    except ValueError:
+        raise HTTPException(
+            status_code=403, detail="Access denied: Path outside allowed directory"
+        )
+
+    if not folder_path.exists() or not folder_path.is_dir():
+        raise HTTPException(status_code=404, detail="Folder not found")
+
+    try:
+        info = await get_upload_folder_info(folder)
+        return UploadInfoState(path=info.path, state=info.state)
+    except Exception as e:
+        raise HTTPException(
+            status_code=500, detail=f"Error getting folder state: {str(e)}"
+        )
+
+
+@router.get(
     "/upload/{path:path}",
     status_code=200,
-    description="Download an upload folder as a zip file or an upload file as a single file (for admin use only)",
+    description="Download an upload folder as a zip file or an upload file as a single file",
 )
 async def download_upload_file(path: str):
     """Download an upload folder as a zip file or an upload file as a single file.
@@ -302,7 +333,9 @@ async def download_upload_file(path: str):
     description="Get information about an upload folder (for admin use only)",
     response_model=list[UploadInfo],
 )
-async def get_upload_folders_info() -> list[UploadInfo]:
+async def get_upload_folders_info(
+    api_key: str = Security(get_api_key),
+) -> list[UploadInfo]:
     """Get information about all upload folders.
 
     Returns:
@@ -333,7 +366,9 @@ async def get_upload_folders_info() -> list[UploadInfo]:
     description="Get information about an upload folder (for admin use only)",
     response_model=UploadInfo,
 )
-async def get_upload_folder_info(folder: str) -> UploadInfo:
+async def get_upload_folder_info(
+    folder: str, api_key: str = Security(get_api_key)
+) -> UploadInfo:
     """Get information about an upload folder.
 
     Args:
@@ -375,7 +410,7 @@ async def get_upload_folder_info(folder: str) -> UploadInfo:
     status_code=200,
     description="Delete an upload folder from the temporary upload directory (for admin use only)",
 )
-async def delete_upload_folder_info(folder: str):
+async def delete_upload_folder_info(folder: str, api_key: str = Security(get_api_key)):
     """Delete an upload folder from the temporary upload directory.
 
     Args:
@@ -396,7 +431,9 @@ async def delete_upload_folder_info(folder: str):
     description="Update the state of an upload folder (for admin use only)",
     response_model=UploadInfo,
 )
-async def update_upload_folder_state(folder: str, state: str) -> UploadInfo:
+async def update_upload_folder_state(
+    folder: str, state: str, api_key: str = Security(get_api_key)
+) -> UploadInfo:
     """Update the state of an upload folder in the temporary upload directory.
 
     Args:

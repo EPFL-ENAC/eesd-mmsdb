@@ -5,6 +5,7 @@ from functools import lru_cache
 class Config(BaseSettings):
     PATH_PREFIX: str
     APP_URL: str = "https://mmsdb-dev.epfl.ch"
+    API_KEYS: str = "changeme"
 
     LFS_USERNAME: str
     LFS_PASSWORD: str

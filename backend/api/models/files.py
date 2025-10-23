@@ -8,7 +8,8 @@ STONE_NUMBER_REGEX = re.compile(r"_stone_(\d+)\.ply$")
 
 def extract_stone_number(filename: str) -> int:
     match = STONE_NUMBER_REGEX.search(filename)
-    return int(match.group(1)) if match else -1  # fallback if unexpected format
+    # fallback if unexpected format
+    return int(match.group(1)) if match else -1
 
 
 class StonesResponse(BaseModel):
@@ -38,3 +39,8 @@ class UploadInfo(BaseModel):
     total_size: int
     state: str = "uploaded"
     contribution: Contribution | None = None
+
+
+class UploadInfoState(BaseModel):
+    path: str
+    state: str = "uploaded"

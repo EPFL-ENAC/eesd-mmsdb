@@ -90,3 +90,8 @@ export interface UploadInfo {
   state: string;
   contribution: Contribution | null;
 }
+
+export interface UploadInfoState {
+  path: string;
+  state: string;
+}
