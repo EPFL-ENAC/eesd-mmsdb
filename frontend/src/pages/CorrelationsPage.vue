@@ -1,12 +1,14 @@
 <template>
   <q-page>
     <h6 class="chart-title q-ma-sm">Correlation</h6>
-    <div
-      v-show="correlationsFiltersStore.xColumn && correlationsFiltersStore.yColumn"
-      ref="chartContainer"
-      class="chart-wrapper"
-      style="width: 100%; max-width: 800px; height: 800px;"
-    ></div>
+    <div class="chart-and-loading-wrapper">
+      <div
+        v-show="correlationsFiltersStore.xColumn && correlationsFiltersStore.yColumn"
+        ref="chartContainer"
+        class="chart-wrapper"
+      ></div>
+      <loading-overlay :visible="isRegressionLoading" />
+    </div>
 
     <div v-show="!correlationsFiltersStore.xColumn || !correlationsFiltersStore.yColumn">
       <q-banner class="bg-warning text-black">
@@ -21,6 +23,8 @@ import * as echarts from 'echarts'
 import { usePropertiesStore } from 'stores/properties'
 import { useCorrelationsFiltersStore } from 'stores/correlations_filters'
 import type { CorrelationResult } from 'src/models';
+import LoadingOverlay from 'src/components/LoadingOverlay.vue';
+
 const propertiesStore = usePropertiesStore()
 const correlationsFiltersStore = useCorrelationsFiltersStore()
 const properties = computed(() => propertiesStore.properties)
@@ -29,15 +33,24 @@ const correlationParameters = ref<CorrelationResult | null>(null)
 const chartContainer = ref<HTMLDivElement>()
 let chartInstance: echarts.ECharts | null = null
 
+interface ScatterDataItem {
+  value: [number, number];
+  wallID: string;
+  reference: string;
+}
+
+const selectedCategories = ref<{ [key: string]: boolean }>({})
+const isRegressionLoading = ref(false)
+
 const scatterData = computed(() => {
   if (!properties.value || !Array.isArray(properties.value) || !correlationsFiltersStore.xColumn || !correlationsFiltersStore.yColumn) {
     return {}
   }
 
-  const scatterData: Record<string, { value: [number, number]; wallID: string }[]> = {}
-
+  const scatterData: Record<string, ScatterDataItem[]> = {}
 
   const wallIDs = propertiesStore.getColumnValues('Wall ID') as string[]
+  const references = propertiesStore.getColumnValues('Reference') as string[]
   const xValues = propertiesStore.getColumnValues(propertiesStore.getColumnKeyFromLabel(correlationsFiltersStore.xColumn) as string) as string[]
   const yValues = propertiesStore.getColumnValues(propertiesStore.getColumnKeyFromLabel(correlationsFiltersStore.yColumn) as string) as string[]
 
@@ -53,9 +66,9 @@ const scatterData = computed(() => {
     if (!isNaN(xValue) && !isNaN(yValue)) {
       scatterData[referenceShortName].push({
         value: [xValue, yValue],
-        wallID: wallID || 'Unknown'
+        wallID: wallID || 'Unknown',
+        reference: references[i] || 'Unknown'
       })
-
     }
   }
 
@@ -68,8 +81,12 @@ const regressionData = computed(() => {
   }
 
   const allPoints: [number, number][] = []
-  Object.values(scatterData.value).forEach(categoryPoints => {
-    categoryPoints.forEach(point => {
+  Object.entries(scatterData.value).forEach(([category, points]) => {
+    if (!selectedCategories.value[category]) {
+      return
+    }
+
+    points.forEach(point => {
       allPoints.push(point.value)
     })
   })
@@ -87,6 +104,7 @@ const regressionData = computed(() => {
     [maxX, correlationParameters.value.slope * maxX + correlationParameters.value.intercept]
   ] as [number, number][]
 })
+
 
 const getChartOptions = () => {
   const scatterSeries = Object.entries(scatterData.value).map(([category, points], idx) => ({
@@ -130,8 +148,10 @@ const getChartOptions = () => {
         const yName = correlationsFiltersStore.yColumn;
 
         const category = params.seriesName;
-        const wallID = scatterData.value[category]?.[params.dataIndex]?.wallID || 'Unknown';
-        return `Wall ID: ${wallID}<br/>${xName}: ${Number(params.value[0]).toFixed(2)}<br/>${yName}: ${Number(params.value[1]).toFixed(2)}`;
+        const metadata: ScatterDataItem | undefined = scatterData.value[category]?.[params.dataIndex];
+        const wallID = metadata?.wallID || 'Unknown';
+
+        return `<b>Wall ID:</b> ${wallID}<br/><b>${xName}</b>: ${Number(params.value[0]).toFixed(2)}<br/><b>${yName}</b>: ${Number(params.value[1]).toFixed(2)}<br/><b>Reference:</b> ${metadata?.reference || 'Unknown'}`;
       },
       confine: true
     },
@@ -192,7 +212,33 @@ const initChart = async () => {
     }
     chartInstance = echarts.init(chartContainer.value)
     chartInstance.setOption(getChartOptions())
+
+    chartInstance.on('legendselectchanged', (event) => {
+      selectedCategories.value = (event as { name: string, selected: { [key: string]: boolean }, type: "legendselectchanged" }).selected
+    })
+
+    populateSelectedCategoriesFromChartLegend()
   }
+}
+
+function populateSelectedCategoriesFromChartLegend() {
+  if (chartInstance) {
+    const legend = (chartInstance.getOption().legend as { data: string[], selected: { [key: string]: boolean } }[])?.[0];
+    if (legend) {
+      const selectedAvailable = Object.keys(legend.selected).length > 0
+      selectedCategories.value = selectedAvailable ? legend.selected : legend.data.reduce((acc, curr) => {
+        acc[curr] = true
+        return acc
+      }, {} as { [key: string]: boolean })
+    }
+  }
+}
+
+async function updateChart() {
+  if (!chartInstance) {
+    return await initChart()
+  }
+  chartInstance.setOption(getChartOptions())
 }
 
 const resizeChart = () => {
@@ -211,10 +257,17 @@ const resizeChart = () => {
 const onDrawerToggled = resizeChart
 
 watch(
-  () => [correlationsFiltersStore.xColumn, correlationsFiltersStore.yColumn],
+  () => [correlationsFiltersStore.xColumn, correlationsFiltersStore.yColumn, selectedCategories.value],
   async () => {
     if (correlationsFiltersStore.xColumn && correlationsFiltersStore.yColumn) {
-      correlationParameters.value = await correlationsFiltersStore.getCorrelationParameters()
+      isRegressionLoading.value = true
+
+      const allowedCategories = Object.entries(selectedCategories.value)
+        .filter(([, isSelected]) => isSelected)
+        .map(([category]) => category)
+      correlationParameters.value = await correlationsFiltersStore.getCorrelationParameters(allowedCategories)
+
+      isRegressionLoading.value = false
     } else {
       correlationParameters.value = null
     }
@@ -226,8 +279,7 @@ watch(
   () => [scatterData.value, regressionData.value],
   async () => {
     if (correlationsFiltersStore.xColumn && correlationsFiltersStore.yColumn) {
-      await initChart()
-
+      await updateChart()
     } else if (chartInstance) {
       chartInstance.clear()
     }
@@ -260,7 +312,17 @@ onUnmounted(() => {
   font-weight: bold;
 }
 
+.chart-and-loading-wrapper {
+  position: relative;
+  width: 100%;
+  max-width: 800px;
+  height: 800px;
+  margin: 0 auto;
+}
+
 .chart-wrapper {
+  width: 100%;
+  height: 100%;
   position: relative;
   transition: all 0.3s ease-in-out;
   margin: 0 auto;

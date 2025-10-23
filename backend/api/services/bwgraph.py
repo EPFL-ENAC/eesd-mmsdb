@@ -1,6 +1,6 @@
 import numpy as np
 import networkx as nx
-from typing import Optional, Tuple
+from typing import Optional, Tuple, Union, List
 from itertools import product
 
 
@@ -229,6 +229,8 @@ def _is_interface(bw: np.ndarray, idx: int, sz: Tuple[int, ...], dim: int) -> bo
     """Check if a pixel is at the stone-mortar interface."""
     # Convert linear index to subscripts
     coords = np.unravel_index(idx, sz)
+
+    neighbors: Union[List[Tuple[int, int]], List[Tuple[int, int, int]]]
 
     if dim == 2:
         i, j = coords

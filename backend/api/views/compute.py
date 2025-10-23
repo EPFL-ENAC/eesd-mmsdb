@@ -14,9 +14,15 @@ router = APIRouter()
 async def get_correlation_parameters(
     x_column: str,
     y_column: str,
+    allowed_categories: str = "",
 ) -> CorrelationResult:
     """Get correlation parameters between two columns in a dataset."""
-    return await compute_correlation_parameters(x_column, y_column)
+    allowed_categories_list = (
+        allowed_categories.split(",") if allowed_categories else []
+    )
+    return await compute_correlation_parameters(
+        x_column, y_column, allowed_categories=allowed_categories_list
+    )
 
 
 @router.post("/line")

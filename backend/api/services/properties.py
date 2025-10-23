@@ -60,6 +60,8 @@ class Properties:
             return self._properties
 
         data = await self.get_data()
+        print("Data")
+        print(data)
         columns = []
 
         for col in data.columns:
@@ -71,21 +73,28 @@ class Properties:
         self._properties = columns
         return columns
 
-    async def get_property_column_values(self, column_name: str) -> list[str]:
+    async def get_property_column_values(
+        self, column_name: str, allowed_categories: list[str] = []
+    ) -> list[str]:
         if column_name in self._property_columns:
             return self._property_columns[column_name]
 
-        properties = await self.get_property_entries()
+        data = await self.get_data()
 
-        for column in properties:
-            if column.name == column_name:
-                self._property_columns[column_name] = column.values
-                return column.values
+        if column_name not in data.columns:
+            raise HTTPException(
+                status_code=404,
+                detail=f"Column '{column_name}' not found in properties table.",
+            )
 
-        raise HTTPException(
-            status_code=404,
-            detail=f"Column '{column_name}' not found in properties table.",
+        # Category is the first 2 characters of "Wall ID"
+        filtered = (
+            data[data["Wall ID"].str[:2].isin(allowed_categories)]
+            if len(allowed_categories) > 0
+            else data
         )
+        values = filtered[column_name].tolist()
+        return values
 
     async def get_stones_property_entries(self, wall_id: str) -> Table:
         if wall_id in self._stone_properties:
