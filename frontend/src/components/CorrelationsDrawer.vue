@@ -3,7 +3,7 @@
     <div class="text-h6 q-mb-md">Axes</div>
 
     <div class="q-mb-xs">
-      <diV class="text-subtitle2 q-mb-xs">X axis</div>
+      <div class="text-subtitle2 q-mb-xs">X axis</div>
       <q-select
         :model-value="correlationsFiltersStore.xColumn"
         @update:model-value="(val) => correlationsFiltersStore.setXColumn(val)"
@@ -16,7 +16,7 @@
     </div>
 
     <div class="q-mb-xs">
-      <diV class="text-subtitle2 q-mb-xs">Y axis</div>
+      <div class="text-subtitle2 q-mb-xs">Y axis</div>
       <q-select
         :model-value="correlationsFiltersStore.yColumn"
         @update:model-value="(val) => correlationsFiltersStore.setYColumn(val)"

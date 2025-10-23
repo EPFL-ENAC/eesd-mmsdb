@@ -26,7 +26,7 @@ export const useCorrelationsFiltersStore = defineStore('correlationsFilters', ()
   const setXColumn = (column: string | null) => xColumn.value = column
   const setYColumn = (column: string | null) => yColumn.value = column
 
-  const getCorrelationParameters = async (): Promise<CorrelationResult | null> => {
+  const getCorrelationParameters = async (allowedCategories: string[] = []): Promise<CorrelationResult | null> => {
     if (!xColumn.value || !yColumn.value) {
       return null;
     }
@@ -43,6 +43,7 @@ export const useCorrelationsFiltersStore = defineStore('correlationsFilters', ()
     const queryParams = new URLSearchParams({
       x_column: xColumnKey,
       y_column: yColumnKey,
+      allowed_categories: allowedCategories.join(','),
     });
 
     try {

@@ -7,10 +7,14 @@ from api.models.compute import CorrelationResult
 
 
 async def compute_correlation_parameters(
-    x_column: str, y_column: str
+    x_column: str, y_column: str, allowed_categories: list[str] = []
 ) -> CorrelationResult:
-    x_raw = await properties.get_property_column_values(x_column)
-    y_raw = await properties.get_property_column_values(y_column)
+    x_raw = await properties.get_property_column_values(
+        x_column, allowed_categories=allowed_categories
+    )
+    y_raw = await properties.get_property_column_values(
+        y_column, allowed_categories=allowed_categories
+    )
 
     x_valid = []
     y_valid = []
