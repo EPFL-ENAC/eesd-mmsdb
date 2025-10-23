@@ -61,12 +61,10 @@ const emit = defineEmits(['delete', 'comments']);
 const loading = ref(false);
 const apiKey = ref('');
 const isPwd = ref(true);
-const refresh = ref(props.refresh);
 
 onMounted(onShowAll);
 
 watch(() => props.refresh, () => {
-  refresh.value = props.refresh;
   onShowAll();
 });
 

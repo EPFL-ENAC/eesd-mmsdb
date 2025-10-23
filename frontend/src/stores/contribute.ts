@@ -23,9 +23,9 @@ export const useContributeStore = defineStore('contribute', () => {
     apiKey.value = key;
     // add api key to headers
     if (hasApiKey.value) {
-      api.defaults.headers.common['X-API-Key'] = apiKey.value;
+      api.defaults.headers.common['x-api-key'] = apiKey.value;
     } else {
-      delete api.defaults.headers.common['X-API-Key'];
+      delete api.defaults.headers.common['x-api-key'];
     }
   }
 
@@ -143,7 +143,7 @@ export const useContributeStore = defineStore('contribute', () => {
       return;
     }
     uploadInfos.value.push(uploadInfoData);
-    // sort my most recent first
+    // sort by most recent first
     uploadInfos.value.sort(uploadInfoSorter);
     LocalStorage.set(CONTRIB_STORAGE_NAME, JSON.stringify(uploadInfos.value));
   }

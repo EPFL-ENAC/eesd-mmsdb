@@ -242,26 +242,8 @@ async def delete_upload_folder(folder: str):
 )
 async def get_upload_folder_state(folder: str):
     """Get the state of an upload folder in the temporary upload directory."""
-    base_path = Path(config.UPLOAD_FILES_PATH)
-    folder_path = (base_path / folder).resolve()
-
-    try:
-        folder_path.relative_to(base_path.resolve())
-    except ValueError:
-        raise HTTPException(
-            status_code=403, detail="Access denied: Path outside allowed directory"
-        )
-
-    if not folder_path.exists() or not folder_path.is_dir():
-        raise HTTPException(status_code=404, detail="Folder not found")
-
-    try:
-        info = await get_upload_folder_info(folder)
-        return UploadInfoState(path=info.path, state=info.state)
-    except Exception as e:
-        raise HTTPException(
-            status_code=500, detail=f"Error getting folder state: {str(e)}"
-        )
+    info = await get_upload_folder_info(folder, None)
+    return UploadInfoState(path=info.path, state=info.state)
 
 
 @router.get(
@@ -459,7 +441,7 @@ async def update_upload_folder_state(
 
     try:
         update_local_upload_info_state(folder, state)
-        return await get_upload_folder_info(folder)
+        return await get_upload_folder_info(folder, api_key)
     except Exception as e:
         raise HTTPException(
             status_code=500, detail=f"Error updating info file: {str(e)}"
