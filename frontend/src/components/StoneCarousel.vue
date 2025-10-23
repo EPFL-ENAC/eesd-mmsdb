@@ -19,9 +19,7 @@
                         <microstructure-view :ply-data="currentStone" :width="200" :height="200" />
                     </div>
 
-                    <div :class="['spinner-container', loading ? 'shown' : '']">
-                        <q-spinner color="primary" size="3em" />
-                    </div>
+                    <loading-overlay :visible="loading" />
                 </div>
                 <q-btn flat round icon="chevron_right" @click="nextStone" />
             </div>
@@ -46,6 +44,7 @@
 import { useWallsStore } from 'stores/walls'
 import { toDisplayedProperties, getDimensionsColumn, dimensionsColumnsStones } from 'src/utils/properties'
 import MicrostructureView from 'src/components/MicrostructureView.vue'
+import LoadingOverlay from './LoadingOverlay.vue';
 import type { Table, WallStonesList } from 'src/models';
 
 const wallsStore = useWallsStore();
@@ -146,25 +145,6 @@ onMounted(async () => {
 
 .carousel-controls .stone-image-container {
     position: relative;
-}
-
-.spinner-container {
-    position: absolute;
-    inset: 0;
-    background: rgba(255, 255, 255, 0.6);
-    backdrop-filter: blur(3px);
-    opacity: 0;
-
-    display: flex;
-    align-items: center;
-    justify-content: center;
-
-    pointer-events: none;
-    transition: all 0.5s;
-}
-
-.spinner-container.shown {
-    opacity: 1;
 }
 
 .carousel-wrapper {

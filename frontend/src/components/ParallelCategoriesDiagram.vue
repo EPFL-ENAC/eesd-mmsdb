@@ -12,6 +12,13 @@ const columns = ["Microstructure type", "Typology based on Italian Code", "No of
 const propertiesStore = usePropertiesStore()
 const properties = computed(() => propertiesStore.getBinnedProperties())
 
+function formatBinRange(min: number, max: number | "Infinity"): string {
+  if (max === "Infinity") {
+    return `> ${min}`
+  }
+  return `(${min} - ${max})`
+}
+
 async function createChart() {
   if (!Array.isArray(properties.value) || plotlyChart.value === null) {
     return
@@ -19,15 +26,28 @@ async function createChart() {
 
   const dimensions = columns.map((col) => {
     const values = properties.value?.find(c => c.name === col)?.values || []
+    const prettyValues = values.map(v => {
+      const bins = propertiesStore.getColumnBins(col)
+      if (!bins) {
+        return v
+      }
 
-    const sortedValues = [...new Set(values)]
+      const bin = bins.find(b => b.name === v)
+      if (!bin) {
+        return v
+      }
+
+      return `${v}<br />${formatBinRange(bin.min, bin.max)}`
+    })
+
+    const sortedValues = [...new Set(prettyValues)]
     if (!propertiesStore.getColumnBins(col)) {
       sortedValues.sort()
     }
 
     return {
       label: propertiesStore.getColumnLabel(col),
-      values: values,
+      values: prettyValues,
       categoryorder: 'array',
       categoryarray: sortedValues,
     }
