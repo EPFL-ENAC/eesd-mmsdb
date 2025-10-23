@@ -1,13 +1,14 @@
 <template>
-  <div class="secondary-header">
+  <div :class="['secondary-header', { 'home': isHome }]">
     <img
       src="mmsdb_logo_64px.png"
       class="logo q-ml-sm"
       alt="Logo"
     />
 
-    <div>
+    <div class="title-group">
       <h1 class="title q-ml-sm">{{ t("title" )}}</h1>
+      <div class="subtitle" v-if="isHome">Regrouping {{ totalWalls }} walls across {{ numberOfSources }} sources</div>
     </div>
 
     <q-space/>
@@ -100,32 +101,73 @@ import contactLinks from 'src/assets/contact_links.json';
 import acknowledgementsLinks from 'src/assets/acknowledgements_links.json';
 import citationItems from 'src/assets/citation_items.json';
 
+const route = useRoute();
+
+const isHome = computed(() => route.name === 'home');
+
 const { t } = useI18n();
 const showCitation = ref(false);
 const showContact = ref(false);
 const showAcknowledgements = ref(false);
+
+const propertiesStore = usePropertiesStore()
+
+const totalWalls = computed(() => {
+    return propertiesStore.getColumnValues("Wall ID")?.length ?? 0
+});
+
+const numberOfSources = computed(() => {
+    const referenceUnique = new Set<string>(propertiesStore.getColumnValues("Reference ID") ?? []);
+    return referenceUnique.size;
+});
+
 </script>
 
 <style scoped lang="scss">
-$header-height: 3.125rem;
-
 .secondary-header {
-  min-height: $header-height;
+  --header-height: 3.125rem;
+
+  min-height: var(--header-height);
   background-color: black;
   display: flex;
   align-items: center;
+
+  background-image: linear-gradient(to right, rgba(0, 0, 0, 1) 4rem, rgba(0, 0, 0, 0.6) 10rem, rgba(0, 0, 0, 0.9)), url("/banner_bg.png");
+  background-size: cover;
+  background-position: left center;
+  
+  text-shadow: 0 0 5px rgba(0, 0, 0, 1);
+}
+
+.secondary-header.home {
+  --header-height: 6rem;
+  padding-block: 0.5rem;
+  background-image: linear-gradient(to right, rgba(0, 0, 0, 1) 6rem, rgba(0, 0, 0, 0.4) 10rem, rgba(0, 0, 0, 0.7) 60rem, rgba(0, 0, 0, 0.9)), url("/banner_bg.png");
 }
 
 .logo {
-  height: $header-height;
+  height: var(--header-height);
+}
+
+.title-group {
+  color: white;
+  margin-left: 0.4rem;
+  margin-block: 0.6rem;
 }
 
 .title {
-  color: white;
   font-size: 1.5rem;
-  margin-top: 0.6rem;
-  margin-bottom: 0.6rem;
+  margin: 0;
   line-height: 1.8rem;
+}
+
+.home .title {
+  font-size: 2.5rem;
+  margin-bottom: 0.2rem;
+}
+
+.home .subtitle {
+  font-size: 1.2rem;
 }
 
 .icons {

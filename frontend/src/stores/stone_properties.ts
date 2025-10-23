@@ -2,6 +2,7 @@ import { defineStore } from 'pinia';
 import type { ColumnInfo, Table } from '../models';
 import { api } from 'src/boot/api';
 import columnsJson from 'src/assets/stone_properties_columns_info.json';
+
 const columns = columnsJson as ColumnInfo[];
 
 const columnsDict = Object.fromEntries(
