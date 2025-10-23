@@ -174,15 +174,15 @@ const getChartOptions = () => {
     },
     legend: {
       data: legendData,
-      top: '5%',
+      top: '0px',
       left: 'center'
     },
     series: allSeries,
     grid: {
-      left: '5%',
-      top: '12%',
-      right: '5%',
-      bottom: '5%',
+      left: '10px',
+      top: '30px',
+      right: '10px',
+      bottom: '10px',
       containLabel: true
     },
     graphic: [
@@ -317,6 +317,7 @@ onUnmounted(() => {
   width: 100%;
   max-width: 800px;
   height: 800px;
+  max-height: calc(100vh - clamp(250px, -20vw + 450px, 350px));
   margin: 0 auto;
 }
 

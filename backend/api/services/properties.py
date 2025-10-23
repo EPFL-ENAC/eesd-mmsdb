@@ -60,8 +60,6 @@ class Properties:
             return self._properties
 
         data = await self.get_data()
-        print("Data")
-        print(data)
         columns = []
 
         for col in data.columns:
