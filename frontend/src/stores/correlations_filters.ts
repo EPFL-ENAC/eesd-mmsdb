@@ -43,7 +43,9 @@ export const useCorrelationsFiltersStore = defineStore('correlationsFilters', ()
     const queryParams = new URLSearchParams({
       x_column: xColumnKey,
       y_column: yColumnKey,
-      allowed_categories: allowedCategories.join(','),
+    });
+    allowedCategories.forEach(category => {
+      queryParams.append('allowed_categories', category);
     });
 
     try {

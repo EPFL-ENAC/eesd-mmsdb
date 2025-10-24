@@ -1,5 +1,6 @@
 import tempfile
-from fastapi import APIRouter, HTTPException, UploadFile
+from typing import Annotated
+from fastapi import APIRouter, HTTPException, UploadFile, Query
 from fastapi_cache.decorator import cache
 
 from api.models.compute import CorrelationResult
@@ -14,14 +15,11 @@ router = APIRouter()
 async def get_correlation_parameters(
     x_column: str,
     y_column: str,
-    allowed_categories: str = "",
+    allowed_categories: Annotated[list[str], Query()] = [],
 ) -> CorrelationResult:
     """Get correlation parameters between two columns in a dataset."""
-    allowed_categories_list = (
-        allowed_categories.split(",") if allowed_categories else []
-    )
     return await compute_correlation_parameters(
-        x_column, y_column, allowed_categories=allowed_categories_list
+        x_column, y_column, allowed_categories=allowed_categories
     )
 
 

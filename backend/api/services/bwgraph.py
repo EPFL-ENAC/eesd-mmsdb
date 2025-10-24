@@ -1,6 +1,6 @@
 import numpy as np
 import networkx as nx
-from typing import Optional, Tuple, Union, List
+from typing import Optional, Tuple
 from itertools import product
 
 
@@ -230,7 +230,7 @@ def _is_interface(bw: np.ndarray, idx: int, sz: Tuple[int, ...], dim: int) -> bo
     # Convert linear index to subscripts
     coords = np.unravel_index(idx, sz)
 
-    neighbors: Union[List[Tuple[int, int]], List[Tuple[int, int, int]]]
+    neighbors: list[tuple[int, int]] | list[tuple[int, int, int]]
 
     if dim == 2:
         i, j = coords

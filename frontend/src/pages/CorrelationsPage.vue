@@ -174,12 +174,17 @@ const getChartOptions = () => {
     },
     legend: {
       data: legendData,
-      top: '0px',
-      left: 'center'
+      top: '30px',
+      left: '0px',
+      orient: 'vertical',
+      formatter: (name: string) => {
+        const fsd = scatterData.value[name]?.at(0)
+        return `${name} (${fsd?.reference || 'Unknown reference'})`
+      }
     },
     series: allSeries,
     grid: {
-      left: '10px',
+      left: '200px',
       top: '30px',
       right: '10px',
       bottom: '10px',
@@ -190,7 +195,7 @@ const getChartOptions = () => {
         type: 'text',
         z: 100,
         left: 'center',
-        top: 110,
+        top: 0,
         style: {
           fill: '#333',
           width: 400,
@@ -315,7 +320,7 @@ onUnmounted(() => {
 .chart-and-loading-wrapper {
   position: relative;
   width: 100%;
-  max-width: 800px;
+  max-width: 1000px;
   height: 800px;
   max-height: calc(100vh - clamp(250px, -20vw + 450px, 350px));
   margin: 0 auto;

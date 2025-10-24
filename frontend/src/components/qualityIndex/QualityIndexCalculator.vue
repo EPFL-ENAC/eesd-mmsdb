@@ -53,19 +53,21 @@
       bordered
       hide-bottom
     />
-    <q-table
-      class="q-mt-md"
-      title="Vertical Joint Staggering (VJ) classifications"
-      :columns="[
-        { name: 'parameter', label: 'Parameter', field: 'parameter', align: 'left' },
-        { name: 'value', label: 'Value', field: 'value', align: 'right' }
-      ]"
-      :rows="vjTableRows"
-      row-key="parameter"
-      flat
-      bordered
-      hide-bottom
-    />
+    <section class="q-mt-md">
+      <q-table
+        title="Vertical Joint Staggering (VJ) classifications"
+        :columns="[
+          { name: 'parameter', label: 'Parameter', field: 'parameter', align: 'left' },
+          { name: 'value', label: 'Value', field: 'value', align: 'right' }
+        ]"
+        :rows="vjTableRows"
+        row-key="parameter"
+        flat
+        bordered
+        hide-bottom
+      />
+      <img src="/Vertical_joints_classification.webp" alt="Vertical Joint Staggering Classification Diagram" />
+    </section>
     <q-table
       class="q-mt-md"
       title="Factors"
@@ -274,3 +276,35 @@ const vjTableRows = computed(() => {
 });
 
 </script>
+
+<style scoped>
+
+section {
+  display: grid;
+  grid-template-areas: "result-table explainer-image";
+  grid-template-columns: 1fr 1fr;
+  align-items: center;
+  gap: 1rem;
+}
+
+@media screen and (max-width: 960px) {
+  section {
+    grid-template-areas:
+      "result-table"
+      "explainer-image";
+    grid-template-columns: 1fr;
+  }
+}
+
+section .q-table {
+  grid-area: result-table;
+}
+
+section img {
+  display: block;
+  width: 100%;
+  object-fit: contain;
+  grid-area: explainer-image;
+}
+
+</style>
