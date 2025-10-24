@@ -33,6 +33,7 @@ async def compute_line_minimum_trace(
     real_length: float,
     real_height: float,
     analysis_type: int,
+    interface_weight: float,
     boundary_margin: int,
 ) -> dict:
     """Compute the line of minimum trace."""
@@ -55,6 +56,7 @@ async def compute_line_minimum_trace(
                 real_length=real_length,
                 real_height=real_height,
                 calculate_LMT=analysis_type,
+                interface_weight=interface_weight,
                 boundary_margin=boundary_margin,
                 return_plot=False,
             )

@@ -98,14 +98,28 @@
           </div>
         </div>
 
-        <div class="q-mb-lg">
-          <div class="text-subtitle2 q-mb-xs">Analysis Type</div>
-          <q-select
-            v-model="analysisType"
-            :options="analysisTypeOptions"
-            filled
-            dense
-          />
+        <div class="row q-col-gutter-md q-mb-md">
+          <div class="col-md-6 col-sm-6 col-xs-12">
+            <div class="text-subtitle2 q-mb-xs">Analysis Type</div>
+            <q-select
+              v-model="analysisType"
+              :options="analysisTypeOptions"
+              filled
+              dense
+            />
+          </div>
+
+          <div class="col-md-6 col-sm-6 col-xs-12">
+            <div class="text-subtitle2 q-mb-xs">Interface Weight</div>
+            <q-slider
+              v-model="interfaceWeight"
+              :min="0.1"
+              :max="1"
+              :step="0.01"
+              label
+              :marker-labels="[{value: 0.1, label: '0.1'}, {value: 1, label: '1'}]"
+            />
+          </div>
         </div>
 
         <div class="q-mt-md">
@@ -271,6 +285,7 @@ const analysisTypeOptions = [
   { label: 'Horizontal bed joints', value: 1 },
   { label: 'Wall leaf connections', value: 2 },
 ];
+const interfaceWeight = ref(0.1);
 const analysisType = ref(analysisTypeOptions[0]);
 
 const isDrawing = ref(false);
@@ -429,6 +444,7 @@ const computeLine = async () => {
     realLength: sliceStore.realLength,
     realHeight: sliceStore.realHeight,
     analysisType: (analysisType.value as typeof analysisTypeOptions[0]).value,
+    interfaceWeight: interfaceWeight.value,
     boundaryMargin: sliceStore.boundaryMargin,
   });
 };

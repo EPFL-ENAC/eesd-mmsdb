@@ -36,6 +36,7 @@ export interface LineComputeParams {
   realLength: number;
   realHeight: number;
   analysisType: number;
+  interfaceWeight: number;
   boundaryMargin: number;
 }
 

@@ -24,6 +24,7 @@ export const useLineStore = defineStore('line', () => {
         real_length: params.realLength.toString(),
         real_height: params.realHeight.toString(),
         analysis_type: params.analysisType.toString(),
+        interface_weight: params.interfaceWeight.toString(),
         boundary_margin: params.boundaryMargin.toString(),
       });
 
