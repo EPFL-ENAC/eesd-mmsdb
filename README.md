@@ -11,16 +11,22 @@ _Masonry MicroStructure Database_
 - Make
 
 
-## Deploying the website locally
+## Getting the data
 
-Follow these instructions to run the MMS Database website locally. First, make sure all data is cloned:
+After cloning the repository, make sure that you have Git LFS installed and that you have pulled the large files:
 
 ```bash
+git config --global credential.helper store
 git lfs install
 git lfs pull
 ```
 
-Then, run:
+You must be on EPFL's network to be able to pull the data. You will be prompted for credentials.
+
+
+## Deploying the website locally
+
+Follow these instructions to run the MMS Database website locally. First, run:
 
 ```bash
 make install
@@ -61,11 +67,7 @@ The website will be available at [http://localhost:9000](http://localhost:9000).
 
 ## Contributing new wall microstructure data
 
-To get started, make sure that you have [Git LFS](https://git-lfs.github.com/) installed and that you have cloned the repository with Git LFS support:
-```bash
-git lfs install
-git lfs pull
-```
+To get started, make sure that you followed the instructions above to get the LFS data.
 
 Then, create a new git branch for your changes:
 ```bash
