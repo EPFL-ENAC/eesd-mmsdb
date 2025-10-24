@@ -1,8 +1,8 @@
 <template>
   <div :class="['secondary-header', { 'home': isHome }]">
     <img
-      src="mmsdb_logo_64px.png"
-      class="logo q-ml-sm"
+      src="logo.svg"
+      class="logo"
       alt="Logo"
     />
 
@@ -13,38 +13,40 @@
 
     <q-space/>
 
-    <q-btn
-      icon="format_quote"
-      class="icons"
-      flat
-      round
-      :title="t('citation')"
-      @click="showCitation = true"
-    ></q-btn>
-    <q-btn
-      icon="mail"
-      class="icons"
-      flat
-      round
-      :title="t('contact')"
-      @click="showContact = true"
-    ></q-btn>
-    <q-btn
-      icon="cloud_upload"
-      class="icons"
-      flat
-      round
-      :title="t('upload')"
-      to="/contribute"
-    ></q-btn>
-    <q-btn
-      icon="handshake"
-      class="icons"
-      flat
-      round
-      :title="t('acknowledgements')"
-      @click="showAcknowledgements = true"
-    ></q-btn>
+    <div class="side-toolbar">
+      <q-btn
+        icon="format_quote"
+        class="icons"
+        flat
+        round
+        :title="t('citation')"
+        @click="showCitation = true"
+      ></q-btn>
+      <q-btn
+        icon="mail"
+        class="icons"
+        flat
+        round
+        :title="t('contact')"
+        @click="showContact = true"
+      ></q-btn>
+      <q-btn
+        icon="cloud_upload"
+        class="icons"
+        flat
+        round
+        :title="t('upload')"
+        to="/contribute"
+      ></q-btn>
+      <q-btn
+        icon="handshake"
+        class="icons"
+        flat
+        round
+        :title="t('acknowledgements')"
+        @click="showAcknowledgements = true"
+      ></q-btn>
+    </div>
   </div>
 
   <!-- TODO: Remove -->
@@ -131,6 +133,7 @@ const numberOfSources = computed(() => {
   background-color: black;
   display: flex;
   align-items: center;
+  flex-wrap: wrap;
 
   background-image: linear-gradient(to right, rgba(0, 0, 0, 1) 4rem, rgba(0, 0, 0, 0.6) 10rem, rgba(0, 0, 0, 0.9)), url("/banner_bg.png");
   background-size: cover;
@@ -140,9 +143,8 @@ const numberOfSources = computed(() => {
 }
 
 .secondary-header.home {
-  --header-height: 6rem;
-  padding-block: 0.5rem;
-  background-image: linear-gradient(to right, rgba(0, 0, 0, 1) 6rem, rgba(0, 0, 0, 0.4) 10rem, rgba(0, 0, 0, 0.7) 60rem, rgba(0, 0, 0, 0.9)), url("/banner_bg.png");
+  --header-height: 8rem;
+  background-image: linear-gradient(to right, rgba(0, 0, 0, 1) var(--header-height), rgba(0, 0, 0, 0.45) calc(var(--header-height) + 6rem), rgba(0, 0, 0, 0.7) 60rem, rgba(0, 0, 0, 0.9)), url("/banner_bg.png");
 }
 
 .logo {
@@ -177,5 +179,10 @@ const numberOfSources = computed(() => {
 .development-banner {
   background: #fffbe6;
   color: #795548;
+}
+
+.side-toolbar {
+  display: flex;
+  align-items: center;
 }
 </style>
