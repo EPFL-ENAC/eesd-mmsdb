@@ -2,3 +2,4 @@
 .python-version
 .DS_Store
 .vscode/
+*.egg-info/

@@ -16,3 +16,6 @@ run-frontend:
 
 test:
 	cd backend && make test
+
+generate-low-quality-models:
+	cd scripts && uv venv --allow-existing && uv run python decrease_quality.py ../data/original ../data/downscaled
