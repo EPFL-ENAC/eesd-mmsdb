@@ -1,3 +1,4 @@
+import gc
 import multiprocessing
 import os
 from pathlib import Path
@@ -30,6 +31,7 @@ def reduce_mesh_quality_task(args: tuple[Path, Path]):
         mesh.remove_duplicated_vertices()
         mesh.remove_duplicated_triangles()
         mesh.remove_unreferenced_vertices()
+        mesh.remove_degenerate_triangles()
 
         # Simplification (reduces number of triangles)
         target_number_of_triangles = (
@@ -41,7 +43,8 @@ def reduce_mesh_quality_task(args: tuple[Path, Path]):
             mesh = mesh.simplify_quadric_decimation(
                 target_number_of_triangles=target_number_of_triangles
             )
-            # Fix inside-out stones
+            # Try to fix inside-out stones
+            mesh.compute_triangle_normals()
             mesh.orient_triangles()
             mesh.compute_vertex_normals()
 
@@ -58,6 +61,10 @@ def reduce_mesh_quality_task(args: tuple[Path, Path]):
         )
         final_size = os.path.getsize(target_path)
 
+        # Explicitly drop mesh from memory after saving
+        del mesh
+        gc.collect()
+
         if original_size > 0:
             size_reduction = ((original_size - final_size) / original_size) * 100
         else:
@@ -65,8 +72,9 @@ def reduce_mesh_quality_task(args: tuple[Path, Path]):
 
         if final_size > original_size:
             print(
-                f"⚠️ Size increased: {target_path} ({final_size / 1e6:.2f} MB, increased by {abs(size_reduction):.1f}%)"
+                f"⚠️ Size increased: {target_path} ({final_size / 1e6:.2f} MB, increased by {abs(size_reduction):.1f}%). Keeping original."
             )
+            os.replace(source_path, target_path)
         elif final_size > TARGET_SIZE_BYTES:
             print(
                 f"⚠️ Still >1MB: {target_path} ({final_size / 1e6:.2f} MB, reduced by {size_reduction:.1f}%)"

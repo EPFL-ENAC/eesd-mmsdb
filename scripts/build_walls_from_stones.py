@@ -1,4 +1,4 @@
-"""Aggregate the bounding boxes of stones, the shift the center of the wall mesh accordingly."""
+"""Rebuild wall mesh from stones."""
 
 import multiprocessing
 import sys
@@ -19,32 +19,14 @@ def get_stone_paths_for_wall(wall_path: Path) -> list[Path]:
     return stone_paths
 
 
-def shift_wall_mesh(args: tuple[Path, list[Path]]):
+def build_wall_mesh(args: tuple[Path, list[Path]]):
     wall_path, stone_paths = args
 
-    corners = None
+    wall_mesh = o3d.geometry.TriangleMesh()
 
     for stone_path in stone_paths:
         stone_mesh = o3d.io.read_triangle_mesh(str(stone_path))
-        stone_bbox = stone_mesh.get_axis_aligned_bounding_box()
-        stone_corners = np.asarray(stone_bbox.get_box_points())
-        if corners is None:
-            corners = stone_corners
-        else:
-            corners = np.vstack((corners, stone_corners))
-
-    stones_bbox = o3d.geometry.AxisAlignedBoundingBox.create_from_points(
-        o3d.utility.Vector3dVector(corners)
-    )
-
-    wall_mesh = o3d.io.read_triangle_mesh(str(wall_path))
-    wall_bbox = wall_mesh.get_axis_aligned_bounding_box()
-    wall_center = wall_bbox.get_center()
-    stones_center = stones_bbox.get_center()
-    print(wall_bbox)
-    print(stones_bbox)
-    print(wall_center, stones_center)
-    wall_mesh.translate(stones_center - wall_center)
+        wall_mesh += stone_mesh
 
     o3d.io.write_triangle_mesh(
         str(wall_path), wall_mesh, write_ascii=False, compressed=True
@@ -66,7 +48,7 @@ def main(dir_path: str, dry_run: bool = False):
     if not dry_run and tasks:
         with multiprocessing.Pool() as pool:
             for _ in tqdm(
-                pool.imap_unordered(shift_wall_mesh, tasks),
+                pool.imap_unordered(build_wall_mesh, tasks),
                 total=len(tasks),
                 desc="Processing",
             ):
@@ -75,7 +57,9 @@ def main(dir_path: str, dry_run: bool = False):
 
 if __name__ == "__main__":
     if len(sys.argv) < 2 or "--help" in sys.argv:
-        print("Usage: python fix_wall_shift.py [--help] <dir_path> [--dry-run]")
+        print(
+            "Usage: python build_walls_from_stones.py [--help] <dir_path> [--dry-run]"
+        )
         sys.exit(1)
 
     dir_path = sys.argv[1]
