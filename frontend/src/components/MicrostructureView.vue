@@ -279,6 +279,7 @@ const loadPly = () => {
       specular: 0xaaaaaa,
       shininess: 5,
       flatShading: true,
+      side: THREE.DoubleSide,
     })
     mesh = new THREE.Mesh(geometry, material)
     mesh.castShadow = true

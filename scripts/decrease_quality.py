@@ -1,8 +1,8 @@
+import multiprocessing
 import os
 from pathlib import Path
 import sys
 
-import numpy as np
 import open3d as o3d
 from tqdm import tqdm
 
@@ -18,7 +18,9 @@ def get_all_mesh_paths(source_dir: str) -> list[Path]:
     return list(Path(source_dir).rglob("*.ply"))
 
 
-def reduce_mesh_quality(source_path: Path, target_path: Path):
+def reduce_mesh_quality_task(args: tuple[Path, Path]):
+    source_path, target_path = args
+
     try:
         original_size = os.path.getsize(source_path)
         mesh = o3d.io.read_triangle_mesh(str(source_path))
@@ -39,6 +41,8 @@ def reduce_mesh_quality(source_path: Path, target_path: Path):
             mesh = mesh.simplify_quadric_decimation(
                 target_number_of_triangles=target_number_of_triangles
             )
+            # Fix inside-out stones
+            mesh.orient_triangles()
             mesh.compute_vertex_normals()
 
         # Vertex clustering (merges nearby vertices without creating holes)
@@ -82,24 +86,34 @@ def main(source_dir: str, target_dir: str, dry_run: bool = False):
     mesh_paths = get_all_mesh_paths(source_dir)
     print(f"Found {len(mesh_paths)} .ply files.")
 
-    for source_path in tqdm(mesh_paths, desc="Processing"):
+    tasks = []
+    for source_path in mesh_paths:
         target_path = Path(target_dir) / source_path.relative_to(source_dir)
         if dry_run:
             print(f"Would process: {source_path} -> {target_path}")
         else:
             os.makedirs(target_path.parent, exist_ok=True)
-            reduce_mesh_quality(source_path, target_path)
+            tasks.append((source_path, target_path))
+
+    if not dry_run and tasks:
+        with multiprocessing.Pool() as pool:
+            for _ in tqdm(
+                pool.imap_unordered(reduce_mesh_quality_task, tasks),
+                total=len(tasks),
+                desc="Processing",
+            ):
+                pass
 
 
 if __name__ == "__main__":
-    if len(sys.argv) < 3:
+    if len(sys.argv) < 3 or "--help" in sys.argv:
         print(
-            "Usage: python decrease_quality.py <source_folder> <target_folder> --dry-run"
+            "Usage: python decrease_quality.py [--help] <source_dir> <target_dir> [--dry-run]"
         )
         sys.exit(1)
 
-    source_folder = sys.argv[1]
-    target_folder = sys.argv[2]
+    source_dir = sys.argv[1]
+    target_dir = sys.argv[2]
     dry_run = "--dry-run" in sys.argv
 
-    main(source_folder, target_folder, dry_run=dry_run)
+    main(source_dir, target_dir, dry_run=dry_run)
