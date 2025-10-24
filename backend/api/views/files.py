@@ -25,6 +25,8 @@ from api.services.files import (
     upload_local_files,
     delete_local_upload_folder,
     update_local_upload_info_state,
+    cleanup_git_lock,
+    init_lfs_data,
 )
 from api.services.mailer import Mailer
 from api.models.files import UploadInfo, Contribution, UploadInfoState
@@ -468,3 +470,17 @@ async def send_data_uploaded_email(info: UploadInfo):
     except Exception as e:
         # Log error but do not block upload
         logging.error(f"Failed to send upload notification email: {e}")
+
+
+@router.post("/refresh-lfs")
+async def refresh_lfs_data(
+    api_key: str = Security(get_api_key),
+) -> None:
+    """Refresh the local LFS data by pulling the latest changes from the remote repository."""
+    try:
+        cleanup_git_lock(config.LFS_CLONED_REPO_PATH)
+        init_lfs_data()
+    except Exception as e:
+        logging.error(f"Failed to refresh LFS data (subprocess): {e}")
+    finally:
+        cleanup_git_lock(config.LFS_CLONED_REPO_PATH)
