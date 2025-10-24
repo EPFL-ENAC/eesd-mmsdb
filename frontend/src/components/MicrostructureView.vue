@@ -81,7 +81,7 @@ const lineStore = useLineStore();
 const sliceStore = useSliceStore();
 const sliceSize = 1.0
 const sliceResolution = 768
-const highlightScale = 1.02
+const highlightScale = 1.05
 
 
 interface Props {

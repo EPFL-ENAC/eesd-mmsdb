@@ -13,6 +13,7 @@ TARGET_SIZE_BYTES = TARGET_SIZE_MB * 1024 * 1024
 TARGET_NUMBER_OF_TRIANGLES_STONE = 5000
 TARGET_NUMBER_OF_TRIANGLES_WALL = 100000
 VOXEL_COUNT = 20
+PROCESS_COUNT = 1  # multiprocessing.cpu_count()  # Very hard on RAM
 
 
 def get_all_mesh_paths(source_dir: str) -> list[Path]:
@@ -21,6 +22,10 @@ def get_all_mesh_paths(source_dir: str) -> list[Path]:
 
 def reduce_mesh_quality_task(args: tuple[Path, Path]):
     source_path, target_path = args
+
+    if target_path.exists():
+        print(f"Skipping existing: {target_path}")
+        return
 
     try:
         original_size = os.path.getsize(source_path)
@@ -104,7 +109,7 @@ def main(source_dir: str, target_dir: str, dry_run: bool = False):
             tasks.append((source_path, target_path))
 
     if not dry_run and tasks:
-        with multiprocessing.Pool() as pool:
+        with multiprocessing.Pool(PROCESS_COUNT) as pool:
             for _ in tqdm(
                 pool.imap_unordered(reduce_mesh_quality_task, tasks),
                 total=len(tasks),
