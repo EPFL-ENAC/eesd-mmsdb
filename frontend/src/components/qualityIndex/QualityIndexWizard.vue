@@ -10,7 +10,48 @@
 
     <q-step :name="2" title="Text Parameters">
       <div v-for="param in textParametersKeys" :key="param" class="q-mb-md">
-        <q-select v-model="selections[param]" :options="parametersTextSelectOptions[param]" :label="textParameterLabel[param]" filled />
+        <div :class="{ 'with-explainer': param === 'HJ' }">
+          <q-select v-model="selections[param]" :options="parametersTextSelectOptions[param]" :label="textParameterLabel[param]" filled />
+          <img src="/Bed_joints_classification.webp" alt="Bed Joints classification" v-if="param === 'HJ'" />
+        </div>
+      </div>
+
+      <div class="q-mb-md">
+        <q-toggle v-model="wcQuantitative" label="Vertical section accessible for quantitative analysis?" />
+        <div v-if="wcQuantitative" class="q-mt-md">
+          <q-select v-model="wcLeafType" :options="['single', 'double']" label="Single-leaf or Double-leaf wall?"
+            filled />
+          <div v-if="wcLeafType === 'single'" class="q-mt-md">
+            <q-input v-model.number="wcSingleMl" label="Enter Ml value" type="number" filled />
+          </div>
+          <div v-else-if="wcLeafType === 'double'" class="q-mt-md">
+            <q-input v-model.number="wcDoubleMl1" label="Enter Ml for leaf 1" type="number" filled />
+            <q-input v-model.number="wcDoubleMl2" label="Enter Ml for leaf 2" type="number" filled class="q-mt-sm" />
+          </div>
+        </div>
+        <div v-else class="q-mt-md">
+          <q-select v-model="selections['WC_qual']" :options="parametersTextSelectOptions['WC_qual']" label="Qualitative description"
+            filled />
+        </div>
+      </div>
+
+      <div class="q-mb-md">
+        <q-toggle v-model="vjQuantitative" label="Vertical section accessible for quantitative analysis?" />
+        <div v-if="vjQuantitative" class="q-mt-md">
+          <q-select v-model="vjLeafType" :options="['single', 'double']" label="Single-leaf or Double-leaf wall?"
+            filled />
+          <div v-if="vjLeafType === 'single'" class="q-mt-md">
+            <q-input v-model.number="vjSingleMl" label="Enter Ml value" type="number" filled />
+          </div>
+          <div v-else-if="vjLeafType === 'double'" class="q-mt-md">
+            <q-input v-model.number="vjDoubleMl1" label="Enter Ml for leaf 1" type="number" filled />
+            <q-input v-model.number="vjDoubleMl2" label="Enter Ml for leaf 2" type="number" filled class="q-mt-sm" />
+          </div>
+        </div>
+        <div v-else class="q-mt-md">
+          <q-select v-model="selections['VJ_qual']" :options="parametersTextSelectOptions['VJ_qual']" label="Qualitative description"
+            filled />
+        </div>
       </div>
 
       <q-stepper-navigation>
@@ -19,55 +60,7 @@
       </q-stepper-navigation>
     </q-step>
 
-    <q-step :name="3" title="Wall Leaf Connections">
-      <q-toggle v-model="wcQuantitative" label="Vertical section accessible for quantitative analysis?" />
-      <div v-if="wcQuantitative" class="q-mt-md">
-        <q-select v-model="wcLeafType" :options="['single', 'double']" label="Single-leaf or Double-leaf wall?"
-          filled />
-        <div v-if="wcLeafType === 'single'" class="q-mt-md">
-          <q-input v-model.number="wcSingleMl" label="Enter Ml value" type="number" filled />
-        </div>
-        <div v-else-if="wcLeafType === 'double'" class="q-mt-md">
-          <q-input v-model.number="wcDoubleMl1" label="Enter Ml for leaf 1" type="number" filled />
-          <q-input v-model.number="wcDoubleMl2" label="Enter Ml for leaf 2" type="number" filled class="q-mt-sm" />
-        </div>
-      </div>
-      <div v-else class="q-mt-md">
-        <q-select v-model="selections['WC_qual']" :options="parametersTextSelectOptions['WC_qual']" label="Qualitative description"
-          filled />
-      </div>
-
-      <q-stepper-navigation>
-        <q-btn @click="step++" color="primary" label="Continue" />
-        <q-btn flat @click="step--" color="primary" label="Back" class="q-ml-sm" />
-      </q-stepper-navigation>
-    </q-step>
-
-    <q-step :name="4" title="Vertical Joint Staggering">
-      <q-toggle v-model="vjQuantitative" label="Vertical section accessible for quantitative analysis?" />
-      <div v-if="vjQuantitative" class="q-mt-md">
-        <q-select v-model="vjLeafType" :options="['single', 'double']" label="Single-leaf or Double-leaf wall?"
-          filled />
-        <div v-if="vjLeafType === 'single'" class="q-mt-md">
-          <q-input v-model.number="vjSingleMl" label="Enter Ml value" type="number" filled />
-        </div>
-        <div v-else-if="vjLeafType === 'double'" class="q-mt-md">
-          <q-input v-model.number="vjDoubleMl1" label="Enter Ml for leaf 1" type="number" filled />
-          <q-input v-model.number="vjDoubleMl2" label="Enter Ml for leaf 2" type="number" filled class="q-mt-sm" />
-        </div>
-      </div>
-      <div v-else class="q-mt-md">
-        <q-select v-model="selections['VJ_qual']" :options="parametersTextSelectOptions['VJ_qual']" label="Qualitative description"
-          filled />
-      </div>
-
-      <q-stepper-navigation>
-        <q-btn @click="step++" color="primary" label="Continue" />
-        <q-btn flat @click="step--" color="primary" label="Back" class="q-ml-sm" />
-      </q-stepper-navigation>
-    </q-step>
-
-    <q-step :name="5" title="Thick Bed Joints & Mortar properties">
+    <q-step :name="3" title="Thick Bed Joints & Mortar properties">
       <div v-if="masonryType?.value === 'squared-hardstone-masonry' || masonryType?.value === 'brickwork-lime-based-mortar'">
         <q-toggle v-model="thickBedJoints" label="Are mortar bed joints thick (>13 mm)?" />
       </div>
@@ -81,7 +74,7 @@
       </q-stepper-navigation>
     </q-step>
 
-    <q-step :name="6" title="MQI Results">
+    <q-step :name="4" title="MQI Results">
       <quality-index-calculator
         :masonryType="masonryType"
         :selections="selections"
@@ -145,3 +138,35 @@ const isMortarNF = computed(() => {
 });
 
 </script>
+
+<style scoped>
+
+.with-explainer {
+  display: grid;
+  grid-template-areas: "selector explainer-image";
+  grid-template-columns: 1fr 1fr;
+  align-items: start;
+  gap: 1rem;
+}
+
+@media screen and (max-width: 960px) {
+  .with-explainer {
+    grid-template-areas:
+      "selector"
+      "explainer-image";
+    grid-template-columns: 1fr;
+  }
+}
+
+.with-explainer .q-select {
+  grid-area: selector;
+}
+
+.with-explainer img {
+  display: block;
+  width: 100%;
+  object-fit: contain;
+  grid-area: explainer-image;
+}
+
+</style>
