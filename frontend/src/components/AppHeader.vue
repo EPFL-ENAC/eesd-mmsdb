@@ -143,5 +143,11 @@ const numberOfSources = computed(() => {
 .side-toolbar {
   display: flex;
   align-items: center;
+  margin-right: 0.5rem;
+}
+
+.home .side-toolbar {
+  align-self: flex-end;
+  margin-bottom: 0.5rem;
 }
 </style>
