@@ -14,15 +14,17 @@
 
     <parallel-categories-diagram/>
 
-    <div>
-      {{ t('citation_text') }}
-      <citation-item
-        v-for="item in citationItems"
-        :key="item.title"
-        v-bind="item"
-        class="q-mt-xs q-mb-xs"
-      />
-    </div>
+    <q-card class="q-ma-lg q-mt-xl">
+      <q-card-section>
+        <div class="text-h6">{{ t('citation_text') }}</div>
+        <citation-item
+          v-for="item in citationItems"
+          :key="item.title"
+          v-bind="item"
+          class="q-mt-xs q-mb-xs"
+        />
+      </q-card-section>
+    </q-card>
   </q-page>
 </template>
 
