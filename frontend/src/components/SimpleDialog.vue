@@ -5,7 +5,7 @@
         <q-btn flat icon="close" color="primary" v-close-popup />
       </q-card-actions>
       <q-card-section>
-        <div v-if="title" class="text-h6 q-mb-sm">
+        <div v-if="title" class="text-h4 q-mb-sm">
           {{ title }}
         </div>
         <div v-if="props.content">
