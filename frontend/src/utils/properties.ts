@@ -11,16 +11,27 @@ export const dimensionsColumnsStones = ["Stone length [m]", "stone height [m]", 
 export const toDisplayedProperties = (propertiesStore: Store, index: number) => (col: Column) => {
   const precision = propertiesStore.getColumnPrecision(col.name)
   let value = col.values[index] as string
+  let unit = propertiesStore.getColumnUnit(col.name) || ''
+  let floatValue = parseFloat(value)
 
-  if (precision !== undefined) {
-    const numberValue = Math.floor(parseFloat(value) * Math.pow(10, precision)) / Math.pow(10, precision)
-    value = numberValue.toString()
+  // Special cases for numeric values
+  if (!isNaN(floatValue)) {
+    if (unit === 'm³' && floatValue < 0.01) {
+      // convert value to cm³ to avoid rounding to 0.00m³
+      floatValue = floatValue * 1e6
+      unit = 'cm³'
+    }
+  
+    if (precision !== undefined) {
+      const numberValue = Math.floor(floatValue * Math.pow(10, precision)) / Math.pow(10, precision) // Should this be .toFixed(precision) ?
+      value = numberValue.toString()
+    }
   }
 
   return {
     name: propertiesStore.getColumnLabel(col.name) || col.name,
     value: value,
-    unit: propertiesStore.getColumnUnit(col.name) || '',
+    unit: unit,
   }
 }
 
