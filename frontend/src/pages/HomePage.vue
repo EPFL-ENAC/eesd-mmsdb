@@ -54,7 +54,7 @@ watch(() => propertiesStore.loading, () => {
   if (!propertiesStore.properties || wallSize.value) return;
   wallSize.value = propertiesStore.getWallMaxSize(wallID);
   wallOrientation.value = propertiesStore.getWallProperty(wallID, "Orientation (Up and Front)");
-});
+}, { immediate: true });
 
 const { t } = useI18n();
 </script>

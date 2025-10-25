@@ -247,14 +247,6 @@
               </li>
             </ul>
           </section>
-
-          <q-btn
-            color="primary"
-            href="/heritage-03-00065-v2.pdf"
-            target="_blank"
-          >
-            See paper
-          </q-btn>
         </div>
       </q-expansion-item>
       <quality-index-wizard />

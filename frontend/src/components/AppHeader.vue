@@ -1,51 +1,20 @@
 <template>
   <div :class="['secondary-header', { 'home': isHome }]">
-    <img
-      src="logo.svg"
-      class="logo"
-      alt="Logo"
-    />
+    <img src="logo.svg" class="logo" alt="Logo" />
 
     <div class="title-group">
-      <h1 class="title q-ml-sm">{{ t("title" )}}</h1>
+      <h1 class="title q-ml-sm">{{ t("title") }}</h1>
       <div class="subtitle" v-if="isHome">Regrouping {{ totalWalls }} walls across {{ numberOfSources }} sources</div>
     </div>
 
-    <q-space/>
+    <q-space />
 
     <div class="side-toolbar">
-      <q-btn
-        icon="format_quote"
-        class="icons"
-        flat
-        round
-        :title="t('citation')"
-        @click="showCitation = true"
-      ></q-btn>
-      <q-btn
-        icon="mail"
-        class="icons"
-        flat
-        round
-        :title="t('contact')"
-        @click="showContact = true"
-      ></q-btn>
-      <q-btn
-        icon="cloud_upload"
-        class="icons"
-        flat
-        round
-        :title="t('upload')"
-        to="/contribute"
-      ></q-btn>
-      <q-btn
-        icon="handshake"
-        class="icons"
-        flat
-        round
-        :title="t('acknowledgements')"
-        @click="showAcknowledgements = true"
-      ></q-btn>
+      <q-btn icon="format_quote" class="icons" flat round :title="t('citation')" @click="showCitation = true"></q-btn>
+      <q-btn icon="mail" class="icons" flat round :title="t('contact')" @click="showContact = true"></q-btn>
+      <q-btn icon="cloud_upload" class="icons" flat round :title="t('upload')" to="/contribute"></q-btn>
+      <q-btn icon="handshake" class="icons" flat round :title="t('acknowledgements')"
+        @click="showAcknowledgements = true"></q-btn>
     </div>
   </div>
 
@@ -54,18 +23,14 @@
     <template v-slot:avatar>
       <q-icon name="warning" color="amber" />
     </template>
-    This website is currently under <strong>active development</strong>. Features and data may change. Please give your feedback using
+    This website is currently under <strong>active development</strong>. Features and data may change. Please give your
+    feedback using
     <a href="https://github.com/EPFL-ENAC/eesd-mmsdb/issues" target="_blank" rel="noopener">GitHub Issues</a>.
   </q-banner>
 
   <simple-dialog v-model="showCitation" :title="t('citation')">
     {{ t('citation_text') }}
-    <citation-item
-      v-for="item in citationItems"
-      :key="item.title"
-      v-bind="item"
-      class="q-mt-sm q-mb-sm"
-    />
+    <citation-item v-for="item in citationItems" :key="item.title" v-bind="item" class="q-mt-sm q-mb-sm" />
   </simple-dialog>
 
   <simple-dialog v-model="showContact" :title="t('contact')">
@@ -73,11 +38,7 @@
       {{ t('contact_text') }}
     </div>
     <q-list separator class="q-mt-md">
-      <essential-link
-        v-for="link in contactLinks"
-        :key="link.title"
-        v-bind="link"
-      />
+      <essential-link v-for="link in contactLinks" :key="link.title" v-bind="link" />
     </q-list>
   </simple-dialog>
 
@@ -86,11 +47,7 @@
     <q-list separator class="q-mt-md">
     </q-list>
     <q-list separator class="q-mt-md">
-      <essential-link
-        v-for="link in acknowledgementsLinks"
-        :key="link.title"
-        v-bind="link"
-      />
+      <essential-link v-for="link in acknowledgementsLinks" :key="link.title" v-bind="link" />
     </q-list>
   </simple-dialog>
 </template>
@@ -115,12 +72,14 @@ const showAcknowledgements = ref(false);
 const propertiesStore = usePropertiesStore()
 
 const totalWalls = computed(() => {
-    return propertiesStore.getColumnValues("Wall ID")?.length ?? 0
+  if (!propertiesStore.properties) return 0;
+  return propertiesStore.getColumnValues("Wall ID")?.length ?? 0
 });
 
 const numberOfSources = computed(() => {
-    const referenceUnique = new Set<string>(propertiesStore.getColumnValues("Reference ID") ?? []);
-    return referenceUnique.size;
+  if (!propertiesStore.properties) return 0;
+  const referenceUnique = new Set<string>(propertiesStore.getColumnValues("Reference ID") ?? []);
+  return referenceUnique.size;
 });
 
 </script>
@@ -138,7 +97,7 @@ const numberOfSources = computed(() => {
   background-image: linear-gradient(to right, rgba(0, 0, 0, 1) 4rem, rgba(0, 0, 0, 0.6) 10rem, rgba(0, 0, 0, 0.9)), url("/banner_bg.png");
   background-size: cover;
   background-position: left center;
-  
+
   text-shadow: 0 0 5px rgba(0, 0, 0, 1);
 }
 
