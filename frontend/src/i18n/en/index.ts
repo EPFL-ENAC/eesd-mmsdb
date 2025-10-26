@@ -59,7 +59,7 @@ export default {
   database_info: 'Explore the database with interactive visualizations',
   definitions: {
     wall_id: 'A unique identifier consisting of two letters followed by a number. The letters are derived from the initials of the last names of the first two authors of the paper, while the number serves as a sequential designation.',
-    GMQI: 'Geometric Masonry Quality Index. It has three different values for the same wall, depending on the loading actions. Each loading condition provides a different masonry class: Class A represents good quality, Class B represents average quality, and Class C represents poor quality.',
+    GMQI: 'Geometric Masonry Quality Index.\nQuality Class for vertical loading:\nA: Good quality\nB: Average quality\nC: Poor quality',
     microstructure: 'Refers to the shape, size, and arrangement of stones within the wall.',
     percentage_volumetric_stone_ratio: 'The percentage of the ratio of the volume of the stones in a wall to the volume of the wall. ',
     shape_factor: 'The ratio of the volume of a stone to the volume of its smallest bounding box.',
@@ -67,7 +67,8 @@ export default {
     vertical_LMT: 'Refers to the stone interlocking parameter. It quantifies the staggering properties of vertical joints.',
     horizontal_LMT: 'Measures the characteristics of horizontal bed joints.',
     LMT_wall_leaf_connection: 'Measures the degree of connectivity between the wall leaves of masonry walls.',
-    typology: 'Classification based on the Italian code.',
+    microstructure_type: 'Here, microstructure refers to the shape, size, and arrangement of stones within the wall.',
+    typology: 'Italian code masonry wall types:',
   },
   delete: 'Delete',
   GMQI: {
@@ -85,12 +86,12 @@ export default {
   source_code: 'Source code',
   title: 'Masonry Microstructure Database',
   typologies: {
-    A: 'Irregular stone masonry, with pebbles, erratic and irregular stone units',
-    B: 'Uncut stone masonry, with external leaves of limited thickness and infill core (three-leaf stone masonry)',
-    C: 'Cut stone masonry with good bond',
-    D: 'Soft stone regular masonry (built with tuff or sandstone blocks)',
-    E: 'Dressed rectangular stone masonry/ashlar masonry',
-    E1: 'Rectangular blocks/ashlar stone masonry, with dry joints',
+    A: 'Irregular stones',
+    B: 'Uncut stones with infill',
+    C: 'Barely cut stones with good bond',
+    D: 'Regular soft stones (irregular soft stone class between C & D)',
+    E: 'Ashlar (E = mortar joints, E1 = dry joints)',
+    F: 'Brickwork'
   },
   upload: 'Data upload',
   upload_text: 'If you want to contribute to the database, please send your microstructure data to {email_link} using a service such as {transfer_link}. Stone and wall parameters will be computed by the EESD Laboratory and added to the database.',
