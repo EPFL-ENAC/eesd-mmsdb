@@ -1,6 +1,6 @@
 <template>
   <div :class="['secondary-header', { 'home': isHome }]">
-    <img src="logo.svg" class="logo" alt="Logo" />
+    <img src="/logo.svg" class="logo" alt="Logo" />
 
     <div class="title-group">
       <h1 class="title q-ml-sm">{{ t("title") }}</h1>
