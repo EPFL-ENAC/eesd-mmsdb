@@ -28,7 +28,25 @@ const routes: RouteRecordRaw[] = [
       },
       {
         path: '/quality-index',
-        component: () => import('pages/QualityIndexPage.vue'),
+        redirect: '/quality-index/line-of-minimum-trace',
+        children: [
+          {
+            path: 'line-of-minimum-trace',
+            components: {
+              default: () => import('pages/LineOfMinimumTracePage.vue'),
+              drawer: () => import('components/QualityIndexDrawer.vue'),
+            },
+            meta: { hasDrawer: true },
+          },
+          {
+            path: 'mqi-calculator',
+            components: {
+              default: () => import('pages/QualityIndexPage.vue'),
+              drawer: () => import('components/QualityIndexDrawer.vue'),
+            },
+            meta: { hasDrawer: true },
+          },
+        ],
       },
       {
         path: '/others',
