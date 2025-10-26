@@ -7,7 +7,7 @@
           name="help_outline"
           color="grey-6"
         >
-          <q-tooltip>{{ props.titleTooltip }}</q-tooltip>
+          <q-tooltip><div class="multiline">{{ props.titleTooltip }}</div></q-tooltip>
         </q-icon>
       </template>
     </h6>
@@ -183,5 +183,9 @@ onUnmounted(() => {
 
 .chart-wrapper {
   position: relative;
+}
+
+.multiline {
+  white-space: pre-line;
 }
 </style>
