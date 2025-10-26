@@ -27,12 +27,12 @@ export const SMSelectOptions = [
   { label: "Unfired bricks [NF]", value: "unfired-bricks" },
   // PF
   { label: "Degraded/damaged elements (≥10%; ≤50%) [PF]", value: "degraded-damaged-10-50" },
-  { label: "Hollow bricks (55% ≥ solid ≥ 30%) [PF]", value: "hollow-bricks" },
+  { label: "Hollow bricks (55% ≥ solid ≥ 30%) [PF]", value: "hollow-bricks-pf" },
   { label: "Sandstone or tuff elements [PF]", value: "sandstone-tuff-elements" },
   // F
   { label: "Undamaged elements or degraded/damaged elements < 10% [F]", value: "undamaged-elements" },
   { label: "Solid fired bricks [F]", value: "solid-fired-bricks" },
-  { label: "Hollow bricks (55% < solid) [F]", value: "hollow-bricks" },
+  { label: "Hollow bricks (55% < solid) [F]", value: "hollow-bricks-f" },
   { label: "Concrete units [F]", value: "concrete-units" },
   { label: "Hardstones [F]", value: "hardstones" }
 ];
@@ -135,7 +135,7 @@ const classifier: Record<TextParameter, Record<"NF" | "PF", string[]>> = {
     ],
     PF: [
       "degraded-damaged-10-50",
-      "hollow-bricks",
+      "hollow-bricks-pf",
       "sandstone-tuff-elements"
     ]
   },
