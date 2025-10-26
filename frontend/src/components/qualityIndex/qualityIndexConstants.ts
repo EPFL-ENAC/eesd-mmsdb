@@ -103,7 +103,7 @@ export const VJ_qualSelectOptions = [
   // PF
   { label: "Partially staggered head joints (head joints in successive courses are not offset by one-half the unit length) [PF]", value: "partially-staggered-head-joints" },
   // F
-  { label: "Properly staggered head joints (head joints in successive courses are oﬀset by one-half the unit length) [F]", value: "properly-staggered-head-joints" }
+  { label: "Properly staggered head joints (head joints in successive courses are offset by one-half the unit length) [F]", value: "properly-staggered-head-joints" }
 ];
 
 
