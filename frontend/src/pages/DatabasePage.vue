@@ -30,6 +30,7 @@
     <simple-dialog v-model="showWallDialog" :title="`Wall ${selectedWallId}`" size="lg">
       <div v-if="selectedWallId" class="wall-dialog-content">
         <div class="text-h6">Downscaled preview</div>
+        <div class="text-caption q-mb-md">Full resolution models available in the "Download" section of this popup</div>
         <microstructure-view
           :ply-data="wallData[selectedWallId] || null"
           :ply-data-highlight="currentStoneData"
