@@ -26,17 +26,17 @@ const options = ref([
 const loading = ref(false);
 
 async function getWallMicrostructureFile(): Promise<DownloadableFile | null> {
-    const wallData = await wallsStore.getWall(false, props.wallId);
+    const wallData = await wallsStore.getWall(false, props.wallId).toValueOrNullPromise();
     if (!wallData) return null;
     return { data: wallData, filename: `wall_${props.wallId}_fullscale.ply`, mimeType: 'model/ply' };
 }
 
 async function getAllStonesFiles(): Promise<DownloadableFile[]> {
-    const stones = await wallsStore.getWallStonesList(props.wallId);
+    const stones = await wallsStore.getWallStonesList(props.wallId).toValueOrNullPromise();
     if (!stones) return [];
 
     const stoneToDownloadableFile = async (stoneId: string): Promise<DownloadableFile> => {
-        const ply = await wallsStore.getWallStoneModel(false, `${stones?.folder}/${stoneId}`);
+        const ply = await wallsStore.getWallStoneModel(false, `${stones?.folder}/${stoneId}`).toValueOrNullPromise();
         return { data: ply!, filename: `stones/stone_${stoneId}`, mimeType: 'model/ply' };
     }
 
@@ -45,7 +45,7 @@ async function getAllStonesFiles(): Promise<DownloadableFile[]> {
 }
 
 async function getStoneGeometryInfo(): Promise<DownloadableFile | null> {
-    const csv = await wallsStore.getWallPropertiesCSVFile(props.wallId);
+    const csv = await wallsStore.getWallPropertiesCSVFile(props.wallId).toValueOrNullPromise();
     if (!csv) return null;
     return { data: csv, filename: `wall_${props.wallId}_properties.csv`, mimeType: 'text/csv' };
 }

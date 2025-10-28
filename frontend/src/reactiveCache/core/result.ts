@@ -30,7 +30,8 @@ export type AsyncResultState<T, E> =
   | { status: 'loading'; promise: Promise<ResultState<T, E>> }
   | ResultState<T, E>;
 
-export type PipeFunction<I, O, E> = (input: I) => ResultState<O, E> | Promise<ResultState<O, E>>;
+export type ChainFunction<I, O, E> = (input: I) => ResultState<O, E> | Promise<ResultState<O, E>>;
+export type FlatChainFunction<I, O, E> = (input: I) => AsyncResult<O, E>;
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export type AsyncResultListener<T, E> = (result: AsyncResult<T, E>) => any;
@@ -52,6 +53,18 @@ export class AsyncResult<T, E> {
     this._listeners.forEach((listener) => listener(this));
   }
 
+  isSuccess() {
+    return this._state.status === 'success';
+  }
+
+  isError() {
+    return this._state.status === 'error';
+  }
+
+  isLoading() {
+    return this._state.status === 'loading';
+  }
+
   listen(listener: AsyncResultListener<T, E>, immediate = true) {
     this._listeners.add(listener);
     if (immediate) {
@@ -63,8 +76,23 @@ export class AsyncResult<T, E> {
     };
   }
 
+  listenUntilSettled(listener: AsyncResultListener<T, E>, immediate = true) {
+    const unsub = this.listen((result) => {
+      listener(result);
+      if (result.state.status === 'success' || result.state.status === 'error') {
+        unsub();
+      }
+    }, immediate);
+
+    return unsub;
+  }
+
   setState(newState: AsyncResultState<T, E>) {
     this.state = newState;
+  }
+
+  copyOnceSettled(other: AsyncResult<T, E>) {
+    this.updateFromResultPromise(other.toResultPromise());
   }
 
   update(newState: ResultState<T, E>) {
@@ -130,7 +158,7 @@ export class AsyncResult<T, E> {
     return new AsyncResult<never, E>({ status: 'error', error });
   }
 
-  async toResultPromise(): Promise<AsyncResult<T, E>> {
+  async waitForSettled(): Promise<AsyncResult<T, E>> {
     if (this._state.status === 'loading') {
       try {
         const value = await this._state.promise;
@@ -142,6 +170,31 @@ export class AsyncResult<T, E> {
     return this;
   }
 
+  async toResultPromise(): Promise<ResultState<T, E>> {
+    if (this._state.status === 'idle') {
+      throw new Error('Cannot convert idle AsyncResult to ResultState');
+    }
+    if (this._state.status === 'loading') {
+      try {
+        const value = await this._state.promise;
+        this._state = value;
+      } catch (error) {
+        this._state = { status: 'error', error: error as E };
+      }
+    }
+    return this._state;
+  }
+
+  async toValuePromiseThrow(): Promise<T> {
+    const settled = await this.waitForSettled();
+    return settled.unwrapOrThrow();
+  }
+  
+  async toValueOrNullPromise(): Promise<T | null> {
+    const settled = await this.waitForSettled();
+    return settled.unwrapOrNull();
+  }
+
   unwrapOrNull(): T | null {
     if (this._state.status === 'success') {
       return this._state.value;
@@ -150,7 +203,7 @@ export class AsyncResult<T, E> {
   }
 
   async unwrapOrNullOnceSettled(): Promise<T | null> {
-    return (await this.toResultPromise()).unwrapOrNull();
+    return (await this.waitForSettled()).unwrapOrNull();
   }
 
   unwrapOrThrow(): T {
@@ -161,12 +214,12 @@ export class AsyncResult<T, E> {
   }
 
   async unwrapOrThrowOnceSettled(): Promise<T> {
-    return (await this.toResultPromise()).unwrapOrThrow();
+    return (await this.waitForSettled()).unwrapOrThrow();
   }
 
-  pipe<O, E2 = E>(fn: PipeFunction<T, O, E | E2>): AsyncResult<O, E | E2> {
+  chain<O, E2>(fn: ChainFunction<T, O, E | E2>): AsyncResult<O, E | E2> {
     const newResultBuilder = async (): Promise<ResultState<O, E | E2>> => {
-      const settled = await this.toResultPromise();
+      const settled = await this.waitForSettled();
       if (settled.state.status === 'loading' || settled.state.status === 'idle') {
         throw new Error('Unexpected state after waitForSettled'); // TODO handle this case properly
       }
@@ -180,6 +233,30 @@ export class AsyncResult<T, E> {
     return AsyncResult.fromResultPromise<O, E | E2>(newResultBuilder());
   }
 
+  flatChain<O, E2>(fn: FlatChainFunction<T, O, E | E2>): AsyncResult<O, E | E2> {
+    return AsyncResult.fromResultPromise<O, E | E2>(this.toResultPromise().then((res) => {
+      if (res.status === 'success') {
+        return fn(res.value).toResultPromise();
+      } else {
+        return res;
+      }
+    }));
+  }
+
   // pipeParallel PipeFunction[] -> AsyncResult<T, E>[]
   // pipeParallelAndCollapse PipeFunction[] -> AsyncResult<T[], E>
+
+  mirror(other: AsyncResult<T, E>) {
+    return other.listen((newState) => {
+      this.setState(newState.state);
+    }, true);
+  }
+
+  mirrorUntilSettled(other: AsyncResult<T, E>) {
+    return other.listenUntilSettled((newState) => {
+      this.setState(newState.state);
+    }, true);
+  }
 }
+
+export type Pipe<I, O, E> = (input: I) => AsyncResult<O, E>;

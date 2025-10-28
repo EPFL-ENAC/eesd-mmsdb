@@ -2,9 +2,10 @@
     <div class="stone-carousel q-mb-md">
         <div class="q-mb-sm">
             <div class="text-h6">Individual stones</div>
-            <div v-if="stones">
-                <q-badge class="q-mb-xs">{{ index }}/{{ stones.files.length - 1 }} : {{ stones.files[index] }}</q-badge>
-                <q-slider v-model="index" :min="0" :max="stones.files.length - 1" color="primary" />
+            <div v-if="stonesList.state.status === 'success'">
+                <q-badge class="q-mb-xs">{{ index }}/{{ stonesList.state.value.files.length - 1 }} : {{
+                    stonesList.state.value.files[index] }}</q-badge>
+                <q-slider v-model="index" :min="0" :max="stonesList.state.value.files.length - 1" color="primary" />
             </div>
             <div v-else>
                 <q-skeleton type="QBadge" />
@@ -15,11 +16,10 @@
             <div class="carousel-controls">
                 <q-btn flat round icon="chevron_left" @click="previousStone" />
                 <div class="stone-image-container">
-                    <div v-if="currentStone">
-                        <microstructure-view :ply-data="currentStone" :orientation="props.orientation || null" :width="200" :height="200" />
-                    </div>
+                    <microstructure-view :ply-data="currentStone.unwrapOrNull()"
+                        :orientation="props.orientation || null" :width="200" :height="200" />
 
-                    <loading-overlay :visible="loading" />
+                    <loading-overlay :visible="currentStone.state.status === 'loading'" />
                 </div>
                 <q-btn flat round icon="chevron_right" @click="nextStone" />
             </div>
@@ -44,7 +44,8 @@ import { useWallsStore } from 'stores/walls'
 import { toDisplayedProperties, getDimensionsColumn, dimensionsColumnsStones } from 'src/utils/properties'
 import MicrostructureView from 'src/components/MicrostructureView.vue'
 import LoadingOverlay from './LoadingOverlay.vue';
-import type { Table, WallStonesList } from 'src/models';
+import type { Table } from 'src/models';
+import { useReactiveAsyncPipe } from 'src/reactiveCache/vue/utils';
 
 const wallsStore = useWallsStore();
 const stonePropertiesStore = useStonePropertiesStore();
@@ -57,9 +58,10 @@ const props = defineProps<{
 }>();
 
 const index = ref(0);
-const loading = ref(false);
-const currentStone = ref<ArrayBuffer | null>(null);
-const stones = ref<WallStonesList | null>(null);
+
+const stonesList = useReactiveAsyncPipe(props.wallId, (wallId: string) => wallsStore.getWallStonesList(wallId));
+const currentStone = useReactiveAsyncPipe(index, (i: number) => getStoneAtIndex(i));
+
 const stonesProperties = ref<Table | null>(null);
 
 defineExpose({
@@ -67,57 +69,39 @@ defineExpose({
 });
 
 function nextStone() {
-    if (!stones.value) return;
-    index.value = (index.value + 1) % stones.value.files.length;
+    const stones = stonesList.value.unwrapOrNull();
+    if (!stones) return;
+    index.value = (index.value + 1) % stones.files.length;
 }
 
 function previousStone() {
-    if (!stones.value) return;
-    index.value = (index.value - 1 + stones.value.files.length) % stones.value.files.length;
+    const stones = stonesList.value.unwrapOrNull();
+    if (!stones) return;
+    index.value = (index.value - 1 + stones.files.length) % stones.files.length;
 }
 
-async function getStoneAtIndex(i: number): Promise<ArrayBuffer | null> {
-    if (!stones.value) return null;
-    const stonePath = `${stones.value.folder}/${stones.value.files[i] || ""}`;
-    return await wallsStore.getWallStoneModel(true, stonePath);
-}
-
-async function setCurrentStone(i: number) {
-    loading.value = true;
-
-    if (!stones.value) {
-        stones.value = await wallsStore.getWallStonesList(props.wallId);
-        if (!stones.value) {
-            loading.value = false;
-            return;
-        }
-    }
-
-    currentStone.value = await getStoneAtIndex(i);
-
-    // Preload next and previous stones, without awaiting them to not block ! The non-awaited nature is made explicit with the void operator.
-    for (let offset = 1; offset <= (props.preloadNext || 0); offset++) {
-        const nextIndex = (i + offset) % stones.value.files.length;
-        void getStoneAtIndex(nextIndex);
-    }
-    for (let offset = 1; offset <= (props.preloadPrevious || 0); offset++) {
-        const prevIndex = (i - offset + stones.value.files.length) % stones.value.files.length;
-        void getStoneAtIndex(prevIndex);
-    }
-
-    if (i === index.value) { // Only hide the loading if we are still on the same stone (in case of fast navigation)
-        loading.value = false;
-    }
+function getStoneAtIndex(i: number) {
+    return stonesList.value.flatChain((stones) => {
+        return wallsStore.getWallStoneModelFromStoneListAndIndex(true, stones, i, {
+            after: props.preloadNext || 0,
+            before: props.preloadPrevious || 0,
+        })
+    });
 }
 
 const currentStoneProperties = computed(() => {
     if (!stonesProperties.value) return null;
 
+    const targetStoneId = `${props.wallId}_stone_${index.value}.ply`;
+    const p = stonesProperties.value.find(v => v.name === "Stone ID");
+    const i = p?.values.findIndex(v => v === targetStoneId);
+    if (i === undefined) return null;
+
     const properties = stonesProperties.value
         .filter(col => !dimensionsColumnsStones.includes(col.name))
-        .map(toDisplayedProperties(stonePropertiesStore, index.value));
+        .map(toDisplayedProperties(stonePropertiesStore, i));
 
-    const dimensions = getDimensionsColumn(stonePropertiesStore, index.value, key => stonePropertiesStore.getColumnValues(props.wallId, key), true);
+    const dimensions = getDimensionsColumn(stonePropertiesStore, i, key => stonePropertiesStore.getColumnValues(props.wallId, key), true);
 
     properties.push({
         name: 'Dimensions',
@@ -128,12 +112,8 @@ const currentStoneProperties = computed(() => {
     return properties;
 })
 
-watch(index, async (newIndex) => {
-    await setCurrentStone(newIndex);
-});
-
 onMounted(async () => {
-    void setCurrentStone(index.value);
+    // void setCurrentStone(index.value);
     stonesProperties.value = await stonePropertiesStore.getProperties(props.wallId);
 });
 
@@ -158,7 +138,7 @@ onMounted(async () => {
     flex-wrap: wrap;
 }
 
-.carousel-wrapper > div {
+.carousel-wrapper>div {
     flex: 1 1 300px;
 }
 

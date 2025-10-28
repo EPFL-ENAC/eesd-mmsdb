@@ -1,8 +1,8 @@
 import { defineStore } from 'pinia';
 import { api } from 'src/boot/api';
 import type { WallStonesList } from 'src/models';
-import { KeyedAsyncCache } from './cache';
-import { type AsyncResult, tryFunction } from './result';
+import { KeyedAsyncCache } from './core/cache';
+import { type AsyncResult, tryFunction } from './core/result';
 // import axios from 'axios';
 
 type WallError = {

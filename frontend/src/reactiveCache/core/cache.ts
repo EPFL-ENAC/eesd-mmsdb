@@ -1,6 +1,6 @@
 // For overhaul stores
 
-import { AsyncResult, type AsyncResultState, type PipeFunction } from "./result";
+import { AsyncResult, type AsyncResultState, type ChainFunction } from "./result";
 
 type KeyedAsyncCacheRefetchOptions = {
     policy: 'refetch' | 'if-error' | 'no-refetch';
@@ -22,10 +22,10 @@ function defaultParamsToKey<P>(params: P): string {
 
 export class KeyedAsyncCache<P, V, E> {
   private _cache: Map<string, CacheItem<P, V, E>> = new Map();
-  private _fetcher: PipeFunction<P, V, E>;
+  private _fetcher: ChainFunction<P, V, E>;
   private _paramsToKey: (params: P) => string;
 
-  constructor(fetcher: PipeFunction<P, V, E>, paramsToKey: (params: P) => string = defaultParamsToKey) {
+  constructor(fetcher: ChainFunction<P, V, E>, paramsToKey: (params: P) => string = defaultParamsToKey) {
     this._fetcher = fetcher;
     this._paramsToKey = paramsToKey;
   }
@@ -63,7 +63,7 @@ export class KeyedAsyncCache<P, V, E> {
 
   async getSettledState(params: P, refetch: KeyedAsyncCacheRefetchOptions = _defaultRefetchOptions): Promise<AsyncResultState<V, E>> {
     const asyncResult = this.get(params, refetch);
-    await asyncResult.toResultPromise();
+    await asyncResult.waitForSettled();
     return asyncResult.state;
   }
 }
