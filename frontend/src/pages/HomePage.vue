@@ -1,14 +1,18 @@
 <template>
   <q-page>
-    <microstructure-view
-      :ply-data="wallPlyData"
-      :orientation="wallOrientation"
-      :width="Math.min(400, q.screen.width)"
-      :height="400"
-      sliceable
-      :wall-size="wallSize || 100"
-      class="microstructure-container"
-    />
+    <async-result-loader :result="wallPlyData">
+      <template #default="{ value }">
+        <microstructure-view
+          :ply-data="value"
+          :orientation="wallOrientation"
+          :width="Math.min(400, q.screen.width)"
+          :height="400"
+          sliceable
+          :wall-size="wallSize || 100"
+          class="microstructure-container"
+        />
+      </template>
+    </async-result-loader>
 
     <donut-charts class="q-mt-lg"/>
 
@@ -37,17 +41,17 @@ import ParallelCategoriesDiagram from 'src/components/ParallelCategoriesDiagram.
 import citationItems from 'src/assets/citation_items.json';
 import { useWallsStore } from 'src/stores/walls';
 import { usePropertiesStore } from 'src/stores/properties';
+import AsyncResultLoader from 'src/reactiveCache/vue/components/AsyncResultLoader.vue';
 
 const q = useQuasar();
 const wallsStore = useWallsStore();
 const propertiesStore = usePropertiesStore();
-const wallPlyData = ref<ArrayBuffer | null>(null)
+const wallID = "OC01";
+const wallPlyData = wallsStore.getWall(true, wallID);
 const wallSize = ref<number | null>(null);
 const wallOrientation = ref<string | null>(null);
-const wallID = "OC01";
 
-onMounted(async () => {
-  wallPlyData.value = await wallsStore.getWall(true, wallID);
+onMounted(() => {
   wallSize.value = propertiesStore.getWallMaxSize(wallID);
   wallOrientation.value = propertiesStore.getWallProperty(wallID, "Orientation (Up and Front)");
 });

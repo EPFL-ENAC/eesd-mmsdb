@@ -31,16 +31,21 @@
       <div v-if="selectedWallId" class="wall-dialog-content">
         <div class="text-h6">Downscaled preview</div>
         <div class="text-caption q-mb-md">Full resolution models available in the "Download" section of this popup</div>
-        <microstructure-view
-          :ply-data="wallData[selectedWallId] || null"
-          :ply-data-highlight="currentStoneData"
-          :orientation="propertiesStore.getWallProperty(selectedWallId, 'Orientation (Up and Front)')"
-          :width="400"
-          :height="400"
-          sliceable
-          :wall-size="propertiesStore.getWallMaxSize(selectedWallId) || 100"
-          class="microstructure-item"
-        />
+
+        <async-result-loader :result="currentWallData">
+          <template #default="{ value: plyData }">
+            <microstructure-view
+              :ply-data="plyData"
+              :ply-data-highlight="currentStoneData"
+              :orientation="propertiesStore.getWallProperty(selectedWallId, 'Orientation (Up and Front)')"
+              :width="400"
+              :height="400"
+              sliceable
+              :wall-size="propertiesStore.getWallMaxSize(selectedWallId) || 100"
+              class="microstructure-item"
+            />
+          </template>
+        </async-result-loader>
 
         <div>
           <stone-carousel
@@ -90,6 +95,8 @@ import StoneCarousel from 'src/components/StoneCarousel.vue'
 import SimpleDialog from 'src/components/SimpleDialog.vue'
 import StonePropertyHistogram from 'src/components/StonePropertyHistogram.vue'
 import WallFilesDownloader from 'src/components/WallFilesDownloader.vue'
+import { useReactiveAsyncPipe } from 'src/reactiveCache/vue/utils'
+import AsyncResultLoader from 'src/reactiveCache/vue/components/AsyncResultLoader.vue'
 
 const dialogColumns = ["Microstructure type", "Typology based on Italian Code", "No of leaves", "Vertical loading_GMQI_class", "In-plane_GMQI_class", "Out-of-plane_GMQI_class", "Average vertical LMT", "Average horizontal LMT", "Average shape factor"]
 const stoneColumns = ["Stone length [m]", "Elongation [-]", "Aspect ratio [-]"]
@@ -97,21 +104,20 @@ const propertiesStore = usePropertiesStore()
 const stonePropertiesStore = useStonePropertiesStore()
 const wallsStore = useWallsStore()
 const databaseFiltersStore = useDatabaseFiltersStore()
-const stoneCarouselRef = ref()
+const stoneCarouselRef = ref<InstanceType<typeof StoneCarousel> | null>(null)
+
 
 const filteredWallIds = computed(() => databaseFiltersStore.filteredWallIds)
 const allWallIds = computed(() => databaseFiltersStore.allWallIds)
 
-
-const wallData = ref<Record<string, ArrayBuffer | null>>({})
-const loadingWallData = ref(false)
-const currentStoneData = computed(() => stoneCarouselRef.value?.currentStone || null)
+const currentStoneData = computed(() => stoneCarouselRef.value?.currentStone.unwrapOrNull() || null)
 
 const wallImages = computed(() => wallsStore.wallImages)
 const loadingImages = computed(() => wallsStore.loadingImages)
 
 const showWallDialog = ref(false)
 const selectedWallId = ref<string | null>(null)
+const currentWallData = useReactiveAsyncPipe(selectedWallId, (id) => wallsStore.getWall(true, id!), { immediate: false });
 
 const selectedWallProperties = computed(() => {
   if (!selectedWallId.value || !Array.isArray(propertiesStore.properties)) return []
@@ -144,21 +150,9 @@ watch(allWallIds, async (newWallIds, oldWallIds) => {
   await Promise.all(newIds.map(wallId => wallsStore.loadWallImage(wallId)))
 }, { immediate: false })
 
-async function openWallDialog(wallId: string) {
+function openWallDialog(wallId: string) {
   selectedWallId.value = wallId
   showWallDialog.value = true
-
-  if (!wallData.value[wallId]) {
-    loadingWallData.value = true
-    try {
-      wallData.value[wallId] = await wallsStore.getWall(true, wallId)
-    } catch (error) {
-      console.error(`Failed to load wall data for ${wallId}:`, error)
-      wallData.value[wallId] = null
-    } finally {
-      loadingWallData.value = false
-    }
-  }
 }
 
 onUnmounted(() => {

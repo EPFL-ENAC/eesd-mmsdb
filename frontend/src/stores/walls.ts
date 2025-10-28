@@ -1,17 +1,117 @@
 import { defineStore } from 'pinia';
 import { api } from 'src/boot/api';
 import type { WallStonesList } from 'src/models';
+import { KeyedAsyncCache } from 'src/reactiveCache/core/cache';
+import { tryFunction, type AsyncResult } from 'src/reactiveCache/core/result';
 // import axios from 'axios';
 
+export type WallError = {
+  message: string;
+}
+
+interface PreloadAround {
+  before: number;
+  after: number;
+}
+
+interface WallParams {
+  downscaled: boolean;
+  id: string;
+}
+
+function wallParamsToKey(key: WallParams): string {
+  return `${key.downscaled ? 'downscaled' : 'original'}:${key.id}`;
+}
 
 export const useWallsStore = defineStore('walls', () => {
-  const loading = ref(false);
-  const error = ref<string | null>(null);
-  const wallCache = ref<Record<string, ArrayBuffer>>({});
-  const wallStonesListCache = ref<Record<string, WallStonesList>>({});
-  const wallStoneCache = ref<Record<string, ArrayBuffer>>({});
-  const wallPropertiesCSVCache = ref<Record<string, ArrayBuffer>>({});
-  const wallImageCache = ref<Record<string, ArrayBuffer>>({});
+  const wallCache = new KeyedAsyncCache<WallParams, ArrayBuffer, WallError>(async (params: WallParams) => {
+    return tryFunction(
+      async () => {
+        const wallPath = (await api.get(`/files/wall-path/${params.id}`)).data;
+        console.log(`Resolved wall path for ${params.id}: ${wallPath}`);
+        const filePath = `${params.downscaled ? "downscaled" : "original"}/01_Microstructures_data/${wallPath}/02_Wall_data/${params.id}.ply`;
+        console.log(`Fetching wall data from: ${filePath}`);
+        const response = await api.get(`/files/get/${filePath}`, {
+          params: {
+            d: false
+          },
+          responseType: 'arraybuffer'
+        });
+        return response.data;
+      },
+      (error) => {
+        console.error(`Error fetching wall data for ${params.id}:`, error);
+        return { message: 'Failed to fetch wall data' };
+      }
+    );
+  }, wallParamsToKey);
+
+  const wallStonesListCache = new KeyedAsyncCache<string, WallStonesList, WallError>(async (id: string) => {
+    return tryFunction(
+      async () => (await api.get(`/files/wall-path/${id}/stones`)).data as WallStonesList,
+      (error) => {
+        console.error(`Error fetching wall stones list for ${id}:`, error);
+        return { message: 'Failed to fetch wall stones list' };
+      });
+  }, id => id);
+
+  const wallStoneCache = new KeyedAsyncCache<WallParams, ArrayBuffer, WallError>(async (params: WallParams) => {
+    return tryFunction(
+      async () => {
+        const filePath = `${params.downscaled ? "downscaled" : "original"}/01_Microstructures_data/${params.id}`;
+        const response = await api.get(`/files/get/${filePath}`, {
+          params: {
+            d: false
+          },
+          responseType: 'arraybuffer'
+        });
+        return response.data;
+      },
+      (error) => {
+        console.error(`Error fetching wall stone data for ${params.id}:`, error);
+        return { message: 'Failed to fetch wall stone data' };
+      }
+    );
+  }, wallParamsToKey);
+
+  const wallImageCache = new KeyedAsyncCache<string, ArrayBuffer, WallError>(async (id: string) => {
+    return tryFunction(
+      async () => {
+        const filePath = `original/02_Rendered_walls_photos/${id}.png`;
+        const response = await api.get(`/files/get/${filePath}`, {
+          params: {
+            d: false
+          },
+          responseType: 'arraybuffer'
+        });
+        return response.data;
+      },
+      (error) => {
+        console.error(`Error fetching wall image for ${id}:`, error);
+        return { message: 'Failed to fetch wall image' };
+      }
+    );
+  }, id => id);
+
+  const wallPropertiesCSVCache = new KeyedAsyncCache<string, ArrayBuffer, WallError>(async (id: string) => {
+    return tryFunction(
+      async () => {
+        const filePath = `original/03_Stones_geometric_properties/${id}.csv`;
+        const response = await api.get(`/files/get/${filePath}`, {
+          params: {
+            d: false
+          },
+          responseType: 'arraybuffer'
+        });
+        return response.data;
+      },
+      (error) => {
+        console.error(`Error fetching wall properties CSV for ${id}:`, error);
+        return { message: 'Failed to fetch wall properties CSV' };
+      }
+    );
+  }, id => id);
+
   const wallImages = ref<Record<string, string>>({});
   const loadingImages = ref<Record<string, boolean>>({});
 
@@ -19,157 +119,57 @@ export const useWallsStore = defineStore('walls', () => {
    * Get wall data as ArrayBuffer
    * @param downscaled - Whether to get downscaled version
    * @param id - Wall identifier of the form "OC01"
-   * @returns Promise that resolves to ArrayBuffer or null if error
+   * @returns AsyncResult that resolves to ArrayBuffer or WallError
    */
-  async function getWall(downscaled: boolean, id: string): Promise<ArrayBuffer | null> {
-    const cacheKey = `${downscaled}:${id}`;
-    if (wallCache.value[cacheKey]) {
-      return wallCache.value[cacheKey];
-    }
-
-    loading.value = true;
-    error.value = null;
-
-    // const response = await axios.get(`/downscaled/${id}.ply`, {responseType: 'arraybuffer'});
-    // wallCache.value[cacheKey] = response.data;
-    // return response.data
-
-    try {
-      const wallPath = (await api.get(`/files/wall-path/${id}`)).data;
-      console.log(`Resolved wall path for ${id}: ${wallPath}`);
-      const filePath = `${downscaled?"downscaled":"original"}/01_Microstructures_data/${wallPath}/02_Wall_data/${id}.ply`;
-      console.log(`Fetching wall data from: ${filePath}`);
-      const response = await api.get(`/files/get/${filePath}`, {
-        params: {
-          d: false
-        },
-        responseType: 'arraybuffer'
-      });
-
-      wallCache.value[cacheKey] = response.data;
-      return response.data;
-    } catch (err) {
-      error.value = err instanceof Error ? err.message : 'An unknown error occurred';
-      return null;
-    } finally {
-      loading.value = false;
-    }
+  function getWall(downscaled: boolean, id: string): AsyncResult<ArrayBuffer, WallError> {
+    return wallCache.get({ downscaled, id });
   };
 
   /**
    * Get list of stones for a given wall
    * @param id - Wall identifier of the form "OC01"
-   * @returns Promise that resolves to WallStonesList or null if error
+   * @returns AsyncResult that resolves to WallStonesList or WallError
    */
-  async function getWallStonesList(id: string): Promise<WallStonesList | null> {
-    const cacheKey = id;
-    if (wallStonesListCache.value[cacheKey]) {
-      return wallStonesListCache.value[cacheKey];
-    }
-
-    loading.value = true;
-    error.value = null;
-
-    try {
-      const wallStonesList: WallStonesList = (await api.get(`/files/wall-path/${id}/stones`)).data;
-
-      wallStonesListCache.value[cacheKey] = wallStonesList;
-      return wallStonesList;
-    } catch (err) {
-      error.value = err instanceof Error ? err.message : 'An unknown error occurred';
-      return null;
-    } finally {
-      loading.value = false;
-    }
+  function getWallStonesList(id: string): AsyncResult<WallStonesList, WallError> {
+    return wallStonesListCache.get(id);
   };
 
   /**
    * Get wall data as ArrayBuffer
    * @param downscaled - Whether to get downscaled version
    * @param id - Wall identifier of the form "OC01"
-   * @returns Promise that resolves to ArrayBuffer or null if error
+   * @returns AsyncResult that resolves to ArrayBuffer or WallError
    */
-  async function getWallStoneModel(downscaled: boolean, path: string): Promise<ArrayBuffer | null> {
-    const cacheKey = `${downscaled}:${path}`;
-    if (wallStoneCache.value[cacheKey]) {
-      return wallStoneCache.value[cacheKey];
-    }
-
-    loading.value = true;
-    error.value = null;
-
-    try {
-      const filePath = `${downscaled?"downscaled":"original"}/01_Microstructures_data/${path}`;
-      console.log(`Fetching wall data from: ${filePath}`);
-      const response = await api.get(`/files/get/${filePath}`, {
-        params: {
-          d: false
-        },
-        responseType: 'arraybuffer'
-      });
-
-      wallStoneCache.value[cacheKey] = response.data;
-      return response.data;
-    } catch (err) {
-      error.value = err instanceof Error ? err.message : 'An unknown error occurred';
-      return null;
-    } finally {
-      loading.value = false;
-    }
+  function getWallStoneModel(downscaled: boolean, path: string): AsyncResult<ArrayBuffer, WallError> {
+    return wallStoneCache.get({ downscaled, id: path });
   };
 
-  async function getWallImage(id: string): Promise<ArrayBuffer | null> {
-    const cacheKey = id;
-    if (wallImageCache.value[cacheKey]) {
-      return wallImageCache.value[cacheKey];
-    }
-
-    const filePath = `original/02_Rendered_walls_photos/${id}.png`;
-    loading.value = true;
-    error.value = null;
-
-    try {
-      const response = await api.get(`/files/get/${filePath}`, {
-        params: {
-          d: false
-        },
-        responseType: 'arraybuffer'
-      });
-      wallImageCache.value[cacheKey] = response.data;
-      return response.data;
-    } catch (err) {
-      error.value = err instanceof Error ? err.message : 'An unknown error occurred';
-      return null;
-    } finally {
-      loading.value = false;
-    }
+  function _getWallStoneModelFromStoneListAndIndex(downscaled: boolean, stonesList: WallStonesList, index: number): AsyncResult<ArrayBuffer, WallError> {
+    const stonePath = `${stonesList.folder}/${stonesList.files[index] || ""}`;
+    return wallStoneCache.get({ downscaled, id: stonePath });
   }
 
-  async function getWallPropertiesCSVFile(id: string): Promise<ArrayBuffer | null> {
-    const cacheKey = id;
-    if (wallPropertiesCSVCache.value[cacheKey]) {
-      return wallPropertiesCSVCache.value[cacheKey];
+  function getWallStoneModelFromStoneListAndIndex(downscaled: boolean, stonesList: WallStonesList, index: number, preload?: PreloadAround): AsyncResult<ArrayBuffer, WallError> {
+    if (preload) {
+      for (let offset = 1; offset <= preload.after; offset++) {
+          const nextIndex = (index + offset) % stonesList.files.length;
+          _getWallStoneModelFromStoneListAndIndex(downscaled, stonesList, nextIndex);
+      }
+      for (let offset = 1; offset <= preload.before; offset++) {
+          const prevIndex = (index - offset + stonesList.files.length) % stonesList.files.length;
+          _getWallStoneModelFromStoneListAndIndex(downscaled, stonesList, prevIndex);
+      }
     }
 
-    const filePath = `original/03_Stones_geometric_properties/${id}.csv`;
-    loading.value = true;
-    error.value = null;
+    return _getWallStoneModelFromStoneListAndIndex(downscaled, stonesList, index);
+  }
 
-    try {
-      const response = await api.get(`/files/get/${filePath}`, {
-        params: {
-          d: false
-        },
-        responseType: 'arraybuffer'
-      });
-      wallPropertiesCSVCache.value[cacheKey] = response.data;
-      return response.data;
-    } catch (err) {
-      error.value = err instanceof Error ? err.message : 'An unknown error occurred';
-      return null;
-    } finally {
-      loading.value = false;
-    }
+  function getWallImage(id: string): AsyncResult<ArrayBuffer, WallError> {
+    return wallImageCache.get(id);
+  }
+
+  function getWallPropertiesCSVFile(id: string): AsyncResult<ArrayBuffer, WallError> {
+    return wallPropertiesCSVCache.get(id);
   }
 
   async function loadWallImage(wallId: string): Promise<void> {
@@ -178,7 +178,7 @@ export const useWallsStore = defineStore('walls', () => {
     loadingImages.value[wallId] = true;
 
     try {
-      const imageData = await getWallImage(wallId);
+      const imageData = await getWallImage(wallId).unwrapOrThrowOnceSettled();
       if (imageData) {
         const blob = new Blob([imageData], { type: 'image/png' });
         wallImages.value[wallId] = URL.createObjectURL(blob);
@@ -205,13 +205,12 @@ export const useWallsStore = defineStore('walls', () => {
   }
 
   return {
-    loading,
-    error,
     wallImages,
     loadingImages,
     getWall,
     getWallStonesList,
     getWallStoneModel,
+    getWallStoneModelFromStoneListAndIndex,
     getWallPropertiesCSVFile,
     getWallImage,
     loadWallImage,
