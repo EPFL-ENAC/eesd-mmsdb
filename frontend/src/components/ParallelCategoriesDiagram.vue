@@ -4,13 +4,14 @@
 
 <script setup lang="ts">
 import Plotly from 'plotly.js-dist'
+import { useAsyncResultRef } from 'src/reactiveCache/vue/utils'
 import { usePropertiesStore } from 'stores/properties'
 
 const plotlyChart = ref(null)
 const columns = ["Microstructure type", "Typology based on Italian Code", "No of leaves", "Average vertical LMT", "Average horizontal LMT", "Average shape factor", "Vertical loading_GMQI_class"]
 
 const propertiesStore = usePropertiesStore()
-const properties = computed(() => propertiesStore.getBinnedProperties())
+const binnedProperties = useAsyncResultRef(propertiesStore.getBinnedProperties())
 
 function formatBinRange(min: number, max: number | "Infinity"): string {
   if (max === "Infinity") {
@@ -20,12 +21,13 @@ function formatBinRange(min: number, max: number | "Infinity"): string {
 }
 
 async function createChart() {
-  if (!Array.isArray(properties.value) || plotlyChart.value === null) {
+  const table = binnedProperties.value.unwrapOrNull();
+  if (!table || plotlyChart.value === null) {
     return
   }
 
   const dimensions = columns.map((col) => {
-    const values = properties.value?.find(c => c.name === col)?.values || []
+    const values = table.getColumnValues(col) || []
     const prettyValues = values.map(v => {
       const bins = propertiesStore.getColumnBins(col)
       if (!bins) {
@@ -92,7 +94,7 @@ onMounted(async () => {
   await createChart()
 })
 
-watch(properties, async (newVal) => {
+watch(binnedProperties, async (newVal) => {
   if (plotlyChart.value && newVal) {
     await createChart()
   }

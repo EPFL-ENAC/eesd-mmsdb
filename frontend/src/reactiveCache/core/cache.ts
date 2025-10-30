@@ -1,6 +1,6 @@
 // For overhaul stores
 
-import { AsyncResult, type AsyncResultState, type ChainFunction } from "./result";
+import { AsyncResult, type ErrorBase, type AsyncResultState, type ChainFunction } from "./result";
 
 type KeyedAsyncCacheRefetchOptions = {
     policy: 'refetch' | 'if-error' | 'no-refetch';
@@ -20,7 +20,7 @@ function defaultParamsToKey<P>(params: P): string {
   return String(params);
 }
 
-export class KeyedAsyncCache<P, V, E> {
+export class KeyedAsyncCache<P, V, E = ErrorBase> {
   private _cache: Map<string, CacheItem<P, V, E>> = new Map();
   private _fetcher: ChainFunction<P, V, E>;
   private _paramsToKey: (params: P) => string;

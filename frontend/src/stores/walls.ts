@@ -2,12 +2,9 @@ import { defineStore } from 'pinia';
 import { api } from 'src/boot/api';
 import type { WallStonesList } from 'src/models';
 import { KeyedAsyncCache } from 'src/reactiveCache/core/cache';
-import { tryFunction, type AsyncResult } from 'src/reactiveCache/core/result';
+import { type ErrorBase, tryFunction, type AsyncResult, makeErrorBase } from 'src/reactiveCache/core/result';
 // import axios from 'axios';
 
-export type WallError = {
-  message: string;
-}
 
 interface PreloadAround {
   before: number;
@@ -24,7 +21,7 @@ function wallParamsToKey(key: WallParams): string {
 }
 
 export const useWallsStore = defineStore('walls', () => {
-  const wallCache = new KeyedAsyncCache<WallParams, ArrayBuffer, WallError>(async (params: WallParams) => {
+  const wallCache = new KeyedAsyncCache<WallParams, ArrayBuffer>(async (params: WallParams) => {
     return tryFunction(
       async () => {
         const wallPath = (await api.get(`/files/wall-path/${params.id}`)).data;
@@ -41,21 +38,21 @@ export const useWallsStore = defineStore('walls', () => {
       },
       (error) => {
         console.error(`Error fetching wall data for ${params.id}:`, error);
-        return { message: 'Failed to fetch wall data' };
+        return makeErrorBase('fetch_error', 'Failed to fetch wall data');
       }
     );
   }, wallParamsToKey);
 
-  const wallStonesListCache = new KeyedAsyncCache<string, WallStonesList, WallError>(async (id: string) => {
-    return tryFunction(
+  const wallStonesListCache = new KeyedAsyncCache<string, WallStonesList>(async (id: string) => {
+    return tryFunction<WallStonesList, ErrorBase>(
       async () => (await api.get(`/files/wall-path/${id}/stones`)).data as WallStonesList,
       (error) => {
         console.error(`Error fetching wall stones list for ${id}:`, error);
-        return { message: 'Failed to fetch wall stones list' };
+        return makeErrorBase('fetch_error', 'Failed to fetch wall stones list');
       });
   }, id => id);
 
-  const wallStoneCache = new KeyedAsyncCache<WallParams, ArrayBuffer, WallError>(async (params: WallParams) => {
+  const wallStoneCache = new KeyedAsyncCache<WallParams, ArrayBuffer>(async (params: WallParams) => {
     return tryFunction(
       async () => {
         const filePath = `${params.downscaled ? "downscaled" : "original"}/01_Microstructures_data/${params.id}`;
@@ -69,12 +66,12 @@ export const useWallsStore = defineStore('walls', () => {
       },
       (error) => {
         console.error(`Error fetching wall stone data for ${params.id}:`, error);
-        return { message: 'Failed to fetch wall stone data' };
+        return makeErrorBase('fetch_error', 'Failed to fetch wall stone data');
       }
     );
   }, wallParamsToKey);
 
-  const wallImageCache = new KeyedAsyncCache<string, ArrayBuffer, WallError>(async (id: string) => {
+  const wallImageCache = new KeyedAsyncCache<string, ArrayBuffer>(async (id: string) => {
     return tryFunction(
       async () => {
         const filePath = `original/02_Rendered_walls_photos/${id}.png`;
@@ -88,12 +85,12 @@ export const useWallsStore = defineStore('walls', () => {
       },
       (error) => {
         console.error(`Error fetching wall image for ${id}:`, error);
-        return { message: 'Failed to fetch wall image' };
+        return makeErrorBase('fetch_error', 'Failed to fetch wall image');
       }
     );
   }, id => id);
 
-  const wallPropertiesCSVCache = new KeyedAsyncCache<string, ArrayBuffer, WallError>(async (id: string) => {
+  const wallPropertiesCSVCache = new KeyedAsyncCache<string, ArrayBuffer>(async (id: string) => {
     return tryFunction(
       async () => {
         const filePath = `original/03_Stones_geometric_properties/${id}.csv`;
@@ -107,7 +104,7 @@ export const useWallsStore = defineStore('walls', () => {
       },
       (error) => {
         console.error(`Error fetching wall properties CSV for ${id}:`, error);
-        return { message: 'Failed to fetch wall properties CSV' };
+        return makeErrorBase('fetch_error', 'Failed to fetch wall properties CSV');
       }
     );
   }, id => id);
@@ -121,7 +118,7 @@ export const useWallsStore = defineStore('walls', () => {
    * @param id - Wall identifier of the form "OC01"
    * @returns AsyncResult that resolves to ArrayBuffer or WallError
    */
-  function getWall(downscaled: boolean, id: string): AsyncResult<ArrayBuffer, WallError> {
+  function getWall(downscaled: boolean, id: string): AsyncResult<ArrayBuffer> {
     return wallCache.get({ downscaled, id });
   };
 
@@ -130,7 +127,7 @@ export const useWallsStore = defineStore('walls', () => {
    * @param id - Wall identifier of the form "OC01"
    * @returns AsyncResult that resolves to WallStonesList or WallError
    */
-  function getWallStonesList(id: string): AsyncResult<WallStonesList, WallError> {
+  function getWallStonesList(id: string): AsyncResult<WallStonesList> {
     return wallStonesListCache.get(id);
   };
 
@@ -140,16 +137,16 @@ export const useWallsStore = defineStore('walls', () => {
    * @param id - Wall identifier of the form "OC01"
    * @returns AsyncResult that resolves to ArrayBuffer or WallError
    */
-  function getWallStoneModel(downscaled: boolean, path: string): AsyncResult<ArrayBuffer, WallError> {
+  function getWallStoneModel(downscaled: boolean, path: string): AsyncResult<ArrayBuffer> {
     return wallStoneCache.get({ downscaled, id: path });
   };
 
-  function _getWallStoneModelFromStoneListAndIndex(downscaled: boolean, stonesList: WallStonesList, index: number): AsyncResult<ArrayBuffer, WallError> {
+  function _getWallStoneModelFromStoneListAndIndex(downscaled: boolean, stonesList: WallStonesList, index: number): AsyncResult<ArrayBuffer> {
     const stonePath = `${stonesList.folder}/${stonesList.files[index] || ""}`;
     return wallStoneCache.get({ downscaled, id: stonePath });
   }
 
-  function getWallStoneModelFromStoneListAndIndex(downscaled: boolean, stonesList: WallStonesList, index: number, preload?: PreloadAround): AsyncResult<ArrayBuffer, WallError> {
+  function getWallStoneModelFromStoneListAndIndex(downscaled: boolean, stonesList: WallStonesList, index: number, preload?: PreloadAround): AsyncResult<ArrayBuffer> {
     if (preload) {
       for (let offset = 1; offset <= preload.after; offset++) {
           const nextIndex = (index + offset) % stonesList.files.length;
@@ -164,11 +161,11 @@ export const useWallsStore = defineStore('walls', () => {
     return _getWallStoneModelFromStoneListAndIndex(downscaled, stonesList, index);
   }
 
-  function getWallImage(id: string): AsyncResult<ArrayBuffer, WallError> {
+  function getWallImage(id: string): AsyncResult<ArrayBuffer> {
     return wallImageCache.get(id);
   }
 
-  function getWallPropertiesCSVFile(id: string): AsyncResult<ArrayBuffer, WallError> {
+  function getWallPropertiesCSVFile(id: string): AsyncResult<ArrayBuffer> {
     return wallPropertiesCSVCache.get(id);
   }
 

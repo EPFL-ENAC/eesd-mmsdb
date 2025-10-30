@@ -100,7 +100,7 @@ declare global {
   const useSlots: typeof import('vue')['useSlots']
   const useStonePropertiesStore: typeof import('./stores/stone_properties')['useStonePropertiesStore']
   const useTemplateRef: typeof import('vue')['useTemplateRef']
-  const useWallsStore: typeof import('./stores/walls_old')['useWallsStore']
+  const useWallsStore: typeof import('./stores/walls')['useWallsStore']
   const watch: typeof import('vue')['watch']
   const watchEffect: typeof import('vue')['watchEffect']
   const watchPostEffect: typeof import('vue')['watchPostEffect']
@@ -201,7 +201,7 @@ declare module 'vue' {
     readonly useSettingsStore: UnwrapRef<typeof import('./stores/settings')['useSettingsStore']>
     readonly useSliceStore: UnwrapRef<typeof import('./stores/slice')['useSliceStore']>
     readonly useSlots: UnwrapRef<typeof import('vue')['useSlots']>
-    readonly useStonePropertiesStore: UnwrapRef<typeof import('./stores/stone_properties')['useStonePropertiesStore']>
+    readonly useStonePropertiesStore: UnwrapRef<typeof import('./stores/stone_properties_old')['useStonePropertiesStore']>
     readonly useTemplateRef: UnwrapRef<typeof import('vue')['useTemplateRef']>
     readonly useWallsStore: UnwrapRef<typeof import('./stores/walls_old')['useWallsStore']>
     readonly watch: UnwrapRef<typeof import('vue')['watch']>

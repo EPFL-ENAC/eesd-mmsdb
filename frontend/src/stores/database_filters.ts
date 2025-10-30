@@ -57,9 +57,10 @@ export const useDatabaseFiltersStore = defineStore('databaseFilters', () => {
   }
 
   function getNumericRange(columnName: string): NumericFilter {
-    if (!Array.isArray(propertiesStore.properties)) return { min: 0, max: 100 }
+    const table = propertiesStore.properties.unwrapOrNull();
+    if (!table) return { min: 0, max: 100 }
 
-    const values = propertiesStore.getColumnValues(columnName)
+    const values = table.getColumnValues(columnName)
       ?.map(value => parseFloat(value))
       .filter(value => !isNaN(value))
       || []
@@ -81,8 +82,9 @@ export const useDatabaseFiltersStore = defineStore('databaseFilters', () => {
   }
 
   function getStringOptions(columnName: string): string[] {
-    if (!Array.isArray(propertiesStore.properties)) return []
-    const values = propertiesStore.getColumnValues(columnName)?.filter(Boolean)
+    const table = propertiesStore.properties.unwrapOrNull();
+    if (!table) return []
+    const values = table.getCellsFiltered(columnName, Boolean)
     return [...new Set(values)].sort((a, b) => a.localeCompare(b))
   }
 
@@ -107,11 +109,12 @@ export const useDatabaseFiltersStore = defineStore('databaseFilters', () => {
   }
 
   const filteredWallIds = computed(() => {
-    if (!Array.isArray(propertiesStore.properties)) return []
+    const table = propertiesStore.properties.unwrapOrNull();
+    if (!table) return []
 
-    const matchingIndicesSet = new Set<number>([...Array(propertiesStore.properties?.[0]?.values.length).keys()])
+    const matchingIndicesSet = new Set<number>([...Array(table.getRowsCount()).keys()])
     Object.entries(stringFilters.value).forEach(([columnName, filterValues]) => {
-      const values = propertiesStore.getColumnValues(columnName) || []
+      const values = table.getColumnValues(columnName) || []
       values.forEach((value, index) => {
         if (!matchesStringFilter(filterValues, value)) {
           matchingIndicesSet.delete(index)
@@ -119,7 +122,7 @@ export const useDatabaseFiltersStore = defineStore('databaseFilters', () => {
       })
     })
     Object.entries(numericFilters.value).forEach(([columnName, filterRange]) => {
-      const values = propertiesStore.getColumnValues(columnName) || []
+      const values = table.getColumnValues(columnName) || []
       values.forEach((value, index) => {
         if (!matchesNumericFilter(filterRange, value)) {
           matchingIndicesSet.delete(index)
@@ -127,17 +130,18 @@ export const useDatabaseFiltersStore = defineStore('databaseFilters', () => {
       })
     })
     const matchingIndices = Array.from(matchingIndicesSet).sort((a, b) => a - b)
-    const wallIds = matchingIndices.map(index => propertiesStore.getColumnValues('Wall ID')?.[index])
+    const wallIds = matchingIndices.map(index => table.getCellValue('Wall ID', index))
     return wallIds as string[]
   })
 
   const allWallIds = computed(() => {
-    if (!Array.isArray(propertiesStore.properties)) return []
-    return propertiesStore.getColumnValues('Wall ID') || []
+    const table = propertiesStore.properties.unwrapOrNull();
+    if (!table) return []
+    return table.getColumnValues('Wall ID') || []
   })
 
   function initializeFilters() {
-    if (propertiesStore.properties) {
+    if (propertiesStore.properties.unwrapOrNull()) {
       columnFilters.forEach(columnName => {
         const type = propertiesStore.getColumnType(columnName)
         if (type === 'string') {

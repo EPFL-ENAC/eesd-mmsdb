@@ -32,7 +32,7 @@
         class="col-12 col-sm-6 col-md-4"
       >
         <donut-chart
-          :title="propertiesStore.getColumnLabel(column) as string"
+          :title="propertiesStore.getColumnLabel(column)"
           :title-tooltip="tooltips[column]"
           :column-name="column"
           :filters="filters"

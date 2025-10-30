@@ -1,14 +1,16 @@
 <template>
     <q-option-group v-model="group" :options="options" type="toggle" />
 
-    <q-btn class="q-mt-md" color="primary" label="Download Selected Files" @click="downloadSelectedFiles"
-        :loading="loading" :disabled="group.length < 1 || loading" />
+    <q-btn class="q-mt-md" color="primary" label="Download Selected Files" @click="trigger"
+        :loading="resultRef.isLoading()" :disabled="group.length < 1 || resultRef.isLoading()" />
 </template>
 
 <script setup lang="ts">
 import { useWallsStore } from 'stores/walls';
 import { type DownloadableFile, downloadFilesAsZip } from 'src/utils/download';
 import { ref } from 'vue'
+import { useLazyAction } from 'src/reactiveCache/vue/utils';
+import { err, makeErrorBase, ok } from 'src/reactiveCache/core/result';
 
 const props = defineProps<{
     wallId: string;
@@ -23,7 +25,7 @@ const options = ref([
     { label: 'Stone geometric info (CSV)', value: 'stone-geometric-info' }
 ])
 
-const loading = ref(false);
+const { resultRef, trigger } = useLazyAction(downloadSelectedFiles);
 
 async function getWallMicrostructureFile(): Promise<DownloadableFile | null> {
     const wallData = await wallsStore.getWall(false, props.wallId).toValueOrNullPromise();
@@ -52,10 +54,8 @@ async function getStoneGeometryInfo(): Promise<DownloadableFile | null> {
 
 async function downloadSelectedFiles() {
     if (group.value.length < 1) {
-        return;
+        return err(makeErrorBase("nothing_selected"));
     }
-
-    loading.value = true;
 
     const promises = [];
 
@@ -75,12 +75,11 @@ async function downloadSelectedFiles() {
 
     // Trigger the download
     if (values.length < 1) {
-        loading.value = false;
-        return;
+        return err(makeErrorBase("no_files_to_download"));
     }
 
     await downloadFilesAsZip(values, `wall_${props.wallId}_files.zip`);
-
-    loading.value = false;
+    
+    return ok(true)
 }
 </script>

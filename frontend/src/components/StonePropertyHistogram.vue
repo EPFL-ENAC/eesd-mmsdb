@@ -11,7 +11,8 @@
 
 <script setup lang="ts">
 import * as echarts from 'echarts'
-import type { Table } from '../models';
+import { useReactiveAsyncPipe } from 'src/reactiveCache/vue/utils';
+import type { StaticTable } from 'src/utils/table';
 
 interface Props {
   title: string
@@ -22,17 +23,7 @@ interface Props {
 const props = defineProps<Props>()
 
 const stonePropertiesStore = useStonePropertiesStore()
-const stoneProperties = ref<Table | null>(null)
-
-async function fetchStoneProperties(wallId: string) {
-  if (!wallId) {
-    stoneProperties.value = null
-    return
-  }
-  stoneProperties.value = await stonePropertiesStore.getProperties(wallId)
-}
-
-watch(() => props.wallID, fetchStoneProperties, { immediate: true })
+const stoneProperties = useReactiveAsyncPipe(props.wallID, (wallId) => stonePropertiesStore.getProperties(wallId))
 
 const binsConfiguration = computed(() => {
   return stonePropertiesStore.getColumnBins(props.columnName) ?? [];
@@ -41,24 +32,24 @@ const binsConfiguration = computed(() => {
 const chartContainer = ref<HTMLDivElement>()
 let chartInstance: echarts.ECharts | null = null
 
+function getNumberOfCellsInRange(table: StaticTable, columnName: string, min: number, max: number): number {
+  const isCellInRange = (value: string | undefined): boolean => {
+    if (value === undefined) return false
+    const numValue = parseFloat(value)
+    return numValue >= min && numValue < max
+  }
+
+  return table.getCellsFiltered(columnName, isCellInRange)?.length || 0
+}
+
 const chartData = computed(() => {
-  if (!stoneProperties.value || !Array.isArray(stoneProperties.value)) {
+  const table = stoneProperties.value.unwrapOrNull();
+  if (!table) {
     return []
   }
 
-  const counts = binsConfiguration.value.map(bin =>
-    stoneProperties.value
-      ?.find(col => col.name === props.columnName)
-      ?.values
-      ?.filter(value => {
-        if (value === undefined) return false
-        const numValue = parseFloat(value)
-        return numValue >= bin.min && numValue < bin.max
-      })
-      ?.length
-      || 0
-  )
-  const total = stoneProperties.value[0]?.values.length || 1
+  const counts = binsConfiguration.value.map(bin => getNumberOfCellsInRange(table, props.columnName, bin.min, bin.max))
+  const total = table.getRowsCount() || 1
   return binsConfiguration.value.map((bin, index) => [bin.name, counts[index] as number / total * 100])
 })
 

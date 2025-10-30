@@ -44,7 +44,6 @@ import { useWallsStore } from 'stores/walls'
 import { toDisplayedProperties, getDimensionsColumn, dimensionsColumnsStones } from 'src/utils/properties'
 import MicrostructureView from 'src/components/MicrostructureView.vue'
 import LoadingOverlay from './LoadingOverlay.vue';
-import type { Table } from 'src/models';
 import { useReactiveAsyncPipe } from 'src/reactiveCache/vue/utils';
 
 const wallsStore = useWallsStore();
@@ -59,10 +58,9 @@ const props = defineProps<{
 
 const index = ref(0);
 
+const stonesPropertiesTable = useReactiveAsyncPipe(props.wallId, (wallId) => stonePropertiesStore.getProperties(wallId));
 const stonesList = useReactiveAsyncPipe(props.wallId, (wallId: string) => wallsStore.getWallStonesList(wallId));
 const currentStone = useReactiveAsyncPipe(index, (i: number) => getStoneAtIndex(i));
-
-const stonesProperties = ref<Table | null>(null);
 
 defineExpose({
     currentStone,
@@ -90,32 +88,26 @@ function getStoneAtIndex(i: number) {
 }
 
 const currentStoneProperties = computed(() => {
-    if (!stonesProperties.value) return null;
+    const table = stonesPropertiesTable.value.unwrapOrNull();
+    if (!table) return null;
 
-    const targetStoneId = `${props.wallId}_stone_${index.value}.ply`;
-    const p = stonesProperties.value.find(v => v.name === "Stone ID");
-    const i = p?.values.findIndex(v => v === targetStoneId);
+    const i = table.rowIndexInColumn("Stone ID", `${props.wallId}_stone_${index.value}.ply`);
     if (i === undefined) return null;
 
-    const properties = stonesProperties.value
-        .filter(col => !dimensionsColumnsStones.includes(col.name))
+    const filteredProperties = table
+        .filterColumns(col => !dimensionsColumnsStones.includes(col.name))
         .map(toDisplayedProperties(stonePropertiesStore, i));
 
-    const dimensions = getDimensionsColumn(stonePropertiesStore, i, key => stonePropertiesStore.getColumnValues(props.wallId, key), true);
+    const dimensions = getDimensionsColumn(stonePropertiesStore, i, key => table.getColumnValues(key), true);
 
-    properties.push({
+    filteredProperties.push({
         name: 'Dimensions',
         value: dimensions,
         unit: '',
     });
 
-    return properties;
+    return filteredProperties;
 })
-
-onMounted(async () => {
-    // void setCurrentStone(index.value);
-    stonesProperties.value = await stonePropertiesStore.getProperties(props.wallId);
-});
 
 </script>
 
