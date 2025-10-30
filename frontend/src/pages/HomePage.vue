@@ -4,11 +4,11 @@
       <template #default="{ value }">
         <microstructure-view
           :ply-data="value"
-          :orientation="wallOrientation"
+          :orientation="wallOrientation.unwrapOrNull()"
           :width="Math.min(400, q.screen.width)"
           :height="400"
           sliceable
-          :wall-size="wallSize || 100"
+          :wall-size="wallSize.unwrapOrNull() || 100"
           class="microstructure-container"
         />
       </template>
@@ -42,25 +42,15 @@ import citationItems from 'src/assets/citation_items.json';
 import { useWallsStore } from 'src/stores/walls';
 import { usePropertiesStore } from 'src/stores/properties';
 import AsyncResultLoader from 'src/reactiveCache/vue/components/AsyncResultLoader.vue';
+import { useReactiveAsyncPipe } from 'src/reactiveCache/vue/utils';
 
 const q = useQuasar();
 const wallsStore = useWallsStore();
 const propertiesStore = usePropertiesStore();
 const wallID = "OC01";
 const wallPlyData = wallsStore.getWall(true, wallID);
-const wallSize = ref<number | null>(null);
-const wallOrientation = ref<string | null>(null);
-
-onMounted(() => {
-  wallSize.value = propertiesStore.getWallMaxSize(wallID);
-  wallOrientation.value = propertiesStore.getWallProperty(wallID, "Orientation (Up and Front)");
-});
-
-watch(() => propertiesStore.loading, () => {
-  if (!propertiesStore.properties || wallSize.value) return;
-  wallSize.value = propertiesStore.getWallMaxSize(wallID);
-  wallOrientation.value = propertiesStore.getWallProperty(wallID, "Orientation (Up and Front)");
-}, { immediate: true });
+const wallSize = useReactiveAsyncPipe(wallID, (id) => propertiesStore.getWallMaxSize(id), { immediate: true });
+const wallOrientation = useReactiveAsyncPipe(wallID, (id) => propertiesStore.getWallProperty(id, "Orientation (Up and Front)"), { immediate: true });
 
 const { t } = useI18n();
 </script>

@@ -37,11 +37,11 @@
             <microstructure-view
               :ply-data="plyData"
               :ply-data-highlight="currentStoneData"
-              :orientation="propertiesStore.getWallProperty(selectedWallId, 'Orientation (Up and Front)')"
+              :orientation="currentWallOrientation.unwrapOrNull()"
               :width="400"
               :height="400"
               sliceable
-              :wall-size="propertiesStore.getWallMaxSize(selectedWallId) || 100"
+              :wall-size="currentWallMaxSize.unwrapOrNull() || 100"
               class="microstructure-item"
             />
           </template>
@@ -51,7 +51,7 @@
           <stone-carousel
             ref="stoneCarouselRef"
             :wall-id="selectedWallId"
-            :orientation="propertiesStore.getWallProperty(selectedWallId, 'Orientation (Up and Front)')"
+            :orientation="currentWallOrientation.unwrapOrNull()"
             :preload-next="5"
             :preload-previous="5"
           />
@@ -106,7 +106,6 @@ const wallsStore = useWallsStore()
 const databaseFiltersStore = useDatabaseFiltersStore()
 const stoneCarouselRef = ref<InstanceType<typeof StoneCarousel> | null>(null)
 
-
 const filteredWallIds = computed(() => databaseFiltersStore.filteredWallIds)
 const allWallIds = computed(() => databaseFiltersStore.allWallIds)
 
@@ -118,26 +117,29 @@ const loadingImages = computed(() => wallsStore.loadingImages)
 const showWallDialog = ref(false)
 const selectedWallId = ref<string | null>(null)
 const currentWallData = useReactiveAsyncPipe(selectedWallId, (id) => wallsStore.getWall(true, id!), { immediate: false });
+const currentWallOrientation = useReactiveAsyncPipe(selectedWallId, (id) => propertiesStore.getWallProperty(id!, "Orientation (Up and Front)"), { immediate: false });
+const currentWallMaxSize = useReactiveAsyncPipe(selectedWallId, (id) => propertiesStore.getWallMaxSize(id!), { immediate: false });
 
 const selectedWallProperties = computed(() => {
-  if (!selectedWallId.value || !Array.isArray(propertiesStore.properties)) return []
+  const table = propertiesStore.properties.unwrapOrNull();
+  if (!selectedWallId.value || !table) return []
 
-  const index = propertiesStore.getColumnValues("Wall ID")?.findIndex(id => id === selectedWallId.value)
+  const index = table.rowIndexInColumn("Wall ID", selectedWallId.value)
   if (index === undefined || index === -1) return []
 
-  const properties = dialogColumns
-    .map(col => ({ name: col, values: propertiesStore.getColumnValues(col) || [] }))
+  const p = dialogColumns
+    .map(col => ({ name: col, values: table.getColumnValues(col) || [] }))
     .map(toDisplayedProperties(propertiesStore, index));
 
-  const dimensions = getDimensionsColumn(propertiesStore, index, propertiesStore.getColumnValues);
+  const dimensions = getDimensionsColumn(propertiesStore, index, (col) => table.getColumnValues(col));
 
-  properties.push({
+  p.push({
     name: 'Dimensions',
     value: dimensions,
     unit: '',
   })
 
-  return properties
+  return p
 })
 
 onMounted(async () => {

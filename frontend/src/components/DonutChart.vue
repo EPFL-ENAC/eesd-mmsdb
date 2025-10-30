@@ -24,7 +24,6 @@
 import * as echarts from 'echarts'
 
 const propertiesStore = usePropertiesStore()
-const properties = computed(() => propertiesStore.properties)
 
 interface Props {
   title: string
@@ -43,13 +42,14 @@ const chartContainer = ref<HTMLDivElement>()
 let chartInstance: echarts.ECharts | null = null
 
 const chartData = computed(() => {
-  if (!properties.value || !Array.isArray(properties.value)) {
+  const table = propertiesStore.properties.unwrapOrNull();
+  if (!table) {
     return []
   }
 
-  const matchingIndicesSet = new Set<number>([...Array(properties.value?.[0]?.values.length).keys()])
+  const matchingIndicesSet = new Set<number>([...Array(table.getRowsCount()).keys()])
   Object.entries(props.filters).forEach(([filterColumn, filterValue]) => {
-    properties.value?.forEach(col => {
+    table.columns.forEach(col => {
       if (col.name !== filterColumn) return
       col.values.forEach((value: string, index: number) => {
         if (value !== filterValue) {
@@ -60,7 +60,7 @@ const chartData = computed(() => {
   })
 
   const matchingIndices = Array.from(matchingIndicesSet)
-  const filteredProperties = properties.value?.map(col => ({
+  const filteredProperties = table.columns.map(col => ({
     ...col,
     values: matchingIndices.map(index => col.values[index]) as string[]
   })) || []

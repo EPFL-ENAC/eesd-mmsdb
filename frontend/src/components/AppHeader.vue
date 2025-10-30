@@ -4,7 +4,7 @@
 
     <div class="title-group">
       <h1 class="title q-ml-sm">{{ t("title") }}</h1>
-      <div class="subtitle" v-if="isHome">Regrouping {{ totalWalls }} walls across {{ numberOfSources }} sources</div>
+      <div class="subtitle" v-if="isHome">Regrouping {{ totalWalls.unwrapOrNull() ?? 0 }} walls across {{ numberOfSources.unwrapOrNull() ?? 0 }} sources</div>
     </div>
 
     <q-space />
@@ -59,6 +59,8 @@ import CitationItem from 'src/components/CitationItem.vue';
 import contactLinks from 'src/assets/contact_links.json';
 import acknowledgementsLinks from 'src/assets/acknowledgements_links.json';
 import citationItems from 'src/assets/citation_items.json';
+import { useAsyncResultRef } from 'src/reactiveCache/vue/utils';
+import { ok } from 'src/reactiveCache/core/result';
 
 const route = useRoute();
 
@@ -70,17 +72,8 @@ const showContact = ref(false);
 const showAcknowledgements = ref(false);
 
 const propertiesStore = usePropertiesStore()
-
-const totalWalls = computed(() => {
-  if (!propertiesStore.properties) return 0;
-  return propertiesStore.getColumnValues("Wall ID")?.length ?? 0
-});
-
-const numberOfSources = computed(() => {
-  if (!propertiesStore.properties) return 0;
-  const referenceUnique = new Set<string>(propertiesStore.getColumnValues("Reference ID") ?? []);
-  return referenceUnique.size;
-});
+const totalWalls = useAsyncResultRef(propertiesStore.getColumnValues("Wall ID").chain(values => ok(values.length)));
+const numberOfSources = useAsyncResultRef(propertiesStore.getColumnValues("Reference ID").chain(values => ok(new Set(values).size)));
 
 </script>
 

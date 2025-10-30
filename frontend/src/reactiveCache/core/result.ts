@@ -1,8 +1,14 @@
 // For overhaul stores
 
-type ResultState<T, E> =
+export type ErrorBase = {
+  code: string;
+  message?: string | undefined;
+};
+
+export type ResultState<T, E = ErrorBase> =
   | { status: 'success'; value: T }
   | { status: 'error'; error: E };
+
 
 export function ok<T>(value: T): ResultState<T, never> {
   return { status: 'success', value };
@@ -10,6 +16,17 @@ export function ok<T>(value: T): ResultState<T, never> {
 
 export function err<E>(error: E): ResultState<never, E> {
   return { status: 'error', error };
+}
+
+export function unwrapOrNull<T, E>(result: ResultState<T, E>): T | null {
+  if (result.status === 'success') {
+    return result.value;
+  }
+  return null;
+}
+
+export function makeErrorBase(code: string, message?: string): ErrorBase {
+  return { code, message };
 }
 
 export async function tryPromise<T, E>(promise: Promise<T>, errorMapper: (error: unknown) => E): Promise<ResultState<T, E>> {
@@ -21,7 +38,7 @@ export async function tryPromise<T, E>(promise: Promise<T>, errorMapper: (error:
   }
 }
 
-export async function tryFunction<T, E>(fn: () => Promise<T>, errorMapper: (error: unknown) => E): Promise<ResultState<T, E>> {
+export async function tryFunction<T, E extends ErrorBase = ErrorBase>(fn: () => Promise<T>, errorMapper: (error: unknown) => E): Promise<ResultState<T, E>> {
   return tryPromise(fn(), errorMapper);
 }
 
@@ -36,7 +53,7 @@ export type FlatChainFunction<I, O, E> = (input: I) => AsyncResult<O, E>;
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export type AsyncResultListener<T, E> = (result: AsyncResult<T, E>) => any;
 
-export class AsyncResult<T, E> {
+export class AsyncResult<T, E = ErrorBase> {
   private _state: AsyncResultState<T, E>;
   private _listeners: Set<AsyncResultListener<T, E>> = new Set();
 
@@ -189,7 +206,7 @@ export class AsyncResult<T, E> {
     const settled = await this.waitForSettled();
     return settled.unwrapOrThrow();
   }
-  
+
   async toValueOrNullPromise(): Promise<T | null> {
     const settled = await this.waitForSettled();
     return settled.unwrapOrNull();
@@ -256,6 +273,35 @@ export class AsyncResult<T, E> {
     return other.listenUntilSettled((newState) => {
       this.setState(newState.state);
     }, true);
+  }
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  static ensureAvailable<R extends readonly AsyncResult<any, any>[]>(results: R): AsyncResult<{ [K in keyof R]: R[K] extends AsyncResult<infer T, any> ? T : never }, R[number] extends AsyncResult<any, infer E> ? E : never> {
+    if (results.length === 0) {
+      // empty case — TS infers void tuple, so handle gracefully
+      return AsyncResult.ok(undefined as never);
+    }
+
+    const promise = Promise.all(results.map((r) => r.waitForSettled())).then(
+      (settledResults) => {
+        for (const res of settledResults) {
+          if (res.state.status === 'error') {
+            return res.state;
+          }
+        }
+
+        const values = settledResults.map((r) => r.unwrapOrNull()!) as {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          [K in keyof R]: R[K] extends AsyncResult<infer T, any>
+          ? T
+          : never;
+        };
+
+        return ok(values);
+      }
+    );
+
+    return AsyncResult.fromResultPromise(promise);
   }
 }
 
