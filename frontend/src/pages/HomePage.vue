@@ -1,6 +1,6 @@
 <template>
   <q-page>
-    <async-result-loader :result="wallPlyData">
+    <spinner-loader :result="wallPlyData">
       <template #default="{ value }">
         <microstructure-view
           :ply-data="value"
@@ -12,7 +12,7 @@
           class="microstructure-container"
         />
       </template>
-    </async-result-loader>
+    </spinner-loader>
 
     <donut-charts class="q-mt-lg"/>
 
@@ -41,7 +41,7 @@ import ParallelCategoriesDiagram from 'src/components/ParallelCategoriesDiagram.
 import citationItems from 'src/assets/citation_items.json';
 import { useWallsStore } from 'src/stores/walls';
 import { usePropertiesStore } from 'src/stores/properties';
-import AsyncResultLoader from 'src/reactiveCache/vue/components/AsyncResultLoader.vue';
+import { SpinnerLoader } from 'src/components/utils/presets';
 import { useReactiveAsyncPipe } from 'src/reactiveCache/vue/utils';
 
 const q = useQuasar();

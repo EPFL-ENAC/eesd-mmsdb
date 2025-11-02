@@ -18,8 +18,6 @@
                 <div class="stone-image-container">
                     <microstructure-view :ply-data="currentStone.unwrapOrNull()"
                         :orientation="props.orientation || null" :width="200" :height="200" />
-
-                    <loading-overlay :visible="currentStone.state.status === 'loading'" />
                 </div>
                 <q-btn flat round icon="chevron_right" @click="nextStone" />
             </div>
@@ -43,7 +41,6 @@
 import { useWallsStore } from 'stores/walls'
 import { toDisplayedProperties, getDimensionsColumn, dimensionsColumnsStones } from 'src/utils/properties'
 import MicrostructureView from 'src/components/MicrostructureView.vue'
-import LoadingOverlay from './LoadingOverlay.vue';
 import { useReactiveAsyncPipe } from 'src/reactiveCache/vue/utils';
 
 const wallsStore = useWallsStore();
