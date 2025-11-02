@@ -26,7 +26,7 @@
 
 <script setup lang="ts" generic="T, E">
 import type { AsyncResult, AsyncResultState } from '../../core/result';
-import { ref, onMounted, onUnmounted, watch } from 'vue';
+import { ref, onUnmounted, watch } from 'vue';
 
 interface Props<T, E> {
   result: AsyncResult<T, E>;
@@ -38,13 +38,6 @@ const props = defineProps<Props<T, E>>();
 const state = ref<AsyncResultState<T, E>>(props.result.state);
 
 let unlisten: (() => void) | null = null;
-
-onMounted(() => {
-  // Listen for AsyncResult updates
-  unlisten = props.result.listen((res) => {
-    state.value = res.state;
-  });
-});
 
 onUnmounted(() => {
   if (unlisten) unlisten();
@@ -60,5 +53,6 @@ watch(
       state.value = res.state;
     });
   }
+, { immediate: true }
 );
 </script>

@@ -32,7 +32,7 @@
         <div class="text-h6">Downscaled preview</div>
         <div class="text-caption q-mb-md">Full resolution models available in the "Download" section of this popup</div>
 
-        <async-result-loader :result="currentWallData">
+        <spinner-loader :result="currentWallData">
           <template #default="{ value: plyData }">
             <microstructure-view
               :ply-data="plyData"
@@ -45,7 +45,7 @@
               class="microstructure-item"
             />
           </template>
-        </async-result-loader>
+        </spinner-loader>
 
         <div>
           <stone-carousel
@@ -96,7 +96,7 @@ import SimpleDialog from 'src/components/SimpleDialog.vue'
 import StonePropertyHistogram from 'src/components/StonePropertyHistogram.vue'
 import WallFilesDownloader from 'src/components/WallFilesDownloader.vue'
 import { useReactiveAsyncPipe } from 'src/reactiveCache/vue/utils'
-import AsyncResultLoader from 'src/reactiveCache/vue/components/AsyncResultLoader.vue'
+import { SpinnerLoader } from 'src/components/utils/presets'
 
 const dialogColumns = ["Microstructure type", "Typology based on Italian Code", "No of leaves", "Vertical loading_GMQI_class", "In-plane_GMQI_class", "Out-of-plane_GMQI_class", "Average vertical LMT", "Average horizontal LMT", "Average shape factor"]
 const stoneColumns = ["Stone length [m]", "Elongation [-]", "Aspect ratio [-]"]
