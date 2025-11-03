@@ -1,5 +1,5 @@
 <template>
-  <q-dialog :maximized="$q.screen.lt.sm" v-model="showDialog" @hide="onHide">
+  <q-dialog :persistent="uploading" :maximized="$q.screen.lt.sm" v-model="showDialog" @hide="onHide">
     <q-card :style="$q.screen.lt.sm ? '' : `width: ${size === 'lg' ? '900px' : size === 'md' ? '600px' : '500px'}; max-width: 90vw`">
       <q-card-actions v-if="$q.screen.lt.sm" align="right">
         <q-btn flat icon="close" color="primary" v-close-popup />
@@ -96,8 +96,9 @@
         </div>
       </q-card-section>
       <q-card-actions v-if="$q.screen.gt.xs" align="right">
-        <q-btn flat :label="t('cancel')" v-close-popup />
-        <q-btn flat :label="t('contribute.upload')" color="primary" @click="onUpload" />
+        <q-spinner-dots v-if="uploading" color="primary" size="md" class="q-mr-md" />
+        <q-btn flat :disable="uploading" :label="t('cancel')" @click="onHide" />
+        <q-btn flat :disable="uploading" :label="t('contribute.upload')" color="primary" @click="onUpload" />
       </q-card-actions>
     </q-card>
   </q-dialog>
@@ -119,6 +120,7 @@ const $q = useQuasar();
 const { t } = useI18n();
 const contributeStore = useContributeStore();
 
+const uploading = ref(false);
 const form = ref<QForm>();
 const showDialog = ref(props.modelValue);
 const contribution = ref<Contribution>({} as Contribution);
@@ -152,16 +154,17 @@ async function onUpload() {
     $q.notify({ type: 'negative', message: t('contribute.form_invalid') });
     return;
   }
-  // Here you would handle the file upload and form submission
-  console.log('Uploading files:', files.value);
-  console.log('With contribution info:', contribution.value);
+  // Handle the file upload and form submission
   try {
+    uploading.value = true;
     await contributeStore.upload(files.value, contribution.value);
     $q.notify({ type: 'positive', message: t('contribute.upload_success') });
     emit('update:modelValue', false);
   } catch (error) {
     console.error('Upload error:', error);
     $q.notify({ type: 'negative', message: t('contribute.upload_error') });
+  } finally {
+    uploading.value = false;
   }
 }
 </script>
