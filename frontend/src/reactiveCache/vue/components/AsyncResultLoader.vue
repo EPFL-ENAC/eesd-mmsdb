@@ -25,7 +25,7 @@
 </template>
 
 <script setup lang="ts" generic="T, E">
-import type { AsyncResult, AsyncResultState } from '../../core/result';
+import type { AsyncResult, AsyncResultState } from '../../core/asyncResult';
 import { ref, onUnmounted, watch } from 'vue';
 
 interface Props<T, E> {

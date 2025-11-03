@@ -95,7 +95,7 @@ import StoneCarousel from 'src/components/StoneCarousel.vue'
 import SimpleDialog from 'src/components/SimpleDialog.vue'
 import StonePropertyHistogram from 'src/components/StonePropertyHistogram.vue'
 import WallFilesDownloader from 'src/components/WallFilesDownloader.vue'
-import { useReactiveAsyncPipe } from 'src/reactiveCache/vue/utils'
+import { useReactiveAction } from 'src/reactiveCache/vue/composables'
 import { SpinnerLoader } from 'src/components/utils/presets'
 
 const dialogColumns = ["Microstructure type", "Typology based on Italian Code", "No of leaves", "Vertical loading_GMQI_class", "In-plane_GMQI_class", "Out-of-plane_GMQI_class", "Average vertical LMT", "Average horizontal LMT", "Average shape factor"]
@@ -116,9 +116,9 @@ const loadingImages = computed(() => wallsStore.loadingImages)
 
 const showWallDialog = ref(false)
 const selectedWallId = ref<string | null>(null)
-const currentWallData = useReactiveAsyncPipe(selectedWallId, (id) => wallsStore.getWall(true, id!), { immediate: false });
-const currentWallOrientation = useReactiveAsyncPipe(selectedWallId, (id) => propertiesStore.getWallProperty(id!, "Orientation (Up and Front)"), { immediate: false });
-const currentWallMaxSize = useReactiveAsyncPipe(selectedWallId, (id) => propertiesStore.getWallMaxSize(id!), { immediate: false });
+const currentWallData = useReactiveAction(selectedWallId, (id) => wallsStore.getWall(true, id!), { immediate: false });
+const currentWallOrientation = useReactiveAction(selectedWallId, (id) => propertiesStore.getWallProperty(id!, "Orientation (Up and Front)"), { immediate: false });
+const currentWallMaxSize = useReactiveAction(selectedWallId, (id) => propertiesStore.getWallMaxSize(id!), { immediate: false });
 
 const selectedWallProperties = computed(() => {
   const table = propertiesStore.properties.unwrapOrNull();

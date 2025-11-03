@@ -23,8 +23,10 @@ import * as echarts from 'echarts'
 import { usePropertiesStore } from 'stores/properties'
 import { useCorrelationsFiltersStore } from 'stores/correlations_filters'
 import LoadingOverlay from 'src/components/LoadingOverlay.vue';
-import { useReactiveAsyncPipe } from 'src/reactiveCache/vue/utils';
-import { AsyncResult, makeErrorBase, ok } from 'src/reactiveCache/core/result';
+import { useReactiveAction } from 'src/reactiveCache/vue/composables';
+import { AsyncResult } from 'src/reactiveCache/core/asyncResult';
+import { ErrorBase } from 'src/reactiveCache/core/error';
+import { Result } from 'src/reactiveCache/core/result';
 
 interface ScatterDataItem {
   value: [number, number];
@@ -40,11 +42,11 @@ let chartInstance: echarts.ECharts | null = null
 
 const selectedCategories = ref<{ [key: string]: boolean }>({})
 
-const correlationParams = useReactiveAsyncPipe(
+const correlationParams = useReactiveAction(
   () => [correlationsFiltersStore.xColumn, correlationsFiltersStore.yColumn, selectedCategories.value],
   ([xColumn, yColumn, selCategories]) => {
     if (!xColumn || !yColumn) {
-      return AsyncResult.fromError(makeErrorBase("no_X_or_Y"))
+      return AsyncResult.err(new ErrorBase("no_X_or_Y"))
     }
 
     const builder = async () => {
@@ -52,7 +54,7 @@ const correlationParams = useReactiveAsyncPipe(
         .filter(([, isSelected]) => isSelected)
         .map(([category]) => category)
       const params = await correlationsFiltersStore.getCorrelationParameters(allowedCategories)
-      return ok(params)
+      return Result.ok(params)
     }
 
     return AsyncResult.fromResultPromise(builder());

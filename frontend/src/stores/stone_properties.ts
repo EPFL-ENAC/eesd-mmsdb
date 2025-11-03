@@ -3,22 +3,23 @@ import type { ColumnInfo } from '../models';
 import { api } from 'src/boot/api';
 import columnsJson from 'src/assets/stone_properties_columns_info.json';
 import { KeyedAsyncCache } from 'src/reactiveCache/core/cache';
-import { ok, err, makeErrorBase, tryFunction } from 'src/reactiveCache/core/result';
 import { StaticTable } from 'src/utils/table';
 import { ColumnInfoManager } from 'src/utils/columnInfoManager';
+import { Result } from 'src/reactiveCache/core/result';
+import { ErrorBase } from 'src/reactiveCache/core/error';
 
 export const useStonePropertiesStore = defineStore('stone_properties', () => {
   const columns = new ColumnInfoManager(columnsJson as ColumnInfo[]);
 
   const stoneProperties = new KeyedAsyncCache<string, StaticTable>(async (wallId: string) => {
-    return tryFunction(
+    return Result.tryFunction(
       async () => {
         const response = await api.get(`/properties/stones/${wallId}`);
         return new StaticTable(response.data);
       },
       (error) => {
         console.error(`Error fetching stone properties for wall ${wallId}:`, error);
-        return makeErrorBase('fetch_error', `Failed to fetch stone properties of wall ${wallId}`);
+        return new ErrorBase('fetch_error', `Failed to fetch stone properties of wall ${wallId}`);
       }
     );
   });
@@ -37,8 +38,8 @@ export const useStonePropertiesStore = defineStore('stone_properties', () => {
   const getColumnValues = (wallId: string, key: string) => {
     return stoneProperties.get(wallId).chain((table) => {
       const r = table.getColumnValues(key);
-      if (r === undefined) return err(makeErrorBase("missing_column", `Column ${key} does not exist`));
-      return ok(r);
+      if (r === undefined) return Result.err(new ErrorBase("missing_column", `Column ${key} does not exist`));
+      return Result.ok(r);
     });
   }
 

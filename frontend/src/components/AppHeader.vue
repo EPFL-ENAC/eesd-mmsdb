@@ -59,8 +59,8 @@ import CitationItem from 'src/components/CitationItem.vue';
 import contactLinks from 'src/assets/contact_links.json';
 import acknowledgementsLinks from 'src/assets/acknowledgements_links.json';
 import citationItems from 'src/assets/citation_items.json';
-import { useAsyncResultRef } from 'src/reactiveCache/vue/utils';
-import { ok } from 'src/reactiveCache/core/result';
+import { useAsyncResultRef } from 'src/reactiveCache/vue/composables';
+import { Result } from 'src/reactiveCache/core/result';
 
 const route = useRoute();
 
@@ -72,8 +72,8 @@ const showContact = ref(false);
 const showAcknowledgements = ref(false);
 
 const propertiesStore = usePropertiesStore()
-const totalWalls = useAsyncResultRef(propertiesStore.getColumnValues("Wall ID").chain(values => ok(values.length)));
-const numberOfSources = useAsyncResultRef(propertiesStore.getColumnValues("Reference ID").chain(values => ok(new Set(values).size)));
+const totalWalls = useAsyncResultRef(propertiesStore.getColumnValues("Wall ID").chain(values => Result.ok(values.length)));
+const numberOfSources = useAsyncResultRef(propertiesStore.getColumnValues("Reference ID").chain(values => Result.ok(new Set(values).size)));
 
 </script>
 

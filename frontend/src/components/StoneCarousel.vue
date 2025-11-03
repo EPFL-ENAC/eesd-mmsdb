@@ -41,7 +41,7 @@
 import { useWallsStore } from 'stores/walls'
 import { toDisplayedProperties, getDimensionsColumn, dimensionsColumnsStones } from 'src/utils/properties'
 import MicrostructureView from 'src/components/MicrostructureView.vue'
-import { useReactiveAsyncPipe } from 'src/reactiveCache/vue/utils';
+import { useReactiveAction } from 'src/reactiveCache/vue/composables';
 
 const wallsStore = useWallsStore();
 const stonePropertiesStore = useStonePropertiesStore();
@@ -55,9 +55,9 @@ const props = defineProps<{
 
 const index = ref(0);
 
-const stonesPropertiesTable = useReactiveAsyncPipe(props.wallId, (wallId) => stonePropertiesStore.getProperties(wallId));
-const stonesList = useReactiveAsyncPipe(props.wallId, (wallId: string) => wallsStore.getWallStonesList(wallId));
-const currentStone = useReactiveAsyncPipe(index, (i: number) => getStoneAtIndex(i));
+const stonesPropertiesTable = useReactiveAction(props.wallId, (wallId) => stonePropertiesStore.getProperties(wallId));
+const stonesList = useReactiveAction(props.wallId, (wallId: string) => wallsStore.getWallStonesList(wallId));
+const currentStone = useReactiveAction(index, (i: number) => getStoneAtIndex(i));
 
 defineExpose({
     currentStone,

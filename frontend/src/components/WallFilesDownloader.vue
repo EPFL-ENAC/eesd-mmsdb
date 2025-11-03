@@ -9,8 +9,9 @@
 import { useWallsStore } from 'stores/walls';
 import { type DownloadableFile, downloadFilesAsZip } from 'src/utils/download';
 import { ref } from 'vue'
-import { useLazyAction } from 'src/reactiveCache/vue/utils';
-import { err, makeErrorBase, ok } from 'src/reactiveCache/core/result';
+import { useLazyAction } from 'src/reactiveCache/vue/composables';
+import { Result } from 'src/reactiveCache/core/result';
+import { ErrorBase } from 'src/reactiveCache/core/error';
 
 const props = defineProps<{
     wallId: string;
@@ -54,7 +55,7 @@ async function getStoneGeometryInfo(): Promise<DownloadableFile | null> {
 
 async function downloadSelectedFiles() {
     if (group.value.length < 1) {
-        return err(makeErrorBase("nothing_selected"));
+        return Result.err(new ErrorBase("nothing_selected"));
     }
 
     const promises = [];
@@ -75,11 +76,11 @@ async function downloadSelectedFiles() {
 
     // Trigger the download
     if (values.length < 1) {
-        return err(makeErrorBase("no_files_to_download"));
+        return Result.err(new ErrorBase("no_files_to_download"));
     }
 
     await downloadFilesAsZip(values, `wall_${props.wallId}_files.zip`);
     
-    return ok(true)
+    return Result.ok(true)
 }
 </script>
