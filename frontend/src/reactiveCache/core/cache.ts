@@ -1,6 +1,5 @@
-// For overhaul stores
-
-import { AsyncResult, type ErrorBase, type AsyncResultState, type ChainFunction } from "./result";
+import { AsyncResult, type AsyncResultState, type ChainFunction } from "./asyncResult";
+import type { ErrorBase } from "./error";
 
 type KeyedAsyncCacheRefetchOptions = {
     policy: 'refetch' | 'if-error' | 'no-refetch';
@@ -65,5 +64,18 @@ export class KeyedAsyncCache<P, V, E = ErrorBase> {
     const asyncResult = this.get(params, refetch);
     await asyncResult.waitForSettled();
     return asyncResult.state;
+  }
+
+  anyLoading(): boolean {
+    for (const cacheItem of this._cache.values()) {
+      if (cacheItem.result.isLoading()) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  clear() {
+    this._cache.clear();
   }
 }

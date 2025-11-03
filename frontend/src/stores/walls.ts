@@ -1,8 +1,10 @@
 import { defineStore } from 'pinia';
 import { api } from 'src/boot/api';
 import type { WallStonesList } from 'src/models';
+import type { AsyncResult } from 'src/reactiveCache/core/asyncResult';
 import { KeyedAsyncCache } from 'src/reactiveCache/core/cache';
-import { type ErrorBase, tryFunction, type AsyncResult, makeErrorBase } from 'src/reactiveCache/core/result';
+import { ErrorBase } from 'src/reactiveCache/core/error';
+import { Result } from 'src/reactiveCache/core/result';
 // import axios from 'axios';
 
 
@@ -22,7 +24,7 @@ function wallParamsToKey(key: WallParams): string {
 
 export const useWallsStore = defineStore('walls', () => {
   const wallCache = new KeyedAsyncCache<WallParams, ArrayBuffer>(async (params: WallParams) => {
-    return tryFunction(
+    return Result.tryFunction(
       async () => {
         const wallPath = (await api.get(`/files/wall-path/${params.id}`)).data;
         console.log(`Resolved wall path for ${params.id}: ${wallPath}`);
@@ -38,22 +40,22 @@ export const useWallsStore = defineStore('walls', () => {
       },
       (error) => {
         console.error(`Error fetching wall data for ${params.id}:`, error);
-        return makeErrorBase('fetch_error', 'Failed to fetch wall data');
+        return new ErrorBase('fetch_error', 'Failed to fetch wall data');
       }
     );
   }, wallParamsToKey);
 
   const wallStonesListCache = new KeyedAsyncCache<string, WallStonesList>(async (id: string) => {
-    return tryFunction<WallStonesList, ErrorBase>(
+    return Result.tryFunction<WallStonesList, ErrorBase>(
       async () => (await api.get(`/files/wall-path/${id}/stones`)).data as WallStonesList,
       (error) => {
         console.error(`Error fetching wall stones list for ${id}:`, error);
-        return makeErrorBase('fetch_error', 'Failed to fetch wall stones list');
+        return new ErrorBase('fetch_error', 'Failed to fetch wall stones list');
       });
   }, id => id);
 
   const wallStoneCache = new KeyedAsyncCache<WallParams, ArrayBuffer>(async (params: WallParams) => {
-    return tryFunction(
+    return Result.tryFunction(
       async () => {
         const filePath = `${params.downscaled ? "downscaled" : "original"}/01_Microstructures_data/${params.id}`;
         const response = await api.get(`/files/get/${filePath}`, {
@@ -66,13 +68,13 @@ export const useWallsStore = defineStore('walls', () => {
       },
       (error) => {
         console.error(`Error fetching wall stone data for ${params.id}:`, error);
-        return makeErrorBase('fetch_error', 'Failed to fetch wall stone data');
+        return new ErrorBase('fetch_error', 'Failed to fetch wall stone data');
       }
     );
   }, wallParamsToKey);
 
   const wallImageCache = new KeyedAsyncCache<string, ArrayBuffer>(async (id: string) => {
-    return tryFunction(
+    return Result.tryFunction(
       async () => {
         const filePath = `original/02_Rendered_walls_photos/${id}.png`;
         const response = await api.get(`/files/get/${filePath}`, {
@@ -85,13 +87,13 @@ export const useWallsStore = defineStore('walls', () => {
       },
       (error) => {
         console.error(`Error fetching wall image for ${id}:`, error);
-        return makeErrorBase('fetch_error', 'Failed to fetch wall image');
+        return new ErrorBase('fetch_error', 'Failed to fetch wall image');
       }
     );
   }, id => id);
 
   const wallPropertiesCSVCache = new KeyedAsyncCache<string, ArrayBuffer>(async (id: string) => {
-    return tryFunction(
+    return Result.tryFunction(
       async () => {
         const filePath = `original/03_Stones_geometric_properties/${id}.csv`;
         const response = await api.get(`/files/get/${filePath}`, {
@@ -104,7 +106,7 @@ export const useWallsStore = defineStore('walls', () => {
       },
       (error) => {
         console.error(`Error fetching wall properties CSV for ${id}:`, error);
-        return makeErrorBase('fetch_error', 'Failed to fetch wall properties CSV');
+        return new ErrorBase('fetch_error', 'Failed to fetch wall properties CSV');
       }
     );
   }, id => id);

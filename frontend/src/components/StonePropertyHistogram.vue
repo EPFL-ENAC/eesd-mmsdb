@@ -11,7 +11,7 @@
 
 <script setup lang="ts">
 import * as echarts from 'echarts'
-import { useReactiveAsyncPipe } from 'src/reactiveCache/vue/utils';
+import { useReactiveAction } from 'src/reactiveCache/vue/composables';
 import type { StaticTable } from 'src/utils/table';
 
 interface Props {
@@ -23,7 +23,7 @@ interface Props {
 const props = defineProps<Props>()
 
 const stonePropertiesStore = useStonePropertiesStore()
-const stoneProperties = useReactiveAsyncPipe(props.wallID, (wallId) => stonePropertiesStore.getProperties(wallId))
+const stoneProperties = useReactiveAction(props.wallID, (wallId) => stonePropertiesStore.getProperties(wallId))
 
 const binsConfiguration = computed(() => {
   return stonePropertiesStore.getColumnBins(props.columnName) ?? [];

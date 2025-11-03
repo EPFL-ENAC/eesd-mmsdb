@@ -2,26 +2,28 @@ import { defineStore } from 'pinia';
 import type { ColumnInfo, Table } from '../models';
 import { api } from 'src/boot/api';
 import columnsJson from 'src/assets/properties_columns_info.json';
-import { AsyncResult, err, makeErrorBase, ok, type ResultState, tryFunction, unwrapOrNull } from 'src/reactiveCache/core/result';
 import { StaticTable } from 'src/utils/table';
-import { useAsyncResultRef } from 'src/reactiveCache/vue/utils';
+import { useAsyncResultRefFromPromise } from 'src/reactiveCache/vue/composables';
 import { ColumnInfoManager } from 'src/utils/columnInfoManager';
+import { AsyncResult } from 'src/reactiveCache/core/asyncResult';
+import { ErrorBase } from 'src/reactiveCache/core/error';
+import { Result } from 'src/reactiveCache/core/result';
 
 export const usePropertiesStore = defineStore('properties', () => {
   const columns = new ColumnInfoManager(columnsJson as ColumnInfo[]);
 
-  const propertiesResult = useAsyncResultRef(AsyncResult.fromResultPromise(
-    tryFunction(
+  const propertiesResult = useAsyncResultRefFromPromise(
+    Result.tryFunction(
       async () => {
         const response = await api.get('/properties/');
         return new StaticTable(response.data as Table);
       },
       (error) => {
         console.error('Error fetching properties:', error);
-        return makeErrorBase('fetch_error', 'Failed to fetch properties');
+        return new ErrorBase('fetch_error', 'Failed to fetch properties');
       }
     )
-  ));
+  );
 
   const getBinnedProperties = (): AsyncResult<StaticTable> => {
     return propertiesResult.value.chain((table) => {
@@ -43,7 +45,7 @@ export const usePropertiesStore = defineStore('properties', () => {
         }
       });
 
-      return ok(new StaticTable(binnedColumns));
+      return Result.ok(new StaticTable(binnedColumns));
     });
   }
 
@@ -57,28 +59,28 @@ export const usePropertiesStore = defineStore('properties', () => {
   const getColumnValues = (key: string) => {
     return propertiesResult.value.chain((table) => {
       const r = table.getColumnValues(key);
-      if (r === undefined) return err(makeErrorBase("missing_column", `Column ${key} does not exist`));
-      return ok(r);
+      if (r === undefined) return Result.err(new ErrorBase("missing_column", `Column ${key} does not exist`));
+      return Result.ok(r);
     });
   }
 
-  function _getWallProperty(table: StaticTable, wallID: string, propertyKey: string): ResultState<string> {
+  function _getWallProperty(table: StaticTable, wallID: string, propertyKey: string): Result<string> {
     const wallIndex = table.rowIndexInColumn("Wall ID", wallID);
     if (wallIndex === undefined || wallIndex === -1) {
-      return err(makeErrorBase("missing_wall", `Wall ID ${wallID} does not exist`));
+      return Result.err(new ErrorBase("missing_wall", `Wall ID ${wallID} does not exist`));
     }
 
     const column = table.getColumnValues(propertyKey);
     if (!column) {
-      return err(makeErrorBase("missing_column", `Column ${propertyKey} does not exist`));
+      return Result.err(new ErrorBase("missing_column", `Column ${propertyKey} does not exist`));
     }
 
     const value = column[wallIndex];
     if (value === undefined) {
-      return err(makeErrorBase("missing_value", `Value for Wall ID ${wallID} in column ${propertyKey} is missing`));
+      return Result.err(new ErrorBase("missing_value", `Value for Wall ID ${wallID} in column ${propertyKey} is missing`));
     }
 
-    return ok(value);
+    return Result.ok(value);
   }
 
   const getWallProperty = (wallID: string, propertyKey: string): AsyncResult<string> => {
@@ -90,7 +92,7 @@ export const usePropertiesStore = defineStore('properties', () => {
     if (!table) {
       return null;
     }
-    return unwrapOrNull(_getWallProperty(table, wallID, propertyKey));
+    return _getWallProperty(table, wallID, propertyKey).unwrapOrNull();
   }
 
   const getWallMaxSize = (wallID: string) => {
@@ -100,7 +102,7 @@ export const usePropertiesStore = defineStore('properties', () => {
       getWallProperty(wallID, "Width [cm]")
     ];
     return AsyncResult.ensureAvailable(individualLengths).chain(([lengthStr, heightStr, widthStr]) => {
-      return ok(Math.max(parseFloat(lengthStr ?? "0"), parseFloat(heightStr ?? "0"), parseFloat(widthStr ?? "0")));
+      return Result.ok(Math.max(parseFloat(lengthStr ?? "0"), parseFloat(heightStr ?? "0"), parseFloat(widthStr ?? "0")));
     });
   }
 
@@ -110,9 +112,9 @@ export const usePropertiesStore = defineStore('properties', () => {
       return null;
     }
 
-    const wallLength = parseFloat(unwrapOrNull(_getWallProperty(table, wallID, "Length [cm]")) || "0");
-    const wallHeight = parseFloat(unwrapOrNull(_getWallProperty(table, wallID, "Height [cm]")) || "0");
-    const wallWidth = parseFloat(unwrapOrNull(_getWallProperty(table, wallID, "Width [cm]")) || "0");
+    const wallLength = parseFloat(_getWallProperty(table, wallID, "Length [cm]").unwrapOrNull() || "0");
+    const wallHeight = parseFloat(_getWallProperty(table, wallID, "Height [cm]").unwrapOrNull() || "0");
+    const wallWidth = parseFloat(_getWallProperty(table, wallID, "Width [cm]").unwrapOrNull() || "0");
     return Math.max(wallLength, wallHeight, wallWidth);
   }
 

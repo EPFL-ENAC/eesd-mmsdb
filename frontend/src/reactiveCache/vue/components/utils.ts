@@ -1,4 +1,4 @@
-import { type AsyncResult } from "src/reactiveCache/core/result";
+import { type AsyncResult } from "src/reactiveCache/core/asyncResult";
 import AsyncResultLoader from "./AsyncResultLoader.vue";
 import { h, type VNode } from "vue";
 
