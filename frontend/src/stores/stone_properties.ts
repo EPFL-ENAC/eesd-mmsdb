@@ -17,10 +17,7 @@ export const useStonePropertiesStore = defineStore('stone_properties', () => {
         const response = await api.get(`/properties/stones/${wallId}`);
         return new StaticTable(response.data);
       },
-      (error) => {
-        console.error(`Error fetching stone properties for wall ${wallId}:`, error);
-        return new ErrorBase('fetch_error', `Failed to fetch stone properties of wall ${wallId}`);
-      }
+      (error) => new ErrorBase('fetch_error', `Failed to fetch stone properties of wall ${wallId}`, error)
     );
   });
 

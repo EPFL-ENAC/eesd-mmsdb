@@ -18,10 +18,7 @@ export const usePropertiesStore = defineStore('properties', () => {
         const response = await api.get('/properties/');
         return new StaticTable(response.data as Table);
       },
-      (error) => {
-        console.error('Error fetching properties:', error);
-        return new ErrorBase('fetch_error', 'Failed to fetch properties');
-      }
+      (error) => new ErrorBase('fetch_error', 'Failed to fetch properties', error)
     )
   );
 

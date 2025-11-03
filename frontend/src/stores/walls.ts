@@ -5,8 +5,6 @@ import type { AsyncResult } from 'src/reactiveCache/core/asyncResult';
 import { KeyedAsyncCache } from 'src/reactiveCache/core/cache';
 import { ErrorBase } from 'src/reactiveCache/core/error';
 import { Result } from 'src/reactiveCache/core/result';
-// import axios from 'axios';
-
 
 interface PreloadAround {
   before: number;
@@ -38,20 +36,14 @@ export const useWallsStore = defineStore('walls', () => {
         });
         return response.data;
       },
-      (error) => {
-        console.error(`Error fetching wall data for ${params.id}:`, error);
-        return new ErrorBase('fetch_error', 'Failed to fetch wall data');
-      }
+      (error) => new ErrorBase('fetch_error', `Error fetching wall data for ${params.id}:`, error)
     );
   }, wallParamsToKey);
 
   const wallStonesListCache = new KeyedAsyncCache<string, WallStonesList>(async (id: string) => {
     return Result.tryFunction<WallStonesList, ErrorBase>(
       async () => (await api.get(`/files/wall-path/${id}/stones`)).data as WallStonesList,
-      (error) => {
-        console.error(`Error fetching wall stones list for ${id}:`, error);
-        return new ErrorBase('fetch_error', 'Failed to fetch wall stones list');
-      });
+      (error) => new ErrorBase('fetch_error', `Error fetching wall stones list for ${id}:`, error));
   }, id => id);
 
   const wallStoneCache = new KeyedAsyncCache<WallParams, ArrayBuffer>(async (params: WallParams) => {
@@ -66,10 +58,7 @@ export const useWallsStore = defineStore('walls', () => {
         });
         return response.data;
       },
-      (error) => {
-        console.error(`Error fetching wall stone data for ${params.id}:`, error);
-        return new ErrorBase('fetch_error', 'Failed to fetch wall stone data');
-      }
+      (error) => new ErrorBase('fetch_error', `Error fetching wall stone data for ${params.id}:`, error)
     );
   }, wallParamsToKey);
 
@@ -85,10 +74,7 @@ export const useWallsStore = defineStore('walls', () => {
         });
         return response.data;
       },
-      (error) => {
-        console.error(`Error fetching wall image for ${id}:`, error);
-        return new ErrorBase('fetch_error', 'Failed to fetch wall image');
-      }
+      (error) => new ErrorBase('fetch_error', `Error fetching wall image for ${id}:`, error)
     );
   }, id => id);
 
@@ -104,10 +90,7 @@ export const useWallsStore = defineStore('walls', () => {
         });
         return response.data;
       },
-      (error) => {
-        console.error(`Error fetching wall properties CSV for ${id}:`, error);
-        return new ErrorBase('fetch_error', 'Failed to fetch wall properties CSV');
-      }
+      (error) => new ErrorBase('fetch_error', `Error fetching wall properties CSV for ${id}:`, error)
     );
   }, id => id);
 
