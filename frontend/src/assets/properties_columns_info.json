@@ -182,35 +182,35 @@
   },
   {
     "key": "Vertical_GMQI",
-    "label": "Vertical MQI",
+    "label": "Vertical GMQI",
     "type": "float",
     "precision": 2
   },
   {
     "key": "In-plane_GMQI",
-    "label": "In-plane MQI",
+    "label": "In-plane GMQI",
     "type": "float",
     "precision": 2
   },
   {
     "key": "Out-of-plane_GMQI",
-    "label": "Out-of-plane MQI",
+    "label": "Out-of-plane GMQI",
     "type": "float",
     "precision": 2
   },
   {
     "key": "Vertical loading_GMQI_class",
-    "label": "Vertical MQI class",
+    "label": "Vertical GMQI class",
     "type": "string"
   },
   {
     "key": "In-plane_GMQI_class",
-    "label": "In-plane MQI class",
+    "label": "In-plane GMQI class",
     "type": "string"
   },
   {
     "key": "Out-of-plane_GMQI_class",
-    "label": "Out-of-plane MQI class",
+    "label": "Out-of-plane GMQI class",
     "type": "string"
   },
   {

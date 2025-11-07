@@ -11,9 +11,9 @@ const numericColumns = [
   "Average vertical LMT",
   "Average horizontal LMT",
   "Average LMT for wall-leaf connection",
-  "Vertical MQI",
-  "In-plane MQI",
-  "Out-of-plane MQI",
+  "Vertical GMQI",
+  "In-plane GMQI",
+  "Out-of-plane GMQI",
 ]
 
 
