@@ -1,3 +1,4 @@
+import networkx as nx
 import numpy as np
 import pytest
 
@@ -6,12 +7,12 @@ import pytest
 def image() -> np.ndarray:
     return np.array(
         [
-            [0, 0, 0, 0, 0, 0, 0],
-            [0, 0, 0, 1, 1, 1, 0],
-            [0, 1, 1, 1, 1, 1, 0],
-            [0, 1, 1, 1, 1, 1, 0],
-            [0, 1, 1, 1, 1, 1, 0],
-            [0, 0, 0, 0, 0, 0, 0],
+            [1, 1, 1, 1, 1, 1, 1],
+            [1, 1, 1, 1, 1, 1, 1],
+            [1, 1, 1, 0, 0, 1, 1],
+            [1, 1, 0, 0, 0, 1, 1],
+            [1, 1, 1, 1, 1, 1, 1],
+            [1, 1, 1, 1, 1, 1, 1],
         ]
     )
 
@@ -42,12 +43,12 @@ def test_is_interface(image: np.ndarray):
 
     interfaces = np.array(
         [
-            [1, 1, 1, 1, 1, 1, 1],
-            [1, 1, 1, 1, 1, 1, 1],
-            [1, 1, 1, 0, 0, 1, 1],
-            [1, 1, 0, 0, 0, 1, 1],
-            [1, 1, 1, 1, 1, 1, 1],
-            [1, 1, 1, 1, 1, 1, 1],
+            [0, 0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 1, 1, 0, 0],
+            [0, 0, 1, 1, 1, 1, 0],
+            [0, 1, 1, 1, 1, 1, 0],
+            [0, 0, 1, 1, 1, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0],
         ],
         dtype=bool,
     )
@@ -65,3 +66,20 @@ def test_bwgraph(image: np.ndarray):
     interface_weight = 0.1
     G = bwgraph(image, interface_weight=interface_weight)
     assert G is not None
+
+
+def test_shortest_path(image: np.ndarray):
+    from api.services.bwgraph import bwgraph
+
+    start_point = (0, 3)
+    end_point = (5, 3)
+    interface_weight = 0.1
+    sz = image.shape
+
+    source = np.ravel_multi_index((start_point[0], start_point[1]), sz)
+    target = np.ravel_multi_index((end_point[0], end_point[1]), sz)
+    G = bwgraph(image, interface_weight=interface_weight)
+
+    path_nodes = nx.shortest_path(G, source=source, target=target, weight="weight")
+    expected_path_nodes = [3, 10, 16, 22, 30, 38]
+    assert np.array_equal(path_nodes, expected_path_nodes)

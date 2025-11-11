@@ -88,22 +88,23 @@ def calculate_line_minimum_trace(
 
         image = np.array(Image.open(image_file_path).convert("L"))
         # Convert to binary (assuming white=255 is mortar, black=0 is stone)
-        image = (image > 128).astype(np.uint8)
+        image = (image > 128).astype(bool)
 
         # Apply boundary conditions based on LMT type
-        if calculate_LMT == 1:  # Horizontal bed joint
-            image[:, :boundary_margin] = 1
-            image[:, -boundary_margin:] = 1
-            image[:boundary_margin, :] = 0
-            image[-boundary_margin:, :] = 0
-        else:  # Vertical joints or wall leaf connections
-            image[:, :boundary_margin] = 0
-            image[:, -boundary_margin:] = 0
-            image[:boundary_margin, :] = 1
-            image[-boundary_margin:, :] = 1
+        if boundary_margin:
+            if calculate_LMT == 1:  # Horizontal bed joint
+                image[:, :boundary_margin] = 1
+                image[:, -boundary_margin:] = 1
+                image[:boundary_margin, :] = 0
+                image[-boundary_margin:, :] = 0
+            else:  # Vertical joints or wall leaf connections
+                image[:, :boundary_margin] = 0
+                image[:, -boundary_margin:] = 0
+                image[:boundary_margin, :] = 1
+                image[-boundary_margin:, :] = 1
 
         # Create the graph
-        G = bwgraph(image.astype(bool), interface_weight=interface_weight)
+        G = bwgraph(image, interface_weight=interface_weight)
         sz = image.shape
 
         pixel_length = sz[1]  # corresponding length in pixels
@@ -115,12 +116,12 @@ def calculate_line_minimum_trace(
 
         # Validate and adjust coordinates
         start_point = [
-            max(0, min(start_coords[0], pixel_height - 1)),
-            max(0, min(start_coords[1], pixel_length - 1)),
+            max(0, min(start_coords[1], pixel_height - 1)),
+            max(0, min(start_coords[0], pixel_length - 1)),
         ]
         end_point = [
-            max(0, min(end_coords[0], pixel_height - 1)),
-            max(0, min(end_coords[1], pixel_length - 1)),
+            max(0, min(end_coords[1], pixel_height - 1)),
+            max(0, min(end_coords[0], pixel_length - 1)),
         ]
 
         # Check if points are on valid mortar (white) regions and find nearest if needed
@@ -193,7 +194,7 @@ def calculate_line_minimum_trace(
             "lmt_result": float(LMT_result),
             "total_length": float(total_length),
             "path_coordinates": {
-                "pixel_coordinates": [[int(pi[i]), int(pj[i])] for i in range(len(pi))],
+                "pixel_coordinates": [[int(pj[i]), int(pi[i])] for i in range(len(pi))],
                 "real_world_coordinates": zigzag_coordinates.tolist(),
             },
             "start_point_used": start_point,

@@ -58,7 +58,7 @@
             <q-slider
               v-model="startX"
               :min="0"
-              :max="imageWidth"
+              :max="imageWidth - 1"
               :step="1"
               label
             />
@@ -69,7 +69,7 @@
             <q-slider
               v-model="startY"
               :min="0"
-              :max="imageHeight"
+              :max="imageHeight - 1"
               :step="1"
               label
             />
@@ -80,7 +80,7 @@
             <q-slider
               v-model="endX"
               :min="0"
-              :max="imageWidth"
+              :max="imageWidth - 1"
               :step="1"
               label
             />
@@ -91,7 +91,7 @@
             <q-slider
               v-model="endY"
               :min="0"
-              :max="imageHeight"
+              :max="imageHeight - 1"
               :step="1"
               label
             />
@@ -178,7 +178,7 @@ const analysisTypeOptions = [
   { label: 'Horizontal bed joints', value: 1 },
   { label: 'Wall leaf connections', value: 2 },
 ];
-const interfaceWeight = ref(0.1);
+const interfaceWeight = ref(1.0);
 const analysisType = ref(analysisTypeOptions[0]);
 
 const isDrawing = ref(false);
