@@ -194,6 +194,8 @@ const canCompute = computed(() => {
 });
 
 const onFileSelected = (file: File | null) => {
+  lineStore.clearResult();
+
   if (!file) {
     imageLoaded.value = false;
     return;
