@@ -3,7 +3,11 @@
     <div v-if="!contributeStore.userInfo">
       <div>{{ t('contribute.authentication_required') }}</div>
       <div class="q-mt-md">
-
+        <q-btn
+          :label="t('contribute.login')"
+          color="primary"
+          @click="onLogin"
+        />
       </div>
     </div>
     <div v-else>
@@ -65,6 +69,10 @@ function onConfirmDelete(uploadInfo: UploadInfo) {
 
 function onShowComments(uploadInfo: UploadInfo) {
   emit('comments', uploadInfo);
+}
+
+async function onLogin() {
+  await contributeStore.login();
 }
 
 </script>

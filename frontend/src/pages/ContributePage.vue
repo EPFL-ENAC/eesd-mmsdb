@@ -1,26 +1,21 @@
 <template>
   <q-page>
     <div class="q-pa-md">
-      <div class="text-h3">{{ t('contribute.title') }}</div>
-      <div v-if="contributeStore.userInfo">
-        <q-btn
-          class="q-mt-md"
-          :label="t('contribute.logout')"
-          color="primary"
-          size="sm"
-          @click="onLogout"
-        />
-        <pre>{{ contributeStore.userInfo }}</pre>
-      </div>
-      <div v-else>
-        <q-btn
-          class="q-mt-md"
-          :label="t('contribute.login')"
-          color="primary"
-          size="sm"
-          @click="onLogin"
-        />
-      </div>
+      <div class="text-h3 q-mb-md">{{ t('contribute.title') }}</div>
+      <q-card v-if="contributeStore.userInfo" flat class="alert-info q-mb-md">
+        <q-card-section class="q-pa-md row">
+          <span>{{ t('contribute.user_info', { name: contributeStore.userInfo?.full_name, email: contributeStore.userInfo?.email }) }}</span>
+          <q-btn
+            no-caps
+            outline
+            icon="logout"
+            class="on-right text-bold"
+            :label="t('contribute.logout')"
+            size="sm"
+            @click="onLogout"
+          />
+        </q-card-section>
+      </q-card>
       <q-tabs dense inline-label class="q-mt-md" align="left" v-model="tab">
         <q-tab name="my_uploads" :label="t('contribute.my_uploads')" />
         <q-tab name="all_uploads" icon="lock" :label="t('contribute.all_uploads')" />
@@ -114,10 +109,6 @@ async function onDelete() {
 function onShowComments(info: UploadInfo) {
   selectedInfo.value = info;
   showCommentsDialog.value = true;
-}
-
-async function onLogin() {
-  await contributeStore.login();
 }
 
 async function onLogout() {

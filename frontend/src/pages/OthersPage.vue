@@ -1,7 +1,7 @@
 <template>
   <q-page>
     <div class="q-pa-md">
-      <h3>Related projects</h3>
+      <div class="text-h3 q-mb-md">Related projects</div>
       <q-list>
         <essential-link
           title="Masonry Shake Table Database"

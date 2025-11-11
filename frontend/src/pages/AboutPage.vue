@@ -1,7 +1,7 @@
 <template>
   <q-page>
     <div class="q-pa-md">
-      <h3>About</h3>
+      <div class="text-h3 q-mb-md">About</div>
       <div class="q-mt-md">
         <q-list>
           <essential-link
