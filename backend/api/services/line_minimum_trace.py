@@ -14,6 +14,7 @@ Requirements:
 Authors: Mati Ullah Shah, Savvas Saloustros, and Katrin Beyer
 Contact: mati.shah@epfl.ch
 Last modified: 13 March 2025
+Original repository (MATLAB): https://github.com/eesd-epfl/MasonryIndex-3D
 
 Python translation by: GitHub Copilot
 Translation date: July 2025

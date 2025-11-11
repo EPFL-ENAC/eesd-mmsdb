@@ -1,3 +1,10 @@
+"""
+Translated from https://github.com/eesd-epfl/MasonryIndex-3D/blob/main/02_line_minimum_trace/bwgraph.m.
+
+Originally authored by George Abrahams and published under MIT License.
+https://github.com/WD40andTape/bwgraph/
+"""
+
 import numpy as np
 import networkx as nx
 from typing import Optional, Tuple
@@ -176,7 +183,10 @@ def _get_connectivity_matrix(connectivity: int, dim: int) -> np.ndarray:
         elif connectivity == 8:
             # 8-connectivity (corner-connected)
             matrix = np.array([[1, 1, 1], [1, 0, 1], [1, 1, 1]], dtype=bool)
-    else:  # dim == 3
+        # Apply mask to avoid calculating edges twice
+        mask = np.array([[0, 0, 1], [0, 0, 1], [0, 1, 1]], dtype=bool)
+        matrix = matrix & mask
+    else:  # dim == 3, not tested against MATLAB
         if connectivity == 6:
             # 6-connectivity (face-connected)
             matrix = np.zeros((3, 3, 3), dtype=bool)
@@ -198,6 +208,12 @@ def _get_connectivity_matrix(connectivity: int, dim: int) -> np.ndarray:
             # 26-connectivity (corner-connected)
             matrix = np.ones((3, 3, 3), dtype=bool)
             matrix[1, 1, 1] = False  # Center pixel
+        # Apply 3D mask
+        mask = np.zeros((3, 3, 3), dtype=bool)
+        mask[:, :, 0] = [[0, 0, 1], [0, 0, 1], [0, 1, 1]]
+        mask[:, :, 1] = [[0, 0, 1], [0, 0, 1], [0, 1, 1]]
+        mask[:, :, 2] = [[0, 0, 1], [0, 1, 1], [0, 1, 1]]
+        matrix = matrix & mask
 
     return matrix
 
@@ -206,19 +222,10 @@ def _get_base_offsets(conn_matrix: np.ndarray, dim: int) -> np.ndarray:
     """Get base offset vectors for neighbors."""
     if dim == 2:
         base_i, base_j = np.mgrid[-1:2, -1:2]
-        # Apply mask to avoid calculating edges twice
-        mask = np.array([[0, 0, 1], [0, 0, 1], [0, 1, 1]], dtype=bool)
-        conn_matrix = conn_matrix & mask
-        indices = np.where(conn_matrix)
-        base = np.column_stack((base_i[indices], base_j[indices]))
-    else:  # dim == 3
+        indices = np.where(conn_matrix.T)  # Transpose to match MATLAB order
+        base = np.column_stack((base_i.T[indices], base_j.T[indices]))
+    else:  # dim == 3, not tested against MATLAB
         base_i, base_j, base_k = np.mgrid[-1:2, -1:2, -1:2]
-        # Apply 3D mask
-        mask = np.zeros((3, 3, 3), dtype=bool)
-        mask[:, :, 0] = [[0, 0, 1], [0, 0, 1], [0, 1, 1]]
-        mask[:, :, 1] = [[0, 0, 1], [0, 0, 1], [0, 1, 1]]
-        mask[:, :, 2] = [[0, 0, 1], [0, 1, 1], [0, 1, 1]]
-        conn_matrix = conn_matrix & mask
         indices = np.where(conn_matrix)
         base = np.column_stack((base_i[indices], base_j[indices], base_k[indices]))
 
