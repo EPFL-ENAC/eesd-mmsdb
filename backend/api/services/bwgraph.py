@@ -5,16 +5,17 @@ Originally authored by George Abrahams and published under MIT License.
 https://github.com/WD40andTape/bwgraph/
 """
 
-import numpy as np
-import networkx as nx
-from typing import Optional, Tuple
 from itertools import product
+from typing import Tuple
+
+import networkx as nx
+import numpy as np
 
 
 def bwgraph(
     bw: np.ndarray,
-    node_weights: Optional[np.ndarray] = None,
-    connectivity: Optional[int] = None,
+    node_weights: np.ndarray | None = None,
+    connectivity: int | None = None,
     interface_weight: float = 1.0,
 ) -> nx.Graph:
     """

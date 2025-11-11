@@ -1,13 +1,16 @@
+import logging
 import tempfile
+import timeit
 from typing import Annotated
-from fastapi import APIRouter, HTTPException, UploadFile, Query
-from fastapi_cache.decorator import cache
 
 from api.models.compute import CorrelationResult
 from api.services.correlation import compute_correlation_parameters
 from api.services.line_minimum_trace import calculate_line_minimum_trace
+from fastapi import APIRouter, HTTPException, Query, UploadFile
+from fastapi_cache.decorator import cache
 
 router = APIRouter()
+logger = logging.getLogger("uvicorn.error")
 
 
 @router.get("/correlation")
@@ -49,6 +52,7 @@ async def compute_line_minimum_trace(
         temp_image.flush()
 
         try:
+            start_time = timeit.default_timer()
             result = calculate_line_minimum_trace(
                 temp_image.name,
                 start_coords=[start_x, start_y],
@@ -60,6 +64,8 @@ async def compute_line_minimum_trace(
                 boundary_margin=boundary_margin,
                 return_plot=False,
             )
+            elapsed = timeit.default_timer() - start_time
+            logger.info(f"Line minimum trace computed in {elapsed:.2f} seconds")
             return result
         except Exception as e:
             raise HTTPException(status_code=500, detail=str(e))

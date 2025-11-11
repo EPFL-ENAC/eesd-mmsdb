@@ -28,13 +28,17 @@ Note:
   https://github.com/WD40andTape/
 """
 
-import numpy as np
-from PIL import Image
-import networkx as nx
-import os
-from .bwgraph import bwgraph
 import base64
+import hashlib
+import os
 from io import BytesIO
+
+import networkx as nx
+import numpy as np
+from cachetools import TTLCache, cached
+from PIL import Image
+
+from .bwgraph import bwgraph
 
 
 def calculate_line_minimum_trace(
@@ -104,7 +108,7 @@ def calculate_line_minimum_trace(
                 image[-boundary_margin:, :] = 1
 
         # Create the graph
-        G = bwgraph(image, interface_weight=interface_weight)
+        G = bwgraph_cached(image, interface_weight=interface_weight)
         sz = image.shape
 
         pixel_length = sz[1]  # corresponding length in pixels
@@ -217,6 +221,40 @@ def calculate_line_minimum_trace(
 
     except Exception as e:
         return {"error": f"Unexpected error: {str(e)}", "success": False}
+
+
+_bwgraph_cache: TTLCache = TTLCache(maxsize=32, ttl=600)  # Cache for 10 minutes
+
+
+@cached(
+    _bwgraph_cache,
+    key=lambda bw, node_weights=None, connectivity=None, interface_weight=1.0: (
+        _array_checksum(bw),
+        _array_checksum(node_weights),
+        connectivity,
+        interface_weight,
+    ),
+)
+def bwgraph_cached(
+    bw: np.ndarray,
+    node_weights: np.ndarray | None = None,
+    connectivity: int | None = None,
+    interface_weight: float = 1.0,
+) -> nx.Graph:
+    """Cached version of bwgraph function."""
+    return bwgraph(
+        bw,
+        node_weights=node_weights,
+        connectivity=connectivity,
+        interface_weight=interface_weight,
+    )
+
+
+def _array_checksum(arr: np.ndarray | None) -> str | None:
+    """Compute SHA256 checksum of a numpy array, or None if arr is None."""
+    if arr is None:
+        return None
+    return hashlib.sha256(arr.tobytes()).hexdigest()
 
 
 def _find_nearest_mortar(image, point, pixel_height, pixel_length, max_radius=10):
