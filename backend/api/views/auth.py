@@ -80,7 +80,7 @@ async def callback(code: str, response: Response):
     )
 
     # Set httpOnly cookie
-    response = RedirectResponse(url=config.APP_URL)
+    response = RedirectResponse(url=f"{config.APP_URL}/contribute")
     response.set_cookie(
         key="token",
         value=jwt_token,
