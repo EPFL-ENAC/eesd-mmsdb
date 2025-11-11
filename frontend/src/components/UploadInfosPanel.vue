@@ -1,31 +1,9 @@
 <template>
   <div>
-    <div v-if="!contributeStore.hasApiKey">
-      <div>{{ t('contribute.api_key_required') }}</div>
+    <div v-if="!contributeStore.userInfo">
+      <div>{{ t('contribute.authentication_required') }}</div>
       <div class="q-mt-md">
-        <q-input
-          v-model="apiKey"
-          :label="t('contribute.api_key_label')"
-          :type="isPwd ? 'password' : 'text'"
-          filled
-          style="max-width: 400px;"
-          @keyup.enter="setApiKey"
-        >
-          <template v-slot:append>
-            <q-icon
-              :name="isPwd ? 'visibility_off' : 'visibility'"
-              class="cursor-pointer"
-              @click="isPwd = !isPwd"
-            />
-          </template>
-        </q-input>
-        <q-btn
-          class="q-mt-md"
-          :label="t('contribute.authenticate')"
-          :disable="!apiKey"
-          color="primary"
-          @click="setApiKey"
-        />
+
       </div>
     </div>
     <div v-else>
@@ -59,19 +37,19 @@ const props = defineProps<{
 const emit = defineEmits(['delete', 'comments']);
 
 const loading = ref(false);
-const apiKey = ref('');
-const isPwd = ref(true);
 
-onMounted(onShowAll);
+onMounted(onInit);
 
 watch(() => props.refresh, () => {
-  onShowAll();
+  onInit();
 });
 
+function onInit() {
+  if (!contributeStore.userInfo) return;
+  onShowAll();
+}
+
 function onShowAll() {
-  if (contributeStore.hasApiKey === false) {
-    return;
-  }
   loading.value = true;
   contributeStore.initUploadInfos().catch((error) => {
     console.error('Error fetching all upload infos:', error);
@@ -87,14 +65,6 @@ function onConfirmDelete(uploadInfo: UploadInfo) {
 
 function onShowComments(uploadInfo: UploadInfo) {
   emit('comments', uploadInfo);
-}
-
-function setApiKey() {
-  if (!apiKey.value || apiKey.value.length === 0) {
-    return;
-  }
-  contributeStore.setApiKey(apiKey.value);
-  onShowAll();
 }
 
 </script>

@@ -11,7 +11,13 @@ from pathlib import Path
 from urllib.parse import unquote
 from uuid import uuid4
 
-from api.auth import get_api_key
+from api.models.files import StonesResponse, extract_stone_number
+from fastapi import APIRouter, HTTPException, Form, Depends, BackgroundTasks
+from fastapi.responses import Response, StreamingResponse
+from fastapi_cache.decorator import cache
+from fastapi.datastructures import UploadFile
+from fastapi.param_functions import File
+
 from api.config import config
 from api.models.files import (
     Contribution,
@@ -30,11 +36,9 @@ from api.services.files import (
     upload_local_files,
 )
 from api.services.mailer import Mailer
-from fastapi import APIRouter, BackgroundTasks, Form, HTTPException, Security
-from fastapi.datastructures import UploadFile
-from fastapi.param_functions import File
-from fastapi.responses import Response, StreamingResponse
-from fastapi_cache.decorator import cache
+from api.models.files import UploadInfo, Contribution, UploadInfoState
+from api.auth import get_admin_user
+from api.models.auth import User
 
 router = APIRouter()
 
@@ -68,7 +72,8 @@ async def get_file(
         else:
             raise HTTPException(status_code=404, detail="File not found")
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Error reading file: {str(e)}")
+        raise HTTPException(
+            status_code=500, detail=f"Error reading file: {str(e)}")
 
 
 @router.get(
@@ -112,7 +117,8 @@ async def get_wall_path(
     wall_id: str,
 ) -> str | None:
     wall_paths = (await list_files("downscaled/01_Microstructures_data"))["files"]
-    wall_paths = [p for p in wall_paths if "02_Wall_data" in p and wall_id in p]
+    wall_paths = [
+        p for p in wall_paths if "02_Wall_data" in p and wall_id in p]
 
     if not wall_paths:
         return None
@@ -195,13 +201,15 @@ async def upload_file(
     try:
         # Upload to folder path based on uuid4
         folder = str(uuid4())
-        info = upload_local_files(folder, files=files, contribution=contribution_obj)
+        info = upload_local_files(
+            folder, files=files, contribution=contribution_obj)
 
         background_tasks.add_task(send_data_uploaded_email, info)
 
         return info
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Error uploading file: {str(e)}")
+        raise HTTPException(
+            status_code=500, detail=f"Error uploading file: {str(e)}")
 
 
 @router.delete(
@@ -237,7 +245,8 @@ async def delete_upload_folder(folder: str):
         delete_local_upload_folder(folder)
         return {"detail": "Folder deleted successfully"}
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Error deleting folder: {str(e)}")
+        raise HTTPException(
+            status_code=500, detail=f"Error deleting folder: {str(e)}")
 
 
 @router.get(
@@ -300,7 +309,8 @@ async def download_upload_file(path: str):
             for f_path in file_path.rglob("*"):
                 if f_path.is_file():
                     # Write file into zip, maintaining relative path
-                    zip_file.write(f_path, arcname=f_path.relative_to(file_path))
+                    zip_file.write(
+                        f_path, arcname=f_path.relative_to(file_path))
         # Move cursor back to start of buffer
         zip_buffer.seek(0)
 
@@ -322,7 +332,7 @@ async def download_upload_file(path: str):
     response_model=list[UploadInfo],
 )
 async def get_upload_folders_info(
-    api_key: str = Security(get_api_key),
+    user: User = Depends(get_admin_user),
 ) -> list[UploadInfo]:
     """Get information about all upload folders.
 
@@ -355,7 +365,7 @@ async def get_upload_folders_info(
     response_model=UploadInfo,
 )
 async def get_upload_folder_info(
-    folder: str, api_key: str = Security(get_api_key)
+    folder: str, user: User = Depends(get_admin_user)
 ) -> UploadInfo:
     """Get information about an upload folder.
 
@@ -381,7 +391,8 @@ async def get_upload_folder_info(
 
     info_file_path = folder_path / "info.json"
     if not info_file_path.exists() or not info_file_path.is_file():
-        raise HTTPException(status_code=404, detail="Info file not found in folder")
+        raise HTTPException(
+            status_code=404, detail="Info file not found in folder")
 
     try:
         with info_file_path.open("r", encoding="utf-8") as f:
@@ -398,7 +409,7 @@ async def get_upload_folder_info(
     status_code=200,
     description="Delete an upload folder from the temporary upload directory (for admin use only)",
 )
-async def delete_upload_folder_info(folder: str, api_key: str = Security(get_api_key)):
+async def delete_upload_folder_info(folder: str, user: User = Depends(get_admin_user)):
     """Delete an upload folder from the temporary upload directory.
 
     Args:
@@ -420,7 +431,7 @@ async def delete_upload_folder_info(folder: str, api_key: str = Security(get_api
     response_model=UploadInfo,
 )
 async def update_upload_folder_state(
-    folder: str, state: str, api_key: str = Security(get_api_key)
+    folder: str, state: str, user: User = Depends(get_admin_user)
 ) -> UploadInfo:
     """Update the state of an upload folder in the temporary upload directory.
 
@@ -447,7 +458,7 @@ async def update_upload_folder_state(
 
     try:
         update_local_upload_info_state(folder, state)
-        return await get_upload_folder_info(folder, api_key)
+        return await get_upload_folder_info(folder, user)
     except Exception as e:
         raise HTTPException(
             status_code=500, detail=f"Error updating info file: {str(e)}"
@@ -478,7 +489,7 @@ async def send_data_uploaded_email(info: UploadInfo):
 
 @router.post("/refresh-lfs")
 async def refresh_lfs_data(
-    api_key: str = Security(get_api_key),
+    user: User = Depends(get_admin_user),
 ) -> None:
     """Refresh the local LFS data by pulling the latest changes from the remote repository."""
     try:

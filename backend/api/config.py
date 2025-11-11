@@ -4,7 +4,7 @@ from pydantic_settings import BaseSettings
 
 
 class Config(BaseSettings):
-    PATH_PREFIX: str
+    PATH_PREFIX: str = "/api"
     APP_URL: str = "https://mmsdb-dev.epfl.ch"
     API_KEYS: str = "changeme"
 
@@ -30,6 +30,11 @@ class Config(BaseSettings):
     SMTP_USERNAME: str = ""
     MAIL_SUBJECT_PREFIX: str = "[MMSDB]"
     MAIL_ADMINISTRATORS: str = ""
+
+    # Github OAuth
+    GITHUB_CLIENT_ID: str = "changeme"
+    GITHUB_CLIENT_SECRET: str = "changeme"
+    JWT_SECRET: str = "dev_secret"
 
 
 @lru_cache()

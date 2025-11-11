@@ -8,9 +8,9 @@ export default {
   contact: 'Contact information',
   contact_text: 'For more information, please contact:',
   contribute: {
-    api_key_required: 'Access to the list of contributions requires authentication. Please enter your API key to proceed.',
-    api_key_label: 'API Key',
-    authenticate: 'Authenticate',
+    authentication_required: 'Access to the list of contributions requires authentication. Please login with your Github credentials.',
+    login: 'Login',
+    logout: 'Logout',
     all_uploads: 'All uploads',
     title: 'Contribute',
     info: 'Contribute to the database',

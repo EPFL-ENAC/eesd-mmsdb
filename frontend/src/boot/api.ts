@@ -23,6 +23,8 @@ const api = axios.create({
   baseURL: baseUrl,
 });
 
+api.defaults.withCredentials = true
+
 export default defineBoot(({ app }) => {
   // for use inside Vue files (Options API) through this.$axios and this.$api
 

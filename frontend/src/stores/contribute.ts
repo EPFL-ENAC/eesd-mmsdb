@@ -7,26 +7,29 @@ const CONTRIB_STORAGE_NAME = 'mms_contrib';
 
 export const useContributeStore = defineStore('contribute', () => {
 
-  const apiKey = ref<string>();
+  const userInfo = ref<Record<string, string | number>>();
   const uploadInfos = ref<UploadInfo[]>([]);
   const allUploadInfos = ref<UploadInfo[]>([]);
 
-  const hasApiKey = computed(() => {
-    return apiKey.value !== undefined && apiKey.value !== null && apiKey.value.length > 0;
-  });
+  function login() {
+    return api.get('/auth/login').then((response) => {
+      // redirect to GitHub authentication URL
+      const authUrl = response.data.url as string;
+      window.location.href = authUrl;
+    });
+  }
 
-  /**
-   * Set the API key for authentication.
-   * @param key API key string.
-   */
-  function setApiKey(key: string) {
-    apiKey.value = key;
-    // add api key to headers
-    if (hasApiKey.value) {
-      api.defaults.headers.common['x-api-key'] = apiKey.value;
-    } else {
-      delete api.defaults.headers.common['x-api-key'];
-    }
+  function logout() {
+    return api.get('/auth/logout').finally(() => {
+      userInfo.value = undefined;
+    });
+  }
+
+  function fetchUserInfo() {
+    return api.get('/auth/userinfo').then((response) => {
+      userInfo.value = response.data;
+      return userInfo.value;
+    });
   }
 
   /**
@@ -173,10 +176,12 @@ export const useContributeStore = defineStore('contribute', () => {
   }
 
   return {
-    hasApiKey,
     uploadInfos,
     allUploadInfos,
-    setApiKey,
+    userInfo,
+    login,
+    logout,
+    fetchUserInfo,
     initMyUploadInfos,
     initUploadInfos,
     saveUploadInfo,

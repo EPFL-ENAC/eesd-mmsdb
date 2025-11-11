@@ -7,8 +7,8 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi_cache import FastAPICache
 from fastapi_cache.backends.inmemory import InMemoryBackend
 from pydantic import BaseModel
-
 from api.config import config
+from api.views.auth import router as auth_router
 from api.views.compute import router as compute_router
 from api.views.files import router as files_router
 from api.views.properties import router as properties_router
@@ -54,6 +54,12 @@ async def get_health() -> HealthCheck:
 
     return HealthCheck(status="OK")
 
+
+app.include_router(
+    auth_router,
+    prefix="/auth",
+    tags=["Authentication"],
+)
 
 app.include_router(
     compute_router,
