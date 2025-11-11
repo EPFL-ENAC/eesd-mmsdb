@@ -142,7 +142,7 @@ def bwgraph(
     neighbors_linear = np.ravel_multi_index(neighbors_valid.T, sz)
 
     # Keep only neighbors that are non-zero in bw
-    neighbor_nonzero_mask = bw.flat[neighbors_linear]
+    neighbor_nonzero_mask = bw.flat[neighbors_linear].astype(bool)
     source_final = source_linear[neighbor_nonzero_mask]
     neighbors_final = neighbors_linear[neighbor_nonzero_mask]
 
@@ -156,11 +156,16 @@ def bwgraph(
         ) / 2
 
     # Adjust weights for interface edges
-    for i in range(len(source_final)):
-        if _is_interface(bw, source_final[i], sz, dim) or _is_interface(
-            bw, neighbors_final[i], sz, dim
-        ):
-            weights_final[i] *= interface_weight
+    if interface_weight != 1.0:
+        # Vectorized interface detection
+        source_coords = np.unravel_index(source_final, sz)
+        neighbor_coords = np.unravel_index(neighbors_final, sz)
+
+        source_is_interface = _is_interface(bw, source_coords, sz, dim)
+        neighbor_is_interface = _is_interface(bw, neighbor_coords, sz, dim)
+
+        interface_mask = source_is_interface | neighbor_is_interface
+        weights_final[interface_mask] *= interface_weight
 
     # Create NetworkX graph
     G = nx.Graph()
@@ -233,40 +238,59 @@ def _get_base_offsets(conn_matrix: np.ndarray, dim: int) -> np.ndarray:
     return base
 
 
-def _is_interface(bw: np.ndarray, idx: int, sz: Tuple[int, ...], dim: int) -> bool:
-    """Check if a pixel is at the stone-mortar interface."""
-    # Convert linear index to subscripts
-    coords = np.unravel_index(idx, sz)
-
-    neighbors: list[tuple[int, int]] | list[tuple[int, int, int]]
+def _is_interface(
+    bw: np.ndarray, coords: Tuple[np.ndarray, ...], sz: Tuple[int, ...], dim: int
+) -> np.ndarray:
+    """Check if pixels are at the stone-mortar interface (vectorized version)."""
+    n_points = len(coords[0])
+    is_interface = np.zeros(n_points, dtype=bool)
 
     if dim == 2:
         i, j = coords
-        # Check 4-connected neighbors
-        neighbors = [(i - 1, j), (i + 1, j), (i, j - 1), (i, j + 1)]
+        # Define neighbor offsets for 4-connectivity
+        neighbor_offsets_2 = [(-1, 0), (1, 0), (0, -1), (0, 1)]
+
+        for di, dj in neighbor_offsets_2:
+            ni, nj = i + di, j + dj
+            # Check bounds
+            valid_mask = (ni >= 0) & (ni < sz[0]) & (nj >= 0) & (nj < sz[1])
+            # For valid neighbors, check if they are stone (zero)
+            valid_indices = np.where(valid_mask)[0]
+            if len(valid_indices) > 0:
+                neighbor_values = bw[ni[valid_indices], nj[valid_indices]].astype(bool)
+                is_interface[valid_indices] |= ~neighbor_values
     else:  # dim == 3
         i, j, k = coords
-        # Check 6-connected neighbors
-        neighbors = [
-            (i - 1, j, k),
-            (i + 1, j, k),
-            (i, j - 1, k),
-            (i, j + 1, k),
-            (i, j, k - 1),
-            (i, j, k + 1),
+        # Define neighbor offsets for 6-connectivity
+        neighbor_offsets_3 = [
+            (-1, 0, 0),
+            (1, 0, 0),
+            (0, -1, 0),
+            (0, 1, 0),
+            (0, 0, -1),
+            (0, 0, 1),
         ]
 
-    # Check if any neighbor is outside bounds or is zero (stone)
-    for neighbor in neighbors:
-        # Check bounds
-        if any(n < 0 or n >= s for n, s in zip(neighbor, sz)):
-            continue
+        for di, dj, dk in neighbor_offsets_3:
+            ni, nj, nk = i + di, j + dj, k + dk
+            # Check bounds
+            valid_mask = (
+                (ni >= 0)
+                & (ni < sz[0])
+                & (nj >= 0)
+                & (nj < sz[1])
+                & (nk >= 0)
+                & (nk < sz[2])
+            )
+            # For valid neighbors, check if they are stone (zero)
+            valid_indices = np.where(valid_mask)[0]
+            if len(valid_indices) > 0:
+                neighbor_values = bw[
+                    ni[valid_indices], nj[valid_indices], nk[valid_indices]
+                ].astype(bool)
+                is_interface[valid_indices] |= ~neighbor_values
 
-        # Check if neighbor is stone (zero)
-        if not bw[neighbor]:
-            return True
-
-    return False
+    return is_interface
 
 
 # Example usage and testing
