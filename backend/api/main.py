@@ -24,7 +24,7 @@ async def lifespan(_: FastAPI) -> AsyncIterator[None]:
 
 app = FastAPI(root_path=config.PATH_PREFIX, lifespan=lifespan)
 
-origins = ["*"]
+origins = [config.APP_URL] if config.APP_URL else ["*"]
 
 app.add_middleware(
     CORSMiddleware,
