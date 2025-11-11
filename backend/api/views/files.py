@@ -2,35 +2,39 @@
 Handle local file operations
 """
 
-from io import BytesIO
-import logging
-from pathlib import Path
-from uuid import uuid4
-import zipfile
 import json
+import logging
 import re
+import zipfile
+from io import BytesIO
+from pathlib import Path
 from urllib.parse import unquote
+from uuid import uuid4
 
-from api.models.files import StonesResponse, extract_stone_number
-from fastapi import APIRouter, HTTPException, Form, Security, BackgroundTasks
-from fastapi.responses import Response, StreamingResponse
-from fastapi_cache.decorator import cache
-from fastapi.datastructures import UploadFile
-from fastapi.param_functions import File
-
+from api.auth import get_api_key
 from api.config import config
+from api.models.files import (
+    Contribution,
+    StonesResponse,
+    UploadInfo,
+    UploadInfoState,
+    extract_stone_number,
+)
 from api.services.files import (
-    get_local_file_content,
-    list_local_files,
-    upload_local_files,
-    delete_local_upload_folder,
-    update_local_upload_info_state,
     cleanup_git_lock,
+    delete_local_upload_folder,
+    get_local_file_content,
     init_lfs_data,
+    list_local_files,
+    update_local_upload_info_state,
+    upload_local_files,
 )
 from api.services.mailer import Mailer
-from api.models.files import UploadInfo, Contribution, UploadInfoState
-from api.auth import get_api_key
+from fastapi import APIRouter, BackgroundTasks, Form, HTTPException, Security
+from fastapi.datastructures import UploadFile
+from fastapi.param_functions import File
+from fastapi.responses import Response, StreamingResponse
+from fastapi_cache.decorator import cache
 
 router = APIRouter()
 

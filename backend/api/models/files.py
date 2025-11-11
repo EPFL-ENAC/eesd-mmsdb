@@ -1,6 +1,7 @@
 # regex to capture the number from filenames like "OM01_stone_21.ply"
 import re
 from typing import List
+
 from pydantic import BaseModel
 
 STONE_NUMBER_REGEX = re.compile(r"_stone_(\d+)\.ply$")

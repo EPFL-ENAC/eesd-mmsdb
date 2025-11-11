@@ -1,5 +1,6 @@
-from fastapi import HTTPException, status, Security
+from fastapi import HTTPException, Security, status
 from fastapi.security import APIKeyHeader
+
 from .config import config
 
 API_KEYS = config.API_KEYS.split(",")

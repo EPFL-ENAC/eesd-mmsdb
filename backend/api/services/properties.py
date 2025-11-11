@@ -1,12 +1,11 @@
-from pathlib import Path
 from io import StringIO
+from pathlib import Path
 
 import pandas as pd
-from fastapi import HTTPException
-
-from api.views.files import get_local_file_content
 from api.config import config
 from api.models.properties import Column, Table
+from api.views.files import get_local_file_content
+from fastapi import HTTPException
 
 
 class Properties:

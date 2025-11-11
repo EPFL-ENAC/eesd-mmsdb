@@ -1,13 +1,14 @@
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
+from logging import INFO, basicConfig
 
 from fastapi import FastAPI, status
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi_cache.backends.inmemory import InMemoryBackend
 from fastapi_cache import FastAPICache
-from api.config import config
-from logging import basicConfig, INFO
+from fastapi_cache.backends.inmemory import InMemoryBackend
 from pydantic import BaseModel
+
+from api.config import config
 from api.views.compute import router as compute_router
 from api.views.files import router as files_router
 from api.views.properties import router as properties_router

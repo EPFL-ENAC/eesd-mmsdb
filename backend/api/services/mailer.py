@@ -1,7 +1,9 @@
 import logging
-import aiosmtplib
 from email.message import EmailMessage
+
+import aiosmtplib
 from jinja2 import Environment, PackageLoader, select_autoescape
+
 from ..config import config
 from ..models.files import UploadInfo
 

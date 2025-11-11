@@ -1,9 +1,7 @@
+from api.models.properties import Table
+from api.services.properties import properties
 from fastapi import APIRouter
 from fastapi_cache.decorator import cache
-
-from api.services.properties import properties
-from api.models.properties import Table
-
 
 router = APIRouter()
 

@@ -1,9 +1,8 @@
 import numpy as np
+from api.models.compute import CorrelationResult
+from api.services.properties import properties
 from sklearn.linear_model import HuberRegressor
 from sklearn.metrics import mean_absolute_error
-
-from api.services.properties import properties
-from api.models.compute import CorrelationResult
 
 
 async def compute_correlation_parameters(
