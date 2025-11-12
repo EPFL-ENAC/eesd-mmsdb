@@ -4,5 +4,6 @@ from pydantic import BaseModel
 
 class User(BaseModel):
     username: str
-    full_name: Optional[str] = None
+    full_name: str
+    email: Optional[str] = None
     role: str

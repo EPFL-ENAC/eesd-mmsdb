@@ -1,35 +1,59 @@
+import { AxiosError } from 'axios';
 import { defineStore } from 'pinia';
 import { LocalStorage } from 'quasar';
 import { api } from 'src/boot/api';
-import type { UploadInfo, Contribution, UploadInfoState } from 'src/models';
+import type { UploadInfo, Contribution, UploadInfoState, User } from 'src/models';
 
 const CONTRIB_STORAGE_NAME = 'mms_contrib';
 
 export const useContributeStore = defineStore('contribute', () => {
 
-  const userInfo = ref<Record<string, string | number>>();
+  const userInfo = ref<User>();
   const uploadInfos = ref<UploadInfo[]>([]);
   const allUploadInfos = ref<UploadInfo[]>([]);
 
-  function login() {
-    return api.get('/auth/login').then((response) => {
-      // redirect to GitHub authentication URL
-      const authUrl = response.data.url as string;
-      window.location.href = authUrl;
-    });
+  /**
+   * Initiate GitHub login by redirecting to the authentication URL.
+   */
+  async function login() {
+    const response = await api.get('/auth/login');
+    // redirect to GitHub authentication URL
+    const authUrl = response.data.url as string;
+    window.location.href = authUrl;
   }
 
-  function logout() {
-    return api.get('/auth/logout').finally(() => {
+  /**
+   * Logout the current user by deleting the session on the server and clearing local user info.
+   */
+  async function logout() {
+    try {
+      await api.delete('/auth/session');
+    } finally {
       userInfo.value = undefined;
-    });
+    }
   }
 
-  function fetchUserInfo() {
-    return api.get('/auth/userinfo').then((response) => {
+  /**
+   * Fetch the current user's information from the server.
+   */
+  async function fetchUserInfo() {
+    try {
+      const response = await api.get('/auth/userinfo');
       userInfo.value = response.data;
       return userInfo.value;
-    });
+    } catch (error: unknown) {
+      await handleErrorResponse(error);
+    }
+  }
+
+  async function handleErrorResponse(error: unknown) {
+    console.error('Error fetching user info:', error);
+    if (error instanceof AxiosError && error.response && error.response.status === 401 && error.response.data?.detail === 'invalid_token') {
+      // not authenticated
+      await logout();
+    } else {
+      throw error;
+    }
   }
 
   /**
@@ -38,7 +62,7 @@ export const useContributeStore = defineStore('contribute', () => {
    *
    * @returns Promise<UploadInfo[]>
    */
-  function initMyUploadInfos(): Promise<UploadInfo[]> {
+  async function initMyUploadInfos(): Promise<UploadInfo[]> {
     const uploadInfosSaved = LocalStorage.getItem(CONTRIB_STORAGE_NAME);
     let parsed: UploadInfo[] = [];
     if (uploadInfosSaved !== null) {
@@ -75,13 +99,17 @@ export const useContributeStore = defineStore('contribute', () => {
    *
    * @returns Promise<UploadInfo[]>
    */
-  function initUploadInfos(): Promise<UploadInfo[]> {
-    return api.get('/files/upload-info').then((response) => {
+  async function initUploadInfos(): Promise<UploadInfo[]> {
+    try {
+    const response = await api.get('/files/upload-info');
       allUploadInfos.value = response.data as UploadInfo[];
       // sort by most recent first
       allUploadInfos.value.sort(uploadInfoSorter);
       return allUploadInfos.value;
-    });
+    } catch (error) {
+      await handleErrorResponse(error);
+    }
+    return [];
   }
 
   /**

@@ -1,81 +1,114 @@
 import time
 from typing import Optional
-from fastapi import HTTPException, status, Security, Cookie
-from fastapi.security import APIKeyHeader
-
-from .config import config
+from fastapi import HTTPException, Cookie
 from jose import jwt
+import httpx
+from .config import config
 from .models.auth import User
 
-API_KEYS = config.API_KEYS.split(",")
+GH_API_URL = "https://github.com/login/oauth/access_token"
+GH_USER_API = "https://api.github.com/user"
+GH_REPO_PERMISSION_API = "https://api.github.com/repos/{owner}/{repo}"
 
-api_key_header = APIKeyHeader(name="x-api-key", auto_error=False)
 
-
-def get_api_key(
-    api_key_header: str = Security(api_key_header),
-) -> str:
-    """Retrieve and validate an API key from the query parameters or HTTP header.
-
+async def make_jwt(code: str):
+    """Make a JWT token after validating the OAuth2 code with GitHub.
     Args:
-        api_key_header: The API key passed in the HTTP header.
-
+        code: The OAuth2 code received from GitHub after user authorization.
     Returns:
-        The validated API key.
-
+        A JWT token as a string.
     Raises:
-        HTTPException: If the API key is invalid or missing.
+        HTTPException: If the OAuth token retrieval or user information fetch fails.
     """
-    if api_key_header in API_KEYS:
-        return api_key_header
-    raise HTTPException(
-        status_code=status.HTTP_401_UNAUTHORIZED,
-        detail="Invalid or missing API Key",
+    async with httpx.AsyncClient() as client:
+        token_res = await client.post(
+            GH_API_URL,
+            headers={"Accept": "application/json"},
+            data={
+                "client_id": config.GITHUB_CLIENT_ID,
+                "client_secret": config.GITHUB_CLIENT_SECRET,
+                "code": code,
+            },
+        )
+
+        token = token_res.json().get("access_token")
+        if not token:
+            raise HTTPException(status_code=400, detail="Failed OAuth token")
+
+        user_res = await client.get(
+            GH_USER_API, headers={"Authorization": f"token {token}"}
+        )
+        github_user = user_res.json()
+
+        owner = "EPFL-ENAC"
+        repo = "eesd-mmsdb"
+
+        repo_res = await client.get(
+            GH_REPO_PERMISSION_API.format(owner=owner, repo=repo),
+            headers={"Authorization": f"token {token}"},
+        )
+        repo_data = repo_res.json()
+        perm_data = repo_data.get("permissions", {})
+
+    # Make a JWT
+    current_time = int(time.time())
+    jwt_token = jwt.encode(
+        {
+            "iss": "mmsdb",
+            "id": github_user["id"],
+            "sub": github_user["login"],
+            "full_name": github_user.get("name"),
+            "email": github_user.get("email"),
+            "role": "admin" if perm_data.get("push", False) else "contributor",
+            "iat": current_time,
+            "exp": current_time + 3600 * 12,  # 12 hours
+        },
+        config.JWT_SECRET,
+        algorithm="HS256",
     )
+    return jwt_token
 
 
 def get_user(token: Optional[str] = Cookie(None, alias="token")) -> User:
-    """Get, decode and validate a JWT token.
+    """Get, decode and validate a JWT token and make a user.
 
     Args:
         token: The JWT token to validate.
 
     Returns:
-        The decoded JWT payload.
+        The user associated with the JWT token.
 
     Raises:
         HTTPException: If the token is invalid or expired.
     """
     if not token:
-        raise HTTPException(status_code=401, detail="Missing token")
+        raise HTTPException(status_code=401, detail="missing_token")
     try:
-        decoded = jwt.decode(token, config.JWT_SECRET)
-        if decoded["exp"] < int(time.time()):
-            raise HTTPException(status_code=401, detail="Token expired")
-        if decoded["issuer"] != "mmsdb":
-            raise HTTPException(status_code=401, detail="Invalid token issuer")
+        # decoding also performs validation of issuer and exp claims
+        decoded = jwt.decode(token, config.JWT_SECRET, issuer="mmsdb")
         return User(
             username=decoded.get("sub"),
-            full_name=decoded.get("full_name", None),
+            email=decoded.get("email", None),
+            full_name=decoded.get("full_name", decoded.get("sub")),
             role=decoded.get("role", "contributor"),
         )
     except Exception:
-        raise HTTPException(status_code=401, detail="Invalid token")
+        raise HTTPException(status_code=401, detail="invalid_token")
 
 
 def get_admin_user(token: Optional[str] = Cookie(None, alias="token")) -> User:
-    """Get, decode and validate a JWT token, make sure role is admin.
+    """Get user from token and make sure role is admin.
 
     Args:
         token: The JWT token to validate.
 
     Returns:
-        The decoded JWT payload.
+        The user associated with the JWT token.
 
     Raises:
         HTTPException: If the token is invalid or expired.
     """
     user = get_user(token)
     if user.role != "admin":
-        raise HTTPException(status_code=401, detail="Role not authorized")
+        raise HTTPException(status_code=403, detail="insufficient_permissions")
     return user

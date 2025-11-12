@@ -1,20 +1,21 @@
-import time
-from fastapi import APIRouter, Request, HTTPException, Response
+from fastapi import APIRouter, Depends, Request, Response
 from fastapi.responses import RedirectResponse
-from jose import jwt
-import httpx
 from urllib.parse import urlencode
+from api.auth import get_user
+from api.models.auth import User
 from ..config import config
+from ..auth import make_jwt
 
 router = APIRouter()
-
-GH_API_URL = "https://github.com/login/oauth/access_token"
-GH_USER_API = "https://api.github.com/user"
-GH_REPO_PERMISSION_API = "https://api.github.com/repos/{owner}/{repo}"
 
 
 @router.get("/login")
 async def login():
+    """Redirects to the URL from which the user can initiate the GitHub OAuth2 login flow.
+
+    Returns:
+        A JSON response containing the URL to redirect the user to for GitHub authentication.
+    """
     redirect_uri = f"{config.APP_URL if config.PATH_PREFIX else 'http://localhost:8000'}{config.PATH_PREFIX}/auth/callback"
     params = {
         "client_id": config.GITHUB_CLIENT_ID,
@@ -30,54 +31,7 @@ async def login():
 
 @router.get("/callback")
 async def callback(code: str, response: Response):
-    async with httpx.AsyncClient() as client:
-        token_res = await client.post(
-            GH_API_URL,
-            headers={"Accept": "application/json"},
-            data={
-                "client_id": config.GITHUB_CLIENT_ID,
-                "client_secret": config.GITHUB_CLIENT_SECRET,
-                "code": code,
-            },
-        )
-
-        token = token_res.json().get("access_token")
-        if not token:
-            raise HTTPException(status_code=400, detail="Failed OAuth token")
-
-        user_res = await client.get(
-            GH_USER_API, headers={"Authorization": f"token {token}"}
-        )
-        github_user = user_res.json()
-
-        owner = "EPFL-ENAC"
-        repo = "eesd-mmsdb"
-
-        repo_res = await client.get(
-            GH_REPO_PERMISSION_API.format(owner=owner, repo=repo),
-            headers={"Authorization": f"token {token}"},
-        )
-        repo_data = repo_res.json()
-        perm_data = repo_data.get("permissions", {})
-        if perm_data.get("push") is not True:
-            raise HTTPException(status_code=403, detail="Insufficient permissions")
-
-    # Make a JWT
-    current_time = int(time.time())
-    jwt_token = jwt.encode(
-        {
-            "issuer": "mmsdb",
-            "id": github_user["id"],
-            "sub": github_user["login"],
-            "full_name": github_user.get("name"),
-            "email": github_user.get("email"),
-            "role": "admin" if perm_data.get("push") else "contributor",
-            "issued_at": current_time,
-            "exp": current_time + 3600 * 12,  # 12 hours
-        },
-        config.JWT_SECRET,
-        algorithm="HS256",
-    )
+    jwt_token = await make_jwt(code)
 
     # Set httpOnly cookie
     response = RedirectResponse(url=f"{config.APP_URL}/contribute")
@@ -88,29 +42,16 @@ async def callback(code: str, response: Response):
         secure=False if config.APP_URL.startswith("http://localhost") else True,
         samesite="lax",
     )
-
     return response
 
 
 @router.get("/userinfo")
-async def userinfo(request: Request):
-    token = request.cookies.get("token")
-    if not token:
-        raise HTTPException(status_code=401, detail="Missing token")
-    try:
-        decoded = jwt.decode(token, config.JWT_SECRET)
-        if decoded["issuer"] != "mmsdb":
-            raise HTTPException(status_code=401, detail="Invalid token issuer")
-        current_time = int(time.time())
-        if decoded["exp"] < current_time:
-            raise HTTPException(status_code=401, detail="Token expired")
-        return decoded
-    except Exception:
-        raise HTTPException(status_code=401, detail="Invalid token")
+async def userinfo(user: User = Depends(get_user)):
+    return user
 
 
-@router.get("/logout")
-async def logout(request: Request):
+@router.delete("/session")
+async def delete_session(request: Request):
     token = request.cookies.get("token")
     response = Response()
     if token:

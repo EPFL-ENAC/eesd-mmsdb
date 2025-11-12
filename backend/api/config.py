@@ -6,7 +6,6 @@ from pydantic_settings import BaseSettings
 class Config(BaseSettings):
     PATH_PREFIX: str = "/api"
     APP_URL: str = "https://mmsdb-dev.epfl.ch"
-    API_KEYS: str = "changeme"
 
     LFS_USERNAME: str
     LFS_PASSWORD: str

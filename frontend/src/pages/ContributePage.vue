@@ -4,7 +4,7 @@
       <div class="text-h3 q-mb-md">{{ t('contribute.title') }}</div>
       <q-card v-if="contributeStore.userInfo" flat class="alert-info q-mb-md">
         <q-card-section class="q-pa-md row">
-          <span>{{ t('contribute.user_info', { name: contributeStore.userInfo?.full_name, email: contributeStore.userInfo?.email }) }}</span>
+          <span>{{ t('contribute.user_info', { name: contributeStore.userInfo?.full_name, role: t(`contribute.role.${contributeStore.userInfo?.role || 'contributor'}`) }) }}</span>
           <q-btn
             no-caps
             outline
@@ -76,13 +76,11 @@ const selectedInfo = ref<UploadInfo>();
 const showConfirmDialog = ref(false);
 const showCommentsDialog = ref(false);
 const refresh = ref(0);
-const fetchingUser = ref(false);
 
 onMounted(() => {
-  fetchingUser.value = true;
   contributeStore.fetchUserInfo().catch((error) => {
     console.error('Error fetching user info:', error);
-  }).finally(() => fetchingUser.value = false);
+  });
 })
 
 function onAdd() {

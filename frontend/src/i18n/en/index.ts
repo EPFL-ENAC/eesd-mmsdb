@@ -9,10 +9,15 @@ export default {
   contact_text: 'For more information, please contact:',
   contribute: {
     authentication_required: 'Access to the list of contributions requires authentication. Please login with your Github credentials.',
-    user_info: 'You are logged in as {name} <{email}>',
+    user_info: 'You are logged in as {name} [{role}]',
+    role: {
+      contributor: 'contributor',
+      admin: 'administrator',
+    },
     login: 'Login',
     logout: 'Logout',
     all_uploads: 'All uploads',
+    not_allowed_all_uploads: 'You are not allowed to view all contributions.',
     title: 'Contribute',
     info: 'Contribute to the database',
     my_uploads: 'My uploads',

@@ -10,6 +10,9 @@
         />
       </div>
     </div>
+    <div v-else-if="contributeStore.userInfo.role !== 'admin'">
+      <div>{{ t('contribute.not_allowed_all_uploads') }}</div>
+    </div>
     <div v-else>
       <q-spinner v-if="loading" size="2rem" class="q-mt-md" />
       <div v-else>
