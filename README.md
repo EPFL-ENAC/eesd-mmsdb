@@ -26,21 +26,10 @@ You must be on EPFL's network to be able to pull the data. You will be prompted 
 
 ## Deploying the website locally
 
-Follow these instructions to run the MMS Database website locally. First, run:
+Follow these instructions to run the MMS Database website locally. Setup your environment by running:
 
 ```bash
 make install
-```
-
-Then, edit the `.env` file in the root directory of the repository with the following content (most fields must be left empty for local deployment):
-
-```env
-PATH_PREFIX=
-LFS_USERNAME=
-LFS_PASSWORD=
-LFS_SERVER_URL=
-LFS_GIT_REF=
-LFS_CLONED_REPO_PATH=".."
 ```
 
 

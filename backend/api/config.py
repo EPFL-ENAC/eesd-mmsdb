@@ -4,15 +4,15 @@ from pydantic_settings import BaseSettings
 
 
 class Config(BaseSettings):
-    PATH_PREFIX: str = "/api"
-    APP_URL: str = "https://mmsdb-dev.epfl.ch"
+    PATH_PREFIX: str = ""
+    APP_URL: str = "http://localhost:9000"
 
-    LFS_USERNAME: str
-    LFS_PASSWORD: str
+    LFS_USERNAME: str = ""
+    LFS_PASSWORD: str = ""
     LFS_REPO_URL: str = "https://github.com/EPFL-ENAC/eesd-mmsdb.git"
-    LFS_SERVER_URL: str
-    LFS_GIT_REF: str
-    LFS_CLONED_REPO_PATH: str
+    LFS_SERVER_URL: str = ""
+    LFS_GIT_REF: str = ""
+    LFS_CLONED_REPO_PATH: str = ".."
 
     UPLOAD_FILES_PATH: str = "/tmp/mmsdb_upload"
     UPLOAD_FILES_SUFFIX: str = ".ply,.obj,.stl"
