@@ -43,6 +43,7 @@ export const useContributeStore = defineStore('contribute', () => {
       return userInfo.value;
     } catch (error: unknown) {
       await handleErrorResponse(error);
+      return undefined;
     }
   }
 
@@ -101,15 +102,15 @@ export const useContributeStore = defineStore('contribute', () => {
    */
   async function initUploadInfos(): Promise<UploadInfo[]> {
     try {
-    const response = await api.get('/files/upload-info');
+      const response = await api.get('/files/upload-info');
       allUploadInfos.value = response.data as UploadInfo[];
       // sort by most recent first
       allUploadInfos.value.sort(uploadInfoSorter);
       return allUploadInfos.value;
     } catch (error) {
       await handleErrorResponse(error);
+      return [];
     }
-    return [];
   }
 
   /**

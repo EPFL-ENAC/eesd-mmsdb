@@ -81,7 +81,7 @@ onMounted(() => {
   contributeStore.fetchUserInfo().catch((error) => {
     console.error('Error fetching user info:', error);
   });
-})
+});
 
 function onAdd() {
   selectedInfo.value = undefined;

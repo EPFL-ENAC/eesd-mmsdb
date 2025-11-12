@@ -1,10 +1,12 @@
-from fastapi import APIRouter, Depends, Request, Response
-from fastapi.responses import RedirectResponse
 from urllib.parse import urlencode
+
 from api.auth import get_user
 from api.models.auth import User
+from fastapi import APIRouter, Depends, Request, Response
+from fastapi.responses import RedirectResponse
+
+from ..auth import JWT_EXPIRY_SECONDS, make_jwt
 from ..config import config
-from ..auth import make_jwt
 
 router = APIRouter()
 
@@ -20,7 +22,7 @@ async def login():
     params = {
         "client_id": config.GITHUB_CLIENT_ID,
         "redirect_uri": redirect_uri,  # e.g. https://your.app/auth/callback
-        "scope": "read:user read:repo ",
+        "scope": "read:user read:repo",
     }
     github_authorize_url = (
         f"https://github.com/login/oauth/authorize?{urlencode(params)}"
@@ -39,8 +41,9 @@ async def callback(code: str, response: Response):
         key="token",
         value=jwt_token,
         httponly=True,
-        secure=False if config.APP_URL.startswith("http://localhost") else True,
+        secure=True if config.APP_URL.startswith("https") else False,
         samesite="lax",
+        max_age=JWT_EXPIRY_SECONDS,
     )
     return response
 

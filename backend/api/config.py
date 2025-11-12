@@ -33,6 +33,8 @@ class Config(BaseSettings):
     # Github OAuth
     GITHUB_CLIENT_ID: str = "changeme"
     GITHUB_CLIENT_SECRET: str = "changeme"
+    GITHUB_REPO_OWNER: str = "EPFL-ENAC"
+    GITHUB_REPO_NAME: str = "eesd-mmsdb"
     JWT_SECRET: str = "dev_secret"
 
 

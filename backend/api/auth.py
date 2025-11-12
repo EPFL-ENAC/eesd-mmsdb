@@ -1,14 +1,18 @@
+import logging
 import time
 from typing import Optional
-from fastapi import HTTPException, Cookie
-from jose import jwt
+
 import httpx
+from fastapi import Cookie, HTTPException
+from jose import jwt
+
 from .config import config
 from .models.auth import User
 
 GH_API_URL = "https://github.com/login/oauth/access_token"
 GH_USER_API = "https://api.github.com/user"
 GH_REPO_PERMISSION_API = "https://api.github.com/repos/{owner}/{repo}"
+JWT_EXPIRY_SECONDS = 43200  # 12 hours
 
 
 async def make_jwt(code: str):
@@ -31,24 +35,36 @@ async def make_jwt(code: str):
             },
         )
 
-        token = token_res.json().get("access_token")
+        token_json = token_res.json()
+        token = token_json.get("access_token")
+        if "error" in token_json:
+            error_msg = f"GitHub OAuth error: {token_json.get('error')}"
+            if "error_description" in token_json:
+                error_msg += f" - {token_json.get('error_description')}"
+            raise HTTPException(status_code=400, detail=error_msg)
         if not token:
-            raise HTTPException(status_code=400, detail="Failed OAuth token")
+            raise HTTPException(
+                status_code=400, detail="Failed OAuth token: missing access_token"
+            )
 
-        user_res = await client.get(
-            GH_USER_API, headers={"Authorization": f"token {token}"}
-        )
-        github_user = user_res.json()
-
-        owner = "EPFL-ENAC"
-        repo = "eesd-mmsdb"
-
-        repo_res = await client.get(
-            GH_REPO_PERMISSION_API.format(owner=owner, repo=repo),
-            headers={"Authorization": f"token {token}"},
-        )
-        repo_data = repo_res.json()
-        perm_data = repo_data.get("permissions", {})
+        try:
+            user_res = await client.get(
+                GH_USER_API, headers={"Authorization": f"token {token}"}
+            )
+            github_user = user_res.json()
+            repo_res = await client.get(
+                GH_REPO_PERMISSION_API.format(
+                    owner=config.GITHUB_REPO_OWNER, repo=config.GITHUB_REPO_NAME
+                ),
+                headers={"Authorization": f"token {token}"},
+            )
+            repo_data = repo_res.json()
+            perm_data = repo_data.get("permissions", {})
+        except Exception as e:
+            raise HTTPException(
+                status_code=502,
+                detail=f"GitHub user / repo permission request failed: {str(e)}",
+            )
 
     # Make a JWT
     current_time = int(time.time())
@@ -61,7 +77,7 @@ async def make_jwt(code: str):
             "email": github_user.get("email"),
             "role": "admin" if perm_data.get("push", False) else "contributor",
             "iat": current_time,
-            "exp": current_time + 3600 * 12,  # 12 hours
+            "exp": current_time + JWT_EXPIRY_SECONDS,
         },
         config.JWT_SECRET,
         algorithm="HS256",
@@ -85,14 +101,17 @@ def get_user(token: Optional[str] = Cookie(None, alias="token")) -> User:
         raise HTTPException(status_code=401, detail="missing_token")
     try:
         # decoding also performs validation of issuer and exp claims
-        decoded = jwt.decode(token, config.JWT_SECRET, issuer="mmsdb")
+        decoded = jwt.decode(
+            token, config.JWT_SECRET, issuer="mmsdb", algorithms=["HS256"]
+        )
         return User(
             username=decoded.get("sub"),
             email=decoded.get("email", None),
             full_name=decoded.get("full_name", decoded.get("sub")),
             role=decoded.get("role", "contributor"),
         )
-    except Exception:
+    except Exception as e:
+        logging.exception("Failed to decode JWT token", e)
         raise HTTPException(status_code=401, detail="invalid_token")
 
 

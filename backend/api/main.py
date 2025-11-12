@@ -1,12 +1,13 @@
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
-from logging import INFO, basicConfig
+from logging import INFO, basicConfig, warning
 
 from fastapi import FastAPI, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi_cache import FastAPICache
 from fastapi_cache.backends.inmemory import InMemoryBackend
 from pydantic import BaseModel
+
 from api.config import config
 from api.views.auth import router as auth_router
 from api.views.compute import router as compute_router
@@ -24,7 +25,12 @@ async def lifespan(_: FastAPI) -> AsyncIterator[None]:
 
 app = FastAPI(root_path=config.PATH_PREFIX, lifespan=lifespan)
 
-origins = [config.APP_URL] if config.APP_URL else ["*"]
+origins = [config.APP_URL] if config.APP_URL else []
+if not config.APP_URL:
+    warning(
+        "config.APP_URL is not set. CORS will not allow any origins. "
+        "Set config.APP_URL to enable cross-origin requests."
+    )
 
 app.add_middleware(
     CORSMiddleware,
