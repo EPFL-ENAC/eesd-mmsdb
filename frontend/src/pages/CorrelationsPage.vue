@@ -98,7 +98,9 @@ const scatterData = computed(() => {
 
 const regressionData = computed(() => {
   const correlationParameters = correlationParams.value.unwrapOrNull();
+  console.log(correlationsFiltersStore.xColumn, correlationsFiltersStore.yColumn, scatterData.value, correlationParameters)
   if (!correlationsFiltersStore.xColumn || !correlationsFiltersStore.yColumn || Object.keys(scatterData.value).length === 0 || !correlationParameters) {
+    console.log('No params')
     return []
   }
 
@@ -114,6 +116,7 @@ const regressionData = computed(() => {
   })
 
   if (allPoints.length === 0) {
+    console.log('No points')
     return []
   }
 
@@ -137,8 +140,9 @@ const getChartOptions = () => {
     symbol: ['circle', 'square', 'triangle', 'diamond', 'pin', 'arrow', 'roundRect'][idx % 6],
     data: points.map(point => point.value),
   }))
-
-  const regressionSeries = regressionData.value.length > 0 ? [{
+  
+  const regressionSeries = [{
+    id: 'regressionLine',
     name: 'Linear Regression',
     type: 'line',
     symbol: 'none',
@@ -147,6 +151,7 @@ const getChartOptions = () => {
       width: 2,
       type: 'dashed'
     },
+    animation: true,
     data: regressionData.value,
     tooltip: {
       formatter: function (params: { value: (string | number)[] }) {
@@ -155,7 +160,7 @@ const getChartOptions = () => {
         return `Linear Regression<br/>${xName}: ${params.value[0]}<br/>${yName}: ${params.value[1]}`;
       }
     }
-  }] : []
+  }]
 
   const allSeries = [...scatterSeries, ...regressionSeries]
   const legendData = [...Object.keys(scatterData.value)]
@@ -264,6 +269,9 @@ function populateSelectedCategoriesFromChartLegend() {
 }
 
 async function updateChart() {
+  if (correlationParams.value.isLoading()) {
+    return
+  }
   if (!chartInstance) {
     return await initChart()
   }
