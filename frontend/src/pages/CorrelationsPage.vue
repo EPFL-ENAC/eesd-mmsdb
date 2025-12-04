@@ -98,9 +98,7 @@ const scatterData = computed(() => {
 
 const regressionData = computed(() => {
   const correlationParameters = correlationParams.value.unwrapOrNull();
-  console.log(correlationsFiltersStore.xColumn, correlationsFiltersStore.yColumn, scatterData.value, correlationParameters)
   if (!correlationsFiltersStore.xColumn || !correlationsFiltersStore.yColumn || Object.keys(scatterData.value).length === 0 || !correlationParameters) {
-    console.log('No params')
     return []
   }
 
@@ -116,7 +114,6 @@ const regressionData = computed(() => {
   })
 
   if (allPoints.length === 0) {
-    console.log('No points')
     return []
   }
 
@@ -140,7 +137,7 @@ const getChartOptions = () => {
     symbol: ['circle', 'square', 'triangle', 'diamond', 'pin', 'arrow', 'roundRect'][idx % 6],
     data: points.map(point => point.value),
   }))
-  
+
   const regressionSeries = [{
     id: 'regressionLine',
     name: 'Linear Regression',
@@ -233,7 +230,18 @@ const getChartOptions = () => {
             ? `${correlationsFiltersStore.yColumn} = ${correlationParameters.slope.toFixed(2)} × ${correlationsFiltersStore.xColumn} ${correlationParameters.intercept >= 0 ? '+' : '-'} ${Math.abs(correlationParameters.intercept).toFixed(2)}\nR² = ${correlationParameters.R2.toFixed(2)}`
             : '',
         }
-      }
+      },
+      regressionData.value.length === 0 ? {
+        type: 'text',
+        z: 100,
+        right: '10%',
+        top: '50%',
+        style: {
+          fill: '#999',
+          font: '24px sans-serif',
+          text: 'Not enough data points to compute regression line.'
+        }
+      } : null
     ]
   }
 }
@@ -275,7 +283,7 @@ async function updateChart() {
   if (!chartInstance) {
     return await initChart()
   }
-  chartInstance.setOption(getChartOptions())
+  chartInstance.setOption(getChartOptions(), { replaceMerge: ['graphic'] })
 }
 
 const resizeChart = () => {
