@@ -42,7 +42,7 @@ import citationItems from 'src/assets/citation_items.json';
 import { useWallsStore } from 'src/stores/walls';
 import { usePropertiesStore } from 'src/stores/properties';
 import { SpinnerLoader } from 'src/components/utils/presets';
-import { useReactiveAction } from 'src/reactiveCache/vue/composables';
+import { useReactiveAction } from 'unwrapped/vue';
 
 const q = useQuasar();
 const wallsStore = useWallsStore();

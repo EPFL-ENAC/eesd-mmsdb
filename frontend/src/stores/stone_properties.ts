@@ -2,11 +2,9 @@ import { defineStore } from 'pinia';
 import type { ColumnInfo } from '../models';
 import { api } from 'src/boot/api';
 import columnsJson from 'src/assets/stone_properties_columns_info.json';
-import { KeyedAsyncCache } from 'src/reactiveCache/core/cache';
 import { StaticTable } from 'src/utils/table';
 import { ColumnInfoManager } from 'src/utils/columnInfoManager';
-import { Result } from 'src/reactiveCache/core/result';
-import { ErrorBase } from 'src/reactiveCache/core/error';
+import { ErrorBase, KeyedAsyncCache, Result } from 'unwrapped/core';
 
 export const useStonePropertiesStore = defineStore('stone_properties', () => {
   const columns = new ColumnInfoManager(columnsJson as ColumnInfo[]);

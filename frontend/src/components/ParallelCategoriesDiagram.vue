@@ -4,7 +4,7 @@
 
 <script setup lang="ts">
 import Plotly from 'plotly.js-dist'
-import { useAsyncResultRef } from 'src/reactiveCache/vue/composables'
+import { useAsyncResultRef } from 'unwrapped/vue'
 import { usePropertiesStore } from 'stores/properties'
 
 const plotlyChart = ref(null)

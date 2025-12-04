@@ -9,9 +9,8 @@
 import { useWallsStore } from 'stores/walls';
 import { type DownloadableFile, downloadFilesAsZip } from 'src/utils/download';
 import { ref } from 'vue'
-import { useLazyAction } from 'src/reactiveCache/vue/composables';
-import { Result } from 'src/reactiveCache/core/result';
-import { ErrorBase } from 'src/reactiveCache/core/error';
+import { useLazyAction } from 'unwrapped/vue';
+import { Result, ErrorBase } from 'unwrapped/core';
 
 const props = defineProps<{
     wallId: string;

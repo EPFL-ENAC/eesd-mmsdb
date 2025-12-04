@@ -3,11 +3,9 @@ import type { ColumnInfo, Table } from '../models';
 import { api } from 'src/boot/api';
 import columnsJson from 'src/assets/properties_columns_info.json';
 import { StaticTable } from 'src/utils/table';
-import { useAsyncResultRefFromPromise } from 'src/reactiveCache/vue/composables';
+import { useAsyncResultRefFromPromise } from 'unwrapped/vue';
 import { ColumnInfoManager } from 'src/utils/columnInfoManager';
-import { AsyncResult } from 'src/reactiveCache/core/asyncResult';
-import { ErrorBase } from 'src/reactiveCache/core/error';
-import { Result } from 'src/reactiveCache/core/result';
+import { AsyncResult, ErrorBase, Result } from 'unwrapped/core';
 
 export const usePropertiesStore = defineStore('properties', () => {
   const columns = new ColumnInfoManager(columnsJson as ColumnInfo[]);
