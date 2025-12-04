@@ -14,12 +14,12 @@
 
         <div class="carousel-wrapper">
             <div class="carousel-controls">
-                <q-btn flat round icon="chevron_left" @click="previousStone" />
+                <q-btn flat round icon="chevron_left" @click="previousStone.trigger" />
                 <div class="stone-image-container">
                     <microstructure-view :ply-data="currentStone.unwrapOrNull()"
                         :orientation="props.orientation || null" :width="200" :height="200" />
                 </div>
-                <q-btn flat round icon="chevron_right" @click="nextStone" />
+                <q-btn flat round icon="chevron_right" @click="nextStone.trigger" />
             </div>
 
             <div>
@@ -41,7 +41,7 @@
 import { useWallsStore } from 'stores/walls'
 import { toDisplayedProperties, getDimensionsColumn, dimensionsColumnsStones } from 'src/utils/properties'
 import MicrostructureView from 'src/components/MicrostructureView.vue'
-import { useReactiveAction } from 'src/reactiveCache/vue/composables';
+import { useLazyGenerator, useReactiveGenerator, useReactiveResult } from 'unwrapped/vue';
 
 const wallsStore = useWallsStore();
 const stonePropertiesStore = useStonePropertiesStore();
@@ -55,34 +55,28 @@ const props = defineProps<{
 
 const index = ref(0);
 
-const stonesPropertiesTable = useReactiveAction(props.wallId, (wallId) => stonePropertiesStore.getProperties(wallId));
-const stonesList = useReactiveAction(props.wallId, (wallId: string) => wallsStore.getWallStonesList(wallId));
-const currentStone = useReactiveAction(index, (i: number) => getStoneAtIndex(i));
+const stonesPropertiesTable = useReactiveResult(() => props.wallId, (wallId) => stonePropertiesStore.getProperties(wallId));
+const stonesList = useReactiveResult(() => props.wallId, (wallId: string) => wallsStore.getWallStonesList(wallId));
+
+const currentStone = useReactiveGenerator(index, function* (i: number) {
+    const stones = yield* stonesList.value;
+    return yield* wallsStore.getWallStoneModelFromStoneListAndIndex(true, stones, i, {
+        after: props.preloadNext || 0,
+        before: props.preloadPrevious || 0,
+    });
+});
+const nextStone = useLazyGenerator(function* () {
+    const stones = yield* stonesList.value;
+    index.value = (index.value + 1) % stones.files.length;
+});
+const previousStone = useLazyGenerator(function* () {
+    const stones = yield* stonesList.value;
+    index.value = (index.value - 1 + stones.files.length) % stones.files.length;
+});
 
 defineExpose({
     currentStone,
 });
-
-function nextStone() {
-    const stones = stonesList.value.unwrapOrNull();
-    if (!stones) return;
-    index.value = (index.value + 1) % stones.files.length;
-}
-
-function previousStone() {
-    const stones = stonesList.value.unwrapOrNull();
-    if (!stones) return;
-    index.value = (index.value - 1 + stones.files.length) % stones.files.length;
-}
-
-function getStoneAtIndex(i: number) {
-    return stonesList.value.flatChain((stones) => {
-        return wallsStore.getWallStoneModelFromStoneListAndIndex(true, stones, i, {
-            after: props.preloadNext || 0,
-            before: props.preloadPrevious || 0,
-        })
-    });
-}
 
 const currentStoneProperties = computed(() => {
     const table = stonesPropertiesTable.value.unwrapOrNull();

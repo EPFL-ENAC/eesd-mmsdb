@@ -23,10 +23,8 @@ import * as echarts from 'echarts'
 import { usePropertiesStore } from 'stores/properties'
 import { useCorrelationsFiltersStore } from 'stores/correlations_filters'
 import LoadingOverlay from 'src/components/LoadingOverlay.vue';
-import { useReactiveAction } from 'src/reactiveCache/vue/composables';
-import { AsyncResult } from 'src/reactiveCache/core/asyncResult';
-import { ErrorBase } from 'src/reactiveCache/core/error';
-import { Result } from 'src/reactiveCache/core/result';
+import { useReactiveAction } from 'unwrapped/vue';
+import { AsyncResult, ErrorBase, Result } from 'unwrapped/core';
 
 interface ScatterDataItem {
   value: [number, number];

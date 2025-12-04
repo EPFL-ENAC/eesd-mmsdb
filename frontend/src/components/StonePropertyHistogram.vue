@@ -11,7 +11,7 @@
 
 <script setup lang="ts">
 import * as echarts from 'echarts'
-import { useReactiveAction } from 'src/reactiveCache/vue/composables';
+import { useReactiveAction } from 'unwrapped/vue';
 import type { StaticTable } from 'src/utils/table';
 
 interface Props {

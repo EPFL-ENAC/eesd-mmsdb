@@ -59,8 +59,8 @@ import CitationItem from 'src/components/CitationItem.vue';
 import contactLinks from 'src/assets/contact_links.json';
 import acknowledgementsLinks from 'src/assets/acknowledgements_links.json';
 import citationItems from 'src/assets/citation_items.json';
-import { useAsyncResultRef } from 'src/reactiveCache/vue/composables';
-import { Result } from 'src/reactiveCache/core/result';
+import { useAsyncResultRef } from 'unwrapped/vue';
+import { Result } from 'unwrapped/core';
 
 const route = useRoute();
 
