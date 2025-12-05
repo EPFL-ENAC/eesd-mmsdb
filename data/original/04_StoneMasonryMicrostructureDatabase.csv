@@ -1,3 +1,37 @@
-version https://git-lfs.github.com/spec/v1
-oid sha256:30def1ce307e813c7e4c9861ae8f5bfd1908fe8fcdbc0e10956d8757d4f1bcc4
-size 5123
+Sr.No,Wall ID,Reference,Wall ID in original publication,Mechanical properties reference,Length [cm],Height [cm],Width [cm],No of leaves,Wall volume [m^3],Stones Volume [m^3],Percentage of volumetric stone ratio,Average shape factor,Average vertical LMT,Average horizontal LMT,Average LMT for wall leaf connection,Typology based on Italian Code,Vertical_GMQI,In-plane_GMQI,Out-of-plane_GMQI,Vertical loading_GMQI_class,In-plane_GMQI_class,Out-of-plane_GMQI_class,Microstructure type,Not Fulfill (l<20 cm) [%],Partial Fulfill (20cm-40cm) [%],Fulfill (l>40cm) [%],Orientation (Up and Front)
+1,OC01,Oreb et al. 2024,W1,Oreb et al. 2025,98,100,49,2,0.48,0.19,39.28,0.47,1.35,1.11,1.48,C,3.13,2.5,3.33,B,C,C,Real,44.04,54.13,1.83,FR
+2,OM01,Ortega et al. 2023,Wall 1,Ortega et al. 2024,65,92,45,2,0.27,0.15,57.6,0.57,1.35,1.08,1.47,C,3.13,2.5,3.33,B,C,C,Real,11.76,82.35,5.88,FR
+3,OM02,Ortega et al. 2023,Wall 2,Ortega et al. 2024,66,92,45,2,0.27,0.14,52.61,0.56,1.28,1.08,1.21,C,1.88,1.25,1.67,C,C,C,Real,10.71,89.29,0,FR
+4,OM03,Ortega et al. 2023,Wall 3,Ortega et al. 2024,63,92,44,2,0.26,0.14,54.85,0.58,1.23,1.09,1.17,C,1.88,1.25,1.67,C,C,C,Real,6.9,89.66,3.45,FR
+5,OM04,Ortega et al. 2023,Wall 4,Ortega et al. 2024,70,80,50,2,0.28,0.26,91.74,1,1.56,1.01,1.33,E,8.75,6.88,7.22,A,A,A,Real,0,100,0,FR
+6,OM05,Ortega et al. 2023,Wall 5,Ortega et al. 2024,70,80,50,2,0.28,0.26,91.74,1,1.56,1,1.32,E,8.75,6.88,7.22,A,A,A,Real,0,100,0,FR
+7,OM06,Ortega et al. 2023,Wall 6,Ortega et al. 2024,70,80,50,2,0.28,0.26,91.74,1,1.56,1,1.32,E,8.75,6.88,7.22,A,A,A,Real,0,100,0,FR
+8,SS01,Saloustros et al. 2023,SW1,Saloustros et al. 2024,75,71,44,3,0.23,0.1,42.31,0.42,1.33,1.14,1.41,A,1.25,1.25,1.67,C,C,C,Real,0,100,0,FR
+9,SS02,Saloustros et al. 2023,SW2,Saloustros et al. 2024,77,74,46,3,0.26,0.1,37.43,0.41,1.28,1.12,1.29,A,1.25,1.25,1.67,C,C,C,Real,0,100,0,FR
+10,SS03,Saloustros et al. 2023,SW3,Saloustros et al. 2024,79,73,45,3,0.26,0.1,39.27,0.43,1.27,1.13,1.3,A,1.25,1.25,1.67,C,C,C,Real,0,100,0,FR
+11,SS04,Saloustros et al. 2023,MW1,Saloustros et al. 2024,149,144,48,3,1.03,0.38,36.8,0.41,1.28,1.12,1.9,A,1.25,2.5,3.33,C,C,C,Real,0,100,0,FR
+12,SS05,Saloustros et al. 2023,MW3,Saloustros et al. 2024,149,140,48,3,1,0.37,36.99,0.42,1.28,1.12,1.26,A,1.25,1.25,1.67,C,C,C,Real,53.75,46.25,0,LF
+13,SB01,Shaqfa & Beyer 2022,-,,92,91,25,1,0.2,0.11,54.24,0.74,1.41,1.05,-,E,8.75,8.13,8.89,A,A,A,Virtual,13.33,86.67,0,LF
+14,SB02,Shaqfa & Beyer 2022,-,,90,90,24,1,0.19,0.1,51.86,0.74,1.38,1.05,-,E,8.13,6.88,8.33,A,A,A,Virtual,100,0,0,LF
+15,SB03,Shaqfa & Beyer 2022,-,,91,91,23,1,0.19,0.1,54.38,0.75,1.45,1.05,-,E,8.75,8.13,8.89,A,A,A,Virtual,100,0,0,LF
+16,SB04,Shaqfa & Beyer 2022,-,,149,91,25,1,0.33,0.18,52.8,0.74,1.42,1.05,-,E,8.75,8.13,8.89,A,A,A,Virtual,100,0,0,LF
+17,SB05,Shaqfa & Beyer 2022,-,,150,164,20,1,0.49,0.29,58.52,0.74,1.29,1.06,-,E,8.13,6.88,8.33,A,A,A,Virtual,73.91,26.09,0,LF
+18,SB06,Shaqfa & Beyer 2022,-,,157,126,10,1,0.2,0.16,78.88,1,1.93,1,-,F,9.38,9.38,9.44,A,A,A,Virtual,70.31,29.69,0,LF
+19,SB07,Shaqfa & Beyer 2022,-,,90,71,40,3,0.25,0.11,41.24,0.5,1.33,1.11,1,B,1.25,0.63,1.11,C,C,C,Virtual,77.37,22.63,0,LF
+20,SB08,Shaqfa & Beyer 2022,-,,90,94,40,3,0.34,0.15,42.72,0.51,1.24,1.11,1.03,B,1.25,0.63,1.11,C,C,C,Virtual,67.86,32.14,0,LF
+21,SB09,Shaqfa & Beyer 2022,-,,93,94,38,3,0.33,0.14,43.07,0.54,1.28,1.11,1.01,B,1.25,0.63,1.11,C,C,C,Virtual,73.47,26.53,0,LF
+22,SB10,Shaqfa & Beyer 2022,-,,90,63,28,2,0.16,0.11,66.9,0.81,1.61,1.03,1.26,E,8.13,6.25,6.67,A,A,B,Virtual,70.49,29.51,0,LF
+23,SB11,Shaqfa & Beyer 2022,-,,150,94,28,2,0.4,0.23,57.96,0.81,1.5,1.04,1,E,6.88,5,5,A,B,B,Virtual,70.99,29.01,0,LF
+24,SB12,Shaqfa & Beyer 2022,-,,93,93,30,3,0.26,0.11,40.92,0.55,1.27,1.13,1.01,B,0,0,0,C,C,C,Virtual,100,0,0,LF
+25,SB13,Shaqfa & Beyer 2022,-,,92,88,30,3,0.24,0.09,37.13,0.52,1.24,1.14,1.02,B,0,0,0,C,C,C,Virtual,74.82,25.18,0,LF
+26,SB14,Shaqfa & Beyer 2022,-,,92,70,30,3,0.19,0.09,47.7,0.61,1.4,1.07,1,B,3.13,1.88,2.22,B,C,C,Virtual,81.82,18.18,0,LF
+27,SB15,Shaqfa & Beyer 2022,-,,92,95,30,3,0.26,0.12,45.95,0.58,1.46,1.09,1.02,B,3.75,3.13,2.78,B,B,C,Virtual,82.53,17.47,0,LF
+28,SB16,Shaqfa & Beyer 2022,-,,92,83,30,3,0.23,0.12,53.16,0.73,1.29,1.08,1.02,C,3.13,1.88,2.22,B,C,C,Virtual,80,20,0,LF
+29,SB17,Shaqfa & Beyer 2022,-,,152,139,40,3,0.84,0.34,40.13,0.51,1.21,1.12,1.02,B,1.25,0.63,1.11,C,C,C,Virtual,79.1,20.9,0,LF
+30,WS01,Wang et al. 2024,-,,74,71,42,3,0.22,0.09,41.64,0.41,1.3,1.15,1.19,A,0,0,0,C,C,C,Virtual,75,25,0,LB
+31,WS02,Wang et al. 2024,-,,76,71,44,3,0.24,0.09,36.59,0.41,1.32,1.13,1.21,A,0,0,0,C,C,C,Virtual,75.59,24.41,0,LB
+32,WS03,Wang et al. 2024,-,,75,71,43,3,0.23,0.09,39.72,0.42,1.36,1.13,1.15,A,0,0,0,C,C,C,Virtual,73.44,26.56,0,LB
+33,WS04,Wang et al. 2024,-,,76,71,44,3,0.24,0.09,36.49,0.41,1.34,1.13,1.13,A,0,0,0,C,C,C,Virtual,72.58,27.42,0,LB
+34,WS05,Wang et al. 2024,-,,75,71,43,3,0.23,0.09,39.37,0.41,1.33,1.13,1.11,A,0,0,0,C,C,C,Virtual,73.85,26.15,0,LB
+35,WS06,Wang et al. 2024,-,,77,70,46,3,0.25,0.1,39.42,0.4,1.26,1.14,1.27,A,1.25,1.25,1.67,C,C,C,Virtual,78.32,21.68,0,LB
+36,WS07,Wang et al. 2024,-,,78,72,45,3,0.25,0.1,39.93,0.42,1.29,1.13,1.13,A,0,0,0,C,C,C,Virtual,81.1,18.9,0,LB
