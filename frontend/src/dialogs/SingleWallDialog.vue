@@ -55,17 +55,30 @@
       <q-card v-if="selectedWallCitation || selectedWallMechanicalPropsCitation" class="q-ma-sm q-mt-xl">
         <q-card-section>
           <div class="text-h6">References</div>
-          <citation-item
-            v-if="selectedWallCitation"
-            v-bind="selectedWallCitation"
-            class="q-mt-xs q-mb-xs"
-          />
 
-          <citation-item
+          <div
+            v-if="selectedWallCitation"
+            class="q-mt-sm q-mb-sm"
+          >
+            <b>Source of microstructure data:</b>
+            <citation-item
+              v-if="selectedWallCitation"
+              v-bind="selectedWallCitation"
+              class="q-mt-xs q-mb-xs"
+            />
+          </div>
+
+          <div
             v-if="selectedWallMechanicalPropsCitation"
-            v-bind="selectedWallMechanicalPropsCitation"
-            class="q-mt-xs q-mb-xs"
-          />
+            class="q-mt-sm q-mb-sm"
+          >
+            <b>Mechanical properties measurements:</b>
+            <citation-item
+              v-if="selectedWallMechanicalPropsCitation"
+              v-bind="selectedWallMechanicalPropsCitation"
+              class="q-mt-xs q-mb-xs"
+            />
+          </div>
         </q-card-section>
       </q-card>
     </div>
