@@ -16,14 +16,15 @@ export const toDisplayedProperties = (propertiesStore: Store, index: number) => 
 
   // Special cases for numeric values
   if (!isNaN(floatValue)) {
-    if (unit === 'm³' && floatValue < 0.01) {
-      // convert value to cm³ to avoid rounding to 0.00m³
+    if (["Stone volume [m^3]", "Bounding box volume [m^3]"].includes(col.name) && unit === 'm³') {
+      // convert value to cm³
       floatValue = floatValue * 1e6
       unit = 'cm³'
     }
-  
+
     if (precision !== undefined) {
-      const numberValue = Math.floor(floatValue * Math.pow(10, precision)) / Math.pow(10, precision) // Should this be .toFixed(precision) ?
+      // Use this instead of `.toFixed(precision)` to have 123.4 instead of 123.400
+      const numberValue = Math.floor(floatValue * Math.pow(10, precision)) / Math.pow(10, precision)
       value = numberValue.toString()
     }
   }
