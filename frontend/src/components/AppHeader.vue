@@ -44,11 +44,14 @@
 
 
   <simple-dialog v-model="showAcknowledgements" :title="t('acknowledgements')">
-    <q-list separator class="q-mt-md">
-    </q-list>
-    <q-list separator class="q-mt-md">
-      <essential-link v-for="link in acknowledgementsLinks" :key="link.title" v-bind="link" />
-    </q-list>
+    <div>
+      <p>
+      Thanks to <a href="https://www.epfl.ch/schools/enac/about/data-at-enac/enac-it4research/">ENAC-IT4R</a> for developing the web-based interfaces, visualization features and search capabilities.
+      </p>
+      <p>
+      This work was financed by <a href="https://www.snf.ch/fr">Swiss National Science Foundation (SNSF)</a> grant as part of the ETH Domain’s ORD program.
+      </p>
+    </div>
   </simple-dialog>
 </template>
 
@@ -57,7 +60,6 @@ import SimpleDialog from 'src/components/SimpleDialog.vue';
 import EssentialLink from 'src/components/EssentialLink.vue';
 import CitationItem from 'src/components/CitationItem.vue';
 import contactLinks from 'src/assets/contact_links.json';
-import acknowledgementsLinks from 'src/assets/acknowledgements_links.json';
 import citationItems from 'src/assets/citation_items.json';
 import { useAsyncResultRef } from 'unwrapped/vue';
 import { Result } from 'unwrapped/core';

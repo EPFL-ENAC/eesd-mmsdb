@@ -5,6 +5,12 @@
       <div class="q-mt-md">
         <q-list>
           <essential-link
+            title="EPFL"
+            caption="epfl.ch"
+            link="https://www.epfl.ch"
+            icon="school"
+          />
+          <essential-link
             title="EESD Laboratory"
             caption="epfl.ch/labs/eesd"
             link="https://www.epfl.ch/labs/eesd/"
@@ -15,6 +21,12 @@
             caption="go.epfl.ch/it4r"
             link="https://go.epfl.ch/it4r"
             icon="construction"
+          />
+          <essential-link
+            title="Source Code"
+            caption="epfl-enac/eesd-mmsdb"
+            link="https://github.com/EPFL-ENAC/eesd-mmsdb"
+            icon="code"
           />
         </q-list>
       </div>
