@@ -23,7 +23,7 @@ import * as echarts from 'echarts'
 import { usePropertiesStore } from 'stores/properties'
 import { useCorrelationsFiltersStore } from 'stores/correlations_filters'
 import LoadingOverlay from 'src/components/LoadingOverlay.vue';
-import { useReactiveAction } from 'unwrapped/vue';
+import { useReactiveChain } from 'unwrapped/vue';
 import { AsyncResult, ErrorBase, Result } from 'unwrapped/core';
 
 interface ScatterDataItem {
@@ -40,7 +40,7 @@ let chartInstance: echarts.ECharts | null = null
 
 const selectedCategories = ref<{ [key: string]: boolean }>({})
 
-const correlationParams = useReactiveAction(
+const correlationParams = useReactiveChain(
   () => [correlationsFiltersStore.xColumn, correlationsFiltersStore.yColumn, selectedCategories.value],
   ([xColumn, yColumn, selCategories]) => {
     if (!xColumn || !yColumn) {

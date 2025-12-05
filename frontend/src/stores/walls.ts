@@ -157,7 +157,7 @@ export const useWallsStore = defineStore('walls', () => {
     loadingImages.value[wallId] = true;
 
     try {
-      const imageData = await getWallImage(wallId).unwrapOrThrowOnceSettled();
+      const imageData = await getWallImage(wallId).toValueOrThrowPromise();
       if (imageData) {
         const blob = new Blob([imageData], { type: 'image/png' });
         wallImages.value[wallId] = URL.createObjectURL(blob);
