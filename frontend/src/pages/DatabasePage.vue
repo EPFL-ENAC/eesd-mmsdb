@@ -80,6 +80,16 @@
           <wall-files-downloader :wallId="selectedWallId" />
         </div>
       </div>
+
+      <q-card v-if="selectedWallCitation" class="q-ma-sm q-mt-xl">
+        <q-card-section>
+          <div class="text-h6">References</div>
+          <citation-item
+            v-bind="selectedWallCitation"
+            class="q-mt-xs q-mb-xs"
+          />
+        </q-card-section>
+      </q-card>
     </simple-dialog>
   </q-page>
 </template>
@@ -95,6 +105,9 @@ import StoneCarousel from 'src/components/StoneCarousel.vue'
 import SimpleDialog from 'src/components/SimpleDialog.vue'
 import StonePropertyHistogram from 'src/components/StonePropertyHistogram.vue'
 import WallFilesDownloader from 'src/components/WallFilesDownloader.vue'
+import CitationItem from 'src/components/CitationItem.vue';
+import type { CitationItem as CitationItemType } from 'src/models.ts';
+import citationItems from 'src/assets/wall_citation_items.json';
 import { useReactiveAction } from 'unwrapped/vue'
 import { SpinnerLoader } from 'src/components/utils/presets'
 
@@ -141,6 +154,14 @@ const selectedWallProperties = computed(() => {
 
   return p
 })
+
+const selectedWallCitation = computed(() => {
+  if (!selectedWallId.value) return null;
+  const citationKey = propertiesStore.getWallPropertyOrNull(selectedWallId.value, "Reference");
+  if (!citationKey || !(citationKey in citationItems)) return null;
+  const citation = (citationItems as Record<string, CitationItemType>)[citationKey];
+  return citation;
+});
 
 onMounted(async () => {
   await Promise.all(allWallIds.value.map(wallId => wallsStore.loadWallImage(wallId)))

@@ -6,14 +6,8 @@
 </template>
 
 <script setup lang="ts">
-export interface CitationItemProps {
-  authors: string;
-  title: string;
-  journal: string;
-  year?: string;
-  doi?: string;
-  type?: string;
-}
+import type { CitationItem as CitationItemProps } from 'src/models.ts'
+
 withDefaults(defineProps<CitationItemProps>(), {
   year: '',
   doi: '',

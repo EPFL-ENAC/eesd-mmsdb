@@ -73,7 +73,7 @@ const showAcknowledgements = ref(false);
 
 const propertiesStore = usePropertiesStore()
 const totalWalls = useAsyncResultRef(propertiesStore.getColumnValues("Wall ID").chain(values => Result.ok(values.length)));
-const numberOfSources = useAsyncResultRef(propertiesStore.getColumnValues("Reference ID").chain(values => Result.ok(new Set(values).size)));
+const numberOfSources = useAsyncResultRef(propertiesStore.getColumnValues("Reference").chain(values => Result.ok(new Set(values).size)));
 
 </script>
 
