@@ -1,6 +1,9 @@
 <template>
   <q-item clickable tag="a" target="_blank" :href="link">
-    <q-item-section v-if="icon" avatar>
+    <q-item-section v-if="image" avatar>
+      <q-img :src="image" :alt="title" height="100px" width="100px" rounded class="image-avatar" />
+    </q-item-section>
+    <q-item-section v-else-if="icon" avatar>
       <q-icon :name="icon" />
     </q-item-section>
 
@@ -18,6 +21,7 @@ export interface EssentialLinkProps {
   caption?: string;
   contribution?: string;
   link?: string;
+  image?: string;
   icon?: string;
 }
 withDefaults(defineProps<EssentialLinkProps>(), {
@@ -27,3 +31,9 @@ withDefaults(defineProps<EssentialLinkProps>(), {
 });
 const { t } = useI18n();
 </script>
+
+<style scoped>
+.image-avatar {
+  border-radius: 50%;
+}
+</style>
