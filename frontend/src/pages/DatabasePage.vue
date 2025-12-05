@@ -81,11 +81,18 @@
         </div>
       </div>
 
-      <q-card v-if="selectedWallCitation" class="q-ma-sm q-mt-xl">
+      <q-card class="q-ma-sm q-mt-xl">
         <q-card-section>
           <div class="text-h6">References</div>
           <citation-item
+            v-if="selectedWallCitation"
             v-bind="selectedWallCitation"
+            class="q-mt-xs q-mb-xs"
+          />
+
+          <citation-item
+            v-if="selectedWallMechanicalPropsCitation"
+            v-bind="selectedWallMechanicalPropsCitation"
             class="q-mt-xs q-mb-xs"
           />
         </q-card-section>
@@ -158,6 +165,14 @@ const selectedWallProperties = computed(() => {
 const selectedWallCitation = computed(() => {
   if (!selectedWallId.value) return null;
   const citationKey = propertiesStore.getWallPropertyOrNull(selectedWallId.value, "Reference");
+  if (!citationKey || !(citationKey in citationItems)) return null;
+  const citation = (citationItems as Record<string, CitationItemType>)[citationKey];
+  return citation;
+});
+
+const selectedWallMechanicalPropsCitation = computed(() => {
+  if (!selectedWallId.value) return null;
+  const citationKey = propertiesStore.getWallPropertyOrNull(selectedWallId.value, "Mechanical properties reference");
   if (!citationKey || !(citationKey in citationItems)) return null;
   const citation = (citationItems as Record<string, CitationItemType>)[citationKey];
   return citation;

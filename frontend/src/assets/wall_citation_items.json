@@ -6,11 +6,24 @@
     "year": "2024",
     "doi": "10.1051/matecconf/202440306004"
   },
+  "Oreb et al. 2025": {
+    "authors": "J. Oreb, H. Curić, I. Tomić, and K. Beyer",
+    "title": "Experimental assessment of strength, stiffness, and drift capacity in masonry walls made from reclaimed concrete demolition waste",
+    "journal": "Construction and Building Materials 497",
+    "year": "2025"
+  },
   "Ortega et al. 2023": {
     "authors": "J. Ortega, M. F. Meersman, S. Aparicio, J. C. Liébana, R. Martín, J. J. Anaya, and M. González",
     "title": "An automated sonic tomography system for the inspection of historical masonry walls",
     "journal": "Open Research Europe 3",
     "year": "2023",
+    "doi": "10.12688/openreseurope.15769.1"
+  },
+  "Ortega et al. 2024": {
+    "authors": "J. Ortega, M. F. Meersman, S. Aparicio, J. C. Liébana, J. J. Anaya, and M. González",
+    "title": "Influence of stress level and damage on sonic tomography imaging and on the estimation of deformability properties of historic stone masonry",
+    "journal": "Construction and Building Materials 417",
+    "year": "2024",
     "doi": "10.12688/openreseurope.15769.1"
   },
   "Saloustros et al. 2023": {
@@ -19,6 +32,12 @@
     "journal": "Scientific Data 10",
     "year": "2023",
     "doi": "10.1038/s41597-023-02417-3"
+  },
+  "Saloustros et al. 2024": {
+    "authors": "S. Saloustros and K. Beyer",
+    "title": "Experimental Investigation on Size-Effect of Rubble Stone Masonry Walls Under In-Plane Horizontal Loading: Overview and Preliminary Results",
+    "journal": "ed. by TE Yohei & Hanazato. Springer Nature Switzerland",
+    "year": "2024"
   },
   "Shaqfa & Beyer 2022": {
     "authors": "M. Shaqfa and K. Beyer",

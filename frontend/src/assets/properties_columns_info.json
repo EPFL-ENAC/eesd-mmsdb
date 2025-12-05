@@ -20,6 +20,11 @@
     "type": "string"
   },
   {
+    "key": "Mechanical properties reference",
+    "label": "Mechanical properties reference",
+    "type": "string"
+  },
+  {
     "key": "Length [cm]",
     "label": "Length",
     "unit": "cm",
