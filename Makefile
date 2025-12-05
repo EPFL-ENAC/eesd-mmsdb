@@ -1,11 +1,11 @@
 install:
-	pre-commit install --install-hooks
+	uvx pre-commit install --install-hooks
 	cd backend && make install
 	cd frontend && npm install
 	touch .env
 
 lint:
-	pre-commit run --all-files
+	uvx pre-commit run --all-files
 	cd frontend && npm run lint && npm run format
 
 run-backend:
