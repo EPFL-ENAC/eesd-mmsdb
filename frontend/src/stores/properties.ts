@@ -83,7 +83,9 @@ export const usePropertiesStore = defineStore('properties', () => {
   }
 
   const getWallPropertyOrNull = (wallID: string, propertyKey: string): string | null => {
+    console.log(wallID)
     const table = propertiesResult.value.unwrapOrNull();
+    console.log("table", table);
     if (!table) {
       return null;
     }

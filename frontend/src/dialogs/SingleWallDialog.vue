@@ -51,6 +51,23 @@
         <div class="text-h6 q-mb-md">Download</div>
         <wall-files-downloader :wallId="selectedWallId" />
       </div>
+
+      <q-card v-if="selectedWallCitation || selectedWallMechanicalPropsCitation" class="q-ma-sm q-mt-xl">
+        <q-card-section>
+          <div class="text-h6">References</div>
+          <citation-item
+            v-if="selectedWallCitation"
+            v-bind="selectedWallCitation"
+            class="q-mt-xs q-mb-xs"
+          />
+
+          <citation-item
+            v-if="selectedWallMechanicalPropsCitation"
+            v-bind="selectedWallMechanicalPropsCitation"
+            class="q-mt-xs q-mb-xs"
+          />
+        </q-card-section>
+      </q-card>
     </div>
   </simple-dialog>
 </template>
@@ -67,6 +84,9 @@ import StonePropertyHistogram from 'src/components/StonePropertyHistogram.vue'
 import WallFilesDownloader from 'src/components/WallFilesDownloader.vue'
 import { useReactiveAction } from 'unwrapped/vue'
 import { SpinnerLoader } from 'src/components/utils/presets'
+import citationItems from 'src/assets/wall_citation_items.json'
+import CitationItem from 'src/components/CitationItem.vue';
+import type { CitationItem as CitationItemType } from 'src/models.ts';
 
 const propertiesStore = usePropertiesStore()
 const stonePropertiesStore = useStonePropertiesStore()
@@ -113,6 +133,22 @@ const selectedWallProperties = computed(() => {
   })
 
   return p
+})
+
+const selectedWallCitation = computed(() => {
+  if (!selectedWallId.value) return null
+  const citationKey = propertiesStore.getWallPropertyOrNull(selectedWallId.value, "Reference")
+  if (!citationKey || !(citationKey in citationItems)) return null
+  const citation = (citationItems as Record<string, CitationItemType>)[citationKey]
+  return citation
+})
+
+const selectedWallMechanicalPropsCitation = computed(() => {
+  if (!selectedWallId.value) return null
+  const citationKey = propertiesStore.getWallPropertyOrNull(selectedWallId.value, "Mechanical properties reference")
+  if (!citationKey || !(citationKey in citationItems)) return null
+  const citation = (citationItems as Record<string, CitationItemType>)[citationKey]
+  return citation
 })
 </script>
 
