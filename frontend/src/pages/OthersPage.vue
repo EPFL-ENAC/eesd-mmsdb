@@ -1,5 +1,5 @@
 <template>
-  <q-page>
+  <q-page class="max-width">
     <div class="q-pa-md">
       <div class="text-h3 q-mb-md">Related projects</div>
       <q-list>

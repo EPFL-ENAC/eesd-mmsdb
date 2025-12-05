@@ -18,7 +18,7 @@
 
     <parallel-categories-diagram/>
 
-    <q-card class="q-ma-lg q-mt-xl">
+    <q-card class="q-ma-lg q-mt-xl max-width">
       <q-card-section>
         <div class="text-h6">{{ t('citation_text') }}</div>
         <citation-item

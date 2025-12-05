@@ -3,6 +3,12 @@ html {
   overflow-y: scroll;  // Always show vertical scrollbar to prevent layout shifting
 }
 
+.max-width {
+  max-width: 900px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
 a.q-markdown--link,
 a.epfl {
   text-decoration: underline;
