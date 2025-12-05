@@ -1,3 +1,12 @@
+export interface CitationItem {
+  authors: string;
+  title: string;
+  journal: string;
+  year?: string;
+  doi?: string;
+  type?: string;
+}
+
 export interface ColumnInfo {
   key: string;
   label: string;

@@ -68,14 +68,14 @@
     "label": "Volume",
     "type": "float",
     "unit": "m³",
-    "precision": 2
+    "precision": 0
   },
   {
     "key": "Bounding box volume [m^3]",
     "label": "Bounding box volume",
     "type": "float",
     "unit": "m³",
-    "precision": 2
+    "precision": 0
   },
   {
     "key": "Shape factor [-]",

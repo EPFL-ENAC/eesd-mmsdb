@@ -22,7 +22,7 @@
       <q-card-section>
         <div class="text-h6">{{ t('citation_text') }}</div>
         <citation-item
-          v-for="item in citationItems"
+          v-for="item in Object.values(citationItems)"
           :key="item.title"
           v-bind="item"
           class="q-mt-xs q-mb-xs"

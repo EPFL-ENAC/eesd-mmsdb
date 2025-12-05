@@ -1,0 +1,58 @@
+{
+  "Oreb et al. 2024": {
+    "authors": "J. Oreb, H. Curić, I. Tomić, and K. Beyer",
+    "title": "Masonry walls from reclaimed concrete demolition waste",
+    "journal": "MATEC Web of Conferences, ed. by P. Lourenço, M. Azenha, and J. Pereira. Vol. 403",
+    "year": "2024",
+    "doi": "10.1051/matecconf/202440306004"
+  },
+  "Oreb et al. 2025": {
+    "authors": "J. Oreb, H. Curić, I. Tomić, and K. Beyer",
+    "title": "Experimental assessment of strength, stiffness, and drift capacity in masonry walls made from reclaimed concrete demolition waste",
+    "journal": "Construction and Building Materials 497",
+    "year": "2025",
+    "doi": "10.1016/j.conbuildmat.2025.142964"
+  },
+  "Ortega et al. 2023": {
+    "authors": "J. Ortega, M. F. Meersman, S. Aparicio, J. C. Liébana, R. Martín, J. J. Anaya, and M. González",
+    "title": "An automated sonic tomography system for the inspection of historical masonry walls",
+    "journal": "Open Research Europe 3",
+    "year": "2023",
+    "doi": "10.12688/openreseurope.15769.1"
+  },
+  "Ortega et al. 2024": {
+    "authors": "J. Ortega, M. F. Meersman, S. Aparicio, J. C. Liébana, J. J. Anaya, and M. González",
+    "title": "Influence of stress level and damage on sonic tomography imaging and on the estimation of deformability properties of historic stone masonry",
+    "journal": "Construction and Building Materials 417",
+    "year": "2024",
+    "doi": "10.1016/j.conbuildmat.2024.135285"
+  },
+  "Saloustros et al. 2023": {
+    "authors": "S. Saloustros, A. Settimi, A. C. Ascencio, J. Gamerro, Y. Weinand, and K. Beyer",
+    "title": "Geometrical digital twins of the as-built microstructure of three-leaf stone masonry walls with laser scanning",
+    "journal": "Scientific Data 10",
+    "year": "2023",
+    "doi": "10.1038/s41597-023-02417-3"
+  },
+  "Saloustros et al. 2024": {
+    "authors": "S. Saloustros and K. Beyer",
+    "title": "Experimental Investigation on Size-Effect of Rubble Stone Masonry Walls Under In-Plane Horizontal Loading: Overview and Preliminary Results",
+    "journal": "ed. by TE Yohei & Hanazato. Springer Nature Switzerland",
+    "year": "2024",
+    "doi": "10.1007/978-3-031-39603-8_38"
+  },
+  "Shaqfa & Beyer 2022": {
+    "authors": "M. Shaqfa and K. Beyer",
+    "title": "A virtual microstructure generator for 3D stone masonry walls",
+    "journal": "European Journal of Mechanics - A/Solids 96",
+    "year": "2022",
+    "doi": "10.1016/j.euromechsol.2022.104656"
+  },
+  "Wang et al. 2024": {
+    "authors": "Q. Wang, K. R. dos Santos, and K. Beyer",
+    "title": "Geometric planning for masonry wall construction with natural stones using discrete convolution",
+    "journal": "Engineering Structures 329",
+    "year": "2025",
+    "doi": "10.1016/j.engstruct.2025.119695"
+  }
+}

@@ -122,7 +122,8 @@ let sliceClipPlane: THREE.Plane | undefined = undefined
 let animationId: number
 let worldTranslate: THREE.Vector3
 let worldScale: number
-
+let geometrySizeX: number
+let geometrySizeZ: number
 
 let sliceScene: THREE.Scene
 let sliceCamera: THREE.OrthographicCamera
@@ -273,6 +274,10 @@ const loadPly = () => {
     geometry.translate(worldTranslate.x, worldTranslate.y, worldTranslate.z)
     geometry.scale(worldScale, worldScale, worldScale)
     fixOrientation(geometry)
+    const orientedBoundingBox = geometry.boundingBox!
+    const orientedSize = orientedBoundingBox.getSize(new THREE.Vector3())
+    geometrySizeX = orientedSize.x
+    geometrySizeZ = orientedSize.z
 
     const material = new THREE.MeshPhongMaterial({
       color: 0xefefee,
@@ -365,9 +370,9 @@ const animate = () => {
 
   if (sliceClipPlane) {
     if (swappedAxis.value) {
-      sliceClipPlane.constant = sliceCoord.value
+      sliceClipPlane.constant = sliceCoord.value * geometrySizeZ
     } else {
-      sliceClipPlane.constant = -sliceCoord.value
+      sliceClipPlane.constant = -sliceCoord.value * geometrySizeX
     }
   }
 
@@ -458,9 +463,9 @@ const downloadSlice = async () => {
     const link = document.createElement('a')
     link.href = url
     if (swappedAxis.value) {
-      link.download = `slice-x_${sliceCoord.value.toFixed(2)}.png`
+      link.download = `slice-x_${(sliceCoord.value * geometrySizeZ).toFixed(2)}.png`
     } else {
-      link.download = `slice-z_${(-sliceCoord.value).toFixed(2)}.png`
+      link.download = `slice-z_${(-sliceCoord.value * geometrySizeX).toFixed(2)}.png`
     }
 
     document.body.appendChild(link)
@@ -585,16 +590,16 @@ watch(() => props.plyDataHighlight, () => {
 watch(sliceCoord, () => {
   if (!slicePlane) return;
   if (swappedAxis.value) {
-    slicePlane.position.z = -sliceCoord.value;
+    slicePlane.position.z = -sliceCoord.value * geometrySizeZ;
   } else {
-    slicePlane.position.x = -sliceCoord.value;
+    slicePlane.position.x = -sliceCoord.value * geometrySizeX;
   }
 
   if (sliceClipPlane) {
     if (swappedAxis.value) {
-      sliceClipPlane.constant = sliceCoord.value;
+      sliceClipPlane.constant = sliceCoord.value * geometrySizeZ;
     } else {
-      sliceClipPlane.constant = -sliceCoord.value;
+      sliceClipPlane.constant = -sliceCoord.value * geometrySizeX;
     }
   }
 })

@@ -15,13 +15,13 @@
     "type": "string"
   },
   {
-    "key": "Reference ID",
-    "label": "Reference ID",
-    "type": "int"
-  },
-  {
     "key": "Wall ID in original publication",
     "label": "Wall ID in original publication",
+    "type": "string"
+  },
+  {
+    "key": "Mechanical properties reference",
+    "label": "Mechanical properties reference",
     "type": "string"
   },
   {

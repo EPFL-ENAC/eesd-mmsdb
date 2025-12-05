@@ -64,6 +64,22 @@ const wallImages = computed(() => wallsStore.wallImages)
 const loadingImages = computed(() => wallsStore.loadingImages)
 
 
+const selectedWallCitation = computed(() => {
+  if (!selectedWallId.value) return null;
+  const citationKey = propertiesStore.getWallPropertyOrNull(selectedWallId.value, "Reference");
+  if (!citationKey || !(citationKey in citationItems)) return null;
+  const citation = (citationItems as Record<string, CitationItemType>)[citationKey];
+  return citation;
+});
+
+const selectedWallMechanicalPropsCitation = computed(() => {
+  if (!selectedWallId.value) return null;
+  const citationKey = propertiesStore.getWallPropertyOrNull(selectedWallId.value, "Mechanical properties reference");
+  if (!citationKey || !(citationKey in citationItems)) return null;
+  const citation = (citationItems as Record<string, CitationItemType>)[citationKey];
+  return citation;
+});
+
 onMounted(async () => {
   await Promise.all(allWallIds.value.map(wallId => wallsStore.loadWallImage(wallId)))
 })
