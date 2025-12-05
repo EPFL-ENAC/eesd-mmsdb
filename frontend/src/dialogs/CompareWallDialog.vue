@@ -102,56 +102,6 @@ const tableRows = computed(() => {
 
 <style scoped>
 
-.wall-dialog-content {
-  max-width: 100%;
-}
-
-.microstructure-section {
-  text-align: center;
-}
-
-.microstructure-item {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 16px;
-}
-
-.microstructure-placeholder {
-  height: 400px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background-color: #f5f5f5;
-  border-radius: 8px;
-}
-
-.properties-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 16px;
-}
-
-.property-item {
-  padding: 12px;
-  border: 1px solid #e0e0e0;
-  border-radius: 8px;
-  background-color: #fafafa;
-}
-
-.property-name {
-  font-weight: 500;
-  color: #424242;
-  font-size: 0.875rem;
-  margin-bottom: 4px;
-}
-
-.property-value {
-  font-size: 1rem;
-  color: #1976d2;
-  font-weight: 600;
-}
-
 .table {
   /* constrain width for demo */
   max-width: 100%; 

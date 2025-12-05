@@ -21,7 +21,7 @@
           <q-card-section class="q-pa-none">
             <div class="card-header">
               <div class="wall-image-title q-ml-sm">{{ wallId }}</div>
-              <q-checkbox v-model="checkedWallIds" :val="wallId" color="primary" />
+              <q-checkbox v-model="checkedWallIds" :val="wallId" @click.stop color="primary" />
             </div>
           </q-card-section>
 
