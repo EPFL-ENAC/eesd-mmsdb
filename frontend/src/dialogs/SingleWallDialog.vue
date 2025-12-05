@@ -82,7 +82,7 @@ import StoneCarousel from 'src/components/StoneCarousel.vue'
 import SimpleDialog from 'src/components/SimpleDialog.vue'
 import StonePropertyHistogram from 'src/components/StonePropertyHistogram.vue'
 import WallFilesDownloader from 'src/components/WallFilesDownloader.vue'
-import { useReactiveAction } from 'unwrapped/vue'
+import { useReactiveChain } from 'unwrapped/vue'
 import { SpinnerLoader } from 'src/components/utils/presets'
 import citationItems from 'src/assets/wall_citation_items.json'
 import CitationItem from 'src/components/CitationItem.vue';
@@ -103,9 +103,9 @@ function open(wallId: string) {
 
 const showWallDialog = ref(false)
 const selectedWallId = ref<string | null>(null)
-const currentWallData = useReactiveAction(selectedWallId, (id) => wallsStore.getWall(true, id!), { immediate: false });
-const currentWallOrientation = useReactiveAction(selectedWallId, (id) => propertiesStore.getWallProperty(id!, "Orientation (Up and Front)"), { immediate: false });
-const currentWallMaxSize = useReactiveAction(selectedWallId, (id) => propertiesStore.getWallMaxSize(id!), { immediate: false })
+const currentWallData = useReactiveChain(() => selectedWallId.value, (id) => wallsStore.getWall(true, id as string), { immediate: false });
+const currentWallOrientation = useReactiveChain(() => selectedWallId.value, (id) => propertiesStore.getWallProperty(id as string, "Orientation (Up and Front)"), { immediate: false });
+const currentWallMaxSize = useReactiveChain(() => selectedWallId.value, (id) => propertiesStore.getWallMaxSize(id as string), { immediate: false })
 
 const dialogColumns = ["Microstructure type", "Typology based on Italian Code", "No of leaves", "Vertical loading_GMQI_class", "In-plane_GMQI_class", "Out-of-plane_GMQI_class", "Average vertical LMT", "Average horizontal LMT", "Average shape factor"]
 const stoneColumns = ["Stone length [m]", "Elongation [-]", "Aspect ratio [-]"]

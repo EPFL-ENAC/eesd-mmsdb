@@ -36,6 +36,13 @@ export interface CorrelationResult {
   outlier_indices: number[];
 }
 
+export interface LineComputeInputLineCoords {
+  startX: number;
+  startY: number;
+  endX: number;
+  endY: number;
+}
+
 export interface LineComputeParams {
   startX: number;
   startY: number;
@@ -69,6 +76,12 @@ export interface LineComputeResult {
     "length_scale": number,
     "height_scale": number,
   },
+}
+
+export interface LineComputeTrace {
+  params: LineComputeParams;
+  color: string;
+  result: LineComputeResult;
 }
 
 export interface WallStonesList {

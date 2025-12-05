@@ -42,15 +42,15 @@ import citationItems from 'src/assets/citation_items.json';
 import { useWallsStore } from 'src/stores/walls';
 import { usePropertiesStore } from 'src/stores/properties';
 import { SpinnerLoader } from 'src/components/utils/presets';
-import { useReactiveAction } from 'unwrapped/vue';
+import { useReactiveChain } from 'unwrapped/vue';
 
 const q = useQuasar();
 const wallsStore = useWallsStore();
 const propertiesStore = usePropertiesStore();
 const wallID = "OC01";
 const wallPlyData = wallsStore.getWall(true, wallID);
-const wallSize = useReactiveAction(wallID, (id) => propertiesStore.getWallMaxSize(id), { immediate: true });
-const wallOrientation = useReactiveAction(wallID, (id) => propertiesStore.getWallProperty(id, "Orientation (Up and Front)"), { immediate: true });
+const wallSize = useReactiveChain(() => wallID, (id) => propertiesStore.getWallMaxSize(id), { immediate: true });
+const wallOrientation = useReactiveChain(() => wallID, (id) => propertiesStore.getWallProperty(id, "Orientation (Up and Front)"), { immediate: true });
 
 const { t } = useI18n();
 </script>

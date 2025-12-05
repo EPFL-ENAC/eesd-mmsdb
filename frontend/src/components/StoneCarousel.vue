@@ -41,7 +41,7 @@
 import { useWallsStore } from 'stores/walls'
 import { toDisplayedProperties, getDimensionsColumn, dimensionsColumnsStones } from 'src/utils/properties'
 import MicrostructureView from 'src/components/MicrostructureView.vue'
-import { useLazyGenerator, useReactiveGenerator, useReactiveResult } from 'unwrapped/vue';
+import { useLazyGenerator, useReactiveGenerator, useReactiveChain } from 'unwrapped/vue';
 
 const wallsStore = useWallsStore();
 const stonePropertiesStore = useStonePropertiesStore();
@@ -55,8 +55,8 @@ const props = defineProps<{
 
 const index = ref(0);
 
-const stonesPropertiesTable = useReactiveResult(() => props.wallId, (wallId) => stonePropertiesStore.getProperties(wallId));
-const stonesList = useReactiveResult(() => props.wallId, (wallId: string) => wallsStore.getWallStonesList(wallId));
+const stonesPropertiesTable = useReactiveChain(() => props.wallId, (wallId) => stonePropertiesStore.getProperties(wallId));
+const stonesList = useReactiveChain(() => props.wallId, (wallId: string) => wallsStore.getWallStonesList(wallId));
 
 const currentStone = useReactiveGenerator(index, function* (i: number) {
     const stones = yield* stonesList.value;
