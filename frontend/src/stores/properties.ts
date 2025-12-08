@@ -92,6 +92,20 @@ export const usePropertiesStore = defineStore('properties', () => {
     return _getWallProperty(table, wallID, propertyKey).unwrapOrNull();
   }
 
+  const getWallDimensions = (wallID: string): AsyncResult<{ length: number; height: number; width: number }> => {
+    return AsyncResult.run(function *() {
+      const lengthStr = yield* getWallProperty(wallID, "Length [cm]");
+      const heightStr =  yield* getWallProperty(wallID, "Height [cm]");
+      const widthStr =  yield* getWallProperty(wallID, "Width [cm]");
+
+      const length = parseFloat(lengthStr);
+      const height = parseFloat(heightStr);
+      const width = parseFloat(widthStr);
+
+      return { length, height, width };
+    });
+  }
+
   const getWallMaxSize = (wallID: string) => {
     const individualLengths = [
       getWallProperty(wallID, "Length [cm]"),
@@ -131,6 +145,7 @@ export const usePropertiesStore = defineStore('properties', () => {
     getWallProperty,
     getWallPropertyOrNull,
     getWallMaxSize,
-    getWallMaxSizeOrNull
+    getWallMaxSizeOrNull,
+    getWallDimensions
   };
 });

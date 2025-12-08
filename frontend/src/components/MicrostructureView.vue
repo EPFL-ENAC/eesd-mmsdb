@@ -74,15 +74,13 @@
 import * as THREE from 'three'
 import { PLYLoader } from 'three/examples/jsm/loaders/PLYLoader.js'
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
-import { useLineStore } from '../stores/line';
 import { useSliceStore } from '../stores/slice';
+
 const router = useRouter()
-const lineStore = useLineStore();
 const sliceStore = useSliceStore();
 const sliceSize = 1.0
 const sliceResolution = 768
 const highlightScale = 1.05
-
 
 interface Props {
   plyData?: ArrayBuffer | null
@@ -93,7 +91,8 @@ interface Props {
   backgroundColor?: string
   sliceable?: boolean
   downloadUrl?: string
-  wallSize?: number
+  wallDimensions?: { length: number; height: number; width: number } | null
+  wallId?: string | null
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -510,8 +509,13 @@ const computeLMT = async () => {
       console.error('No image buffer to compute LMT')
       return
     }
-    sliceStore.setSliceData(imageBuffer, props.wallSize || 100, props.wallSize || 100)
-    lineStore.clearResult()
+    // sliceStore.setSliceData(imageBuffer, props.wallSize || 100, props.wallSize || 100)
+    sliceStore.sliceData = {
+      fromWallId: props.wallId || null,
+      sliceImageData: imageBuffer,
+      boundaryMargin: 0,
+      wallDimensions: props.wallDimensions ? { provided: true, ...props.wallDimensions } : { provided: false, length: 10, height: 10, width: 10 },
+    }
     await router.push("/quality-index")
   } catch (error) {
     console.error('Error computing LMT:', error)

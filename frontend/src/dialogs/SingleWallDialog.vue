@@ -4,7 +4,7 @@
       <div class="text-h6">Downscaled preview</div>
       <div class="text-caption q-mb-md">Full resolution models available in the "Download" section of this popup</div>
 
-      <spinner-loader :result="currentWallData">
+      <ArrayBufferSpinnerLoader :result="currentWallData">
         <template #default="{ value: plyData }">
           <microstructure-view
             :ply-data="plyData"
@@ -14,10 +14,12 @@
             :height="400"
             sliceable
             :wall-size="currentWallMaxSize.unwrapOrNull() || 100"
+            :wall-dimensions="currentWallDimensions.unwrapOrNull() || null"
+            :wall-id="selectedWallId"
             class="microstructure-item"
           />
         </template>
-      </spinner-loader>
+      </ArrayBufferSpinnerLoader>
 
       <div>
         <stone-carousel
@@ -96,7 +98,7 @@ import SimpleDialog from 'src/components/SimpleDialog.vue'
 import StonePropertyHistogram from 'src/components/StonePropertyHistogram.vue'
 import WallFilesDownloader from 'src/components/WallFilesDownloader.vue'
 import { useReactiveChain } from 'unwrapped/vue'
-import { SpinnerLoader } from 'src/components/utils/presets'
+import { ArrayBufferSpinnerLoader } from 'src/components/utils/presets'
 import citationItems from 'src/assets/wall_citation_items.json'
 import CitationItem from 'src/components/CitationItem.vue';
 import type { CitationItem as CitationItemType } from 'src/models.ts';
@@ -118,6 +120,7 @@ const showWallDialog = ref(false)
 const selectedWallId = ref<string | null>(null)
 const currentWallData = useReactiveChain(() => selectedWallId.value, (id) => wallsStore.getWall(true, id as string), { immediate: false });
 const currentWallOrientation = useReactiveChain(() => selectedWallId.value, (id) => propertiesStore.getWallProperty(id as string, "Orientation (Up and Front)"), { immediate: false });
+const currentWallDimensions = useReactiveChain(() => selectedWallId.value, (id) => propertiesStore.getWallDimensions(id as string), { immediate: false });
 const currentWallMaxSize = useReactiveChain(() => selectedWallId.value, (id) => propertiesStore.getWallMaxSize(id as string), { immediate: false })
 
 const dialogColumns = ["Microstructure type", "Typology based on Italian Code", "No of leaves", "Vertical loading_GMQI_class", "In-plane_GMQI_class", "Out-of-plane_GMQI_class", "Average vertical LMT", "Average horizontal LMT", "Average shape factor"]
