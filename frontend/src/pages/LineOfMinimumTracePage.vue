@@ -4,7 +4,8 @@
     <div class="grid">
       <div class="left-part">
         <q-card-section>
-          <div class="text-h6">Upload slice image</div>
+          <div class="text-h6">Slice image info</div>
+          <div class="text-subtitle1">{{ sliceStore.sliceData.fromWallId ? `Obtained from wall ${sliceStore.sliceData.fromWallId}` : 'No wall to get the information from, please enter the relevant information below' }}</div>
           <q-file
             v-model="uploadedImage"
             accept="image/*"
@@ -17,6 +18,38 @@
               <q-icon name="attach_file" />
             </template>
           </q-file>
+          <div class="wall-dimensions q-mt-sm">
+            <div>
+              <div class="text-subtitle2 q-mb-xs">Wall length (in cm)</div>
+                <q-input
+                  v-model.number="sliceStore.sliceData.wallDimensions.length"
+                  :disable="sliceStore.sliceData.wallDimensions.provided"
+                  type="number"
+                  filled
+                  dense
+                />
+              </div>
+              <div>
+                <div class="text-subtitle2 q-mb-xs">Wall height (in cm)</div>
+                <q-input
+                  v-model.number="sliceStore.sliceData.wallDimensions.height"
+                  :disable="sliceStore.sliceData.wallDimensions.provided"
+                  type="number"
+                  filled
+                  dense
+                />
+              </div>
+              <div>
+                <div class="text-subtitle2 q-mb-xs">Wall width (in cm)</div>
+                <q-input
+                  v-model.number="sliceStore.sliceData.wallDimensions.width"
+                  :disable="sliceStore.sliceData.wallDimensions.provided"
+                  type="number"
+                  filled
+                  dense
+                />
+            </div>
+          </div>
         </q-card-section>
         <q-card-section v-show="imageLoaded">
           <div class="canvas-container q-mb-md">
@@ -27,26 +60,6 @@
             />
           </div>
           <div class="text-h6 q-mb-md">Parameters</div>
-          <div class="row q-col-gutter-md q-mb-md">
-            <div class="col-md-6 col-sm-6 col-xs-12">
-              <div class="text-subtitle2 q-mb-xs">Real length (in cm)</div>
-              <q-input
-                v-model.number="sliceStore.realLength"
-                type="number"
-                filled
-                dense
-              />
-            </div>
-            <div class="col-md-6 col-sm-6 col-xs-12">
-              <div class="text-subtitle2 q-mb-xs">Real height (in cm)</div>
-              <q-input
-                v-model.number="sliceStore.realHeight"
-                type="number"
-                filled
-                dense
-              />
-            </div>
-          </div>
           <div class="row q-col-gutter-md">
             <div class="col-md-3 col-sm-6 col-xs-12">
               <div class="text-subtitle2 q-mb-xs">Start X</div>
@@ -143,35 +156,49 @@
         <q-list padding>
           <q-item-label class="text-h6">Computation History</q-item-label>
           <q-separator />
-          <template v-for="(trace, index) in traces.items" :key="index">
-            <spinner-loader :result="(trace as AsyncResult<LineComputeTrace>)">
+          <template v-for="entry in traces.entries" :key="entry[0]">
+            <LmtComputeTraceSpinnerLoader :result="(entry[1] as AsyncResult<LineComputeTrace>)">
               <template #default="{ value }">
                 <q-item
-                  clickable
-                    class="computation-result" :style="`--border-color: ${value.color};`"
-                  >
-                    <q-item-section>
-                      <q-item-label>Trace {{ index + 1 }}</q-item-label>
-                      <q-item-label caption>
-                        <div>
-                          Type: {{
-                            analysisTypeOptions.find(option => option.value === value.params.analysisType)?.label
-                          }}
-                        </div>
-                        <div>
-                          LMP Type: {{ value.result.lmp_type || 'N/A' }}
-                        </div>
-                        <div>
-                          LMT Result: {{ value.result.lmt_result || 'N/A' }}
-                        </div>
-                        <div>
-                          Length: {{ value.result.total_length ? value.result.total_length.toFixed(2) + ' cm' : 'N/A' }}
-                        </div>
-                      </q-item-label>
-                    </q-item-section>
-                  </q-item>
-                </template>
-            </spinner-loader>
+                  class="computation-result" :style="`--border-color: ${value.color};`"
+                >
+                  <q-item-section>
+                    <q-item-label>{{ entry[0] }}</q-item-label>
+                    <q-item-label caption>
+                      <div>
+                        <strong>Length:</strong> {{ value.result.total_length ? value.result.total_length.toFixed(2) + ' cm' : 'N/A' }}
+                      </div>
+                      <div>
+                        <strong>Type:</strong> {{
+                          analysisTypeOptions.find(option => option.value === value.params.analysisType)?.label
+                        }}
+                      </div>
+                      <div>
+                        <strong>LMP Type:</strong> {{ value.result.lmp_type || 'N/A' }}
+                      </div>
+                      <div>
+                        <strong>LMT Result:</strong> {{ value.result.lmt_result || 'N/A' }}
+                      </div>
+                      <div>
+                        <strong>LMT Vertical:</strong> {{ (value.result.total_length && sliceStore.sliceData.wallDimensions.height) ? 
+                          (value.result.total_length / sliceStore.sliceData.wallDimensions.height).toFixed(2) : 'N/A' }}
+                      </div>
+                      <div>
+                        <strong>LMT Horizontal:</strong> {{ (value.result.total_length && sliceStore.sliceData.wallDimensions.length) ? 
+                          (value.result.total_length / sliceStore.sliceData.wallDimensions.length).toFixed(2) : 'N/A' }}
+                      </div>
+                      <div>
+                        <strong>LMT Wall-Leaf:</strong> {{ (value.result.total_length && sliceStore.sliceData.wallDimensions.width) ? 
+                          (value.result.total_length / sliceStore.sliceData.wallDimensions.width).toFixed(2) : 'N/A' }}
+                      </div>
+                    </q-item-label>
+                  </q-item-section>
+                  <q-item-section side>
+                    <q-btn round color="primary" icon="delete" @click="traces.remove(entry[0])" />
+                  </q-item-section>
+                </q-item>
+              </template>
+            </LmtComputeTraceSpinnerLoader>
           </template>
         </q-list>
       </div>
@@ -185,8 +212,8 @@ import { useLineStore } from '../stores/line';
 import { useSliceStore } from '../stores/slice';
 import { type AsyncResult, Result } from 'unwrapped/core';
 import LmtCanvas from 'src/components/LmtCanvas.vue';
-import { SpinnerLoader } from 'src/components/utils/presets';
-import { useAsyncResultList } from 'src/utils/toImplementInUnwrapped';
+import { useAsyncResultList } from 'unwrapped/vue';
+import { LmtComputeTraceSpinnerLoader } from 'src/components/utils/presets';
 
 const lineStore = useLineStore();
 const sliceStore = useSliceStore();
@@ -197,6 +224,7 @@ const uploadedImage = ref<File | null>(null);
 const imageLoaded = ref(false);
 const imageWidth = ref(0);
 const imageHeight = ref(0);
+const tracesCount = ref(0);
 
 const lineInputCoords = ref<LineComputeInputLineCoords>({
   startX: 0,
@@ -223,7 +251,13 @@ const canCompute = computed(() => {
 });
 
 function onFileSelected(file: File | null) {
-  lineStore.clearResult();
+  sliceStore.sliceData.fromWallId = null;
+  sliceStore.sliceData.wallDimensions = { provided: false, length: 100, height: 100, width: 100 };
+  onImageChanged(file);
+};
+
+function onImageChanged(file: File | null) {
+  traces.value.clear();
 
   if (!file) {
     imageLoaded.value = false;
@@ -243,6 +277,7 @@ function onFileSelected(file: File | null) {
     lineInputCoords.value.startY = 0;
     lineInputCoords.value.endX = Math.floor(img.width / 2);
     lineInputCoords.value.endY = img.height;
+    tracesCount.value = 0;
   };
 
   img.src = URL.createObjectURL(file);
@@ -251,21 +286,24 @@ function onFileSelected(file: File | null) {
 function computeLine() {
   if (!uploadedImage.value || !canCompute.value) return;
 
+  const maxDimension = Math.max(sliceStore.sliceData.wallDimensions.length, sliceStore.sliceData.wallDimensions.height, sliceStore.sliceData.wallDimensions.width);
+
   const params: LineComputeParams = {
     startX: lineInputCoords.value.startX,
     startY: lineInputCoords.value.startY,
     endX: lineInputCoords.value.endX,
     endY: lineInputCoords.value.endY,
     image: uploadedImage.value,
-    realLength: sliceStore.realLength,
-    realHeight: sliceStore.realHeight,
+    realLength: maxDimension,
+    realHeight: maxDimension,
     analysisType: (analysisType.value as typeof analysisTypeOptions[0]).value,
     interfaceWeight: interfaceWeight.value,
-    boundaryMargin: sliceStore.boundaryMargin,
+    boundaryMargin: sliceStore.sliceData.boundaryMargin,
   };
 
+  tracesCount.value += 1;
   traces.value.add(
-    `trace-${Date.now()}`,
+    `Trace ${tracesCount.value}`,
     lineStore.getLine(params).chain((result) => Result.ok({
       params,
       result,
@@ -276,21 +314,28 @@ function computeLine() {
 };
 
 onMounted(() => {
-  if (sliceStore.sliceImageData) {
-    uploadedImage.value = new File([new Blob([sliceStore.sliceImageData])], 'slice_image.png', { type: 'image/png' });
-    onFileSelected(uploadedImage.value);
+  if (sliceStore.sliceData.sliceImageData) {
+    const fileName = sliceStore.sliceData.fromWallId ? `slice_from_wall_${sliceStore.sliceData.fromWallId}.png` : 'slice_image.png';
+    uploadedImage.value = new File([new Blob([sliceStore.sliceData.sliceImageData])], fileName, { type: 'image/png' });
+    onImageChanged(uploadedImage.value);
   }
 });
 
-watch(() => sliceStore.sliceImageData, (newData) => {
+watch(() => sliceStore.sliceData.sliceImageData, (newData) => {
   if (newData) {
-    uploadedImage.value = new File([new Blob([newData])], 'slice_image.png', { type: 'image/png' });
-    onFileSelected(uploadedImage.value);
+    const fileName = sliceStore.sliceData.fromWallId ? `slice_from_wall_${sliceStore.sliceData.fromWallId}.png` : 'slice_image.png';
+    uploadedImage.value = new File([new Blob([newData])], fileName, { type: 'image/png' });
+    onImageChanged(uploadedImage.value);
   }
 });
 </script>
 
 <style scoped>
+.wall-dimensions {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 1rem;
+}
 
 .grid {
   display: grid;

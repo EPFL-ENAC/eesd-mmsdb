@@ -1,13 +1,36 @@
 import { defineStore } from 'pinia';
 import { api } from 'src/boot/api';
 
+export type WallDimensions = {
+  provided: boolean;
+  length: number;
+  height: number;
+  width: number;
+};
+
+export interface SliceData {
+  fromWallId?: string | null;
+
+  sliceImageData: ArrayBuffer | null;
+  boundaryMargin: number;
+
+  wallDimensions: WallDimensions;
+}
+
 export const useSliceStore = defineStore('slice', () => {
-  const sliceImageData = ref<ArrayBuffer | null>(null);
-  const realLength = ref<number>(100);
-  const realHeight = ref<number>(100);
-  const boundaryMargin = ref<number>(0);
   const loading = ref(false);
   const error = ref<string | null>(null);
+
+  const sliceData = ref<SliceData>({
+    sliceImageData: null,
+    boundaryMargin: 0,
+    wallDimensions: {
+      provided: false,
+      length: 100,
+      height: 100,
+      width: 100
+    }
+  });
 
   const fetchDefaultSliceImage = async () => {
     loading.value = true;
@@ -16,7 +39,18 @@ export const useSliceStore = defineStore('slice', () => {
       const response = await api.get('/files/get/example_slice.png', {
         responseType: 'arraybuffer'
       });
-      sliceImageData.value = response.data;
+
+      sliceData.value = {
+        fromWallId: null,
+        sliceImageData: response.data,
+        boundaryMargin: 0,
+        wallDimensions: {
+          provided: false,
+          length: 100,
+          height: 100,
+          width: 100
+        }
+      }
     } catch (err) {
       error.value = err instanceof Error ? err.message : 'An unknown error occurred';
     } finally {
@@ -24,18 +58,8 @@ export const useSliceStore = defineStore('slice', () => {
     }
   };
 
-  const setSliceData = (imageData: ArrayBuffer, length: number, height: number) => {
-    sliceImageData.value = imageData;
-    realLength.value = length;
-    realHeight.value = height;
-  };
-
   return {
-    sliceImageData,
-    setSliceData,
-    realLength,
-    realHeight,
-    boundaryMargin,
+    sliceData,
     loading,
     error,
     fetchDefaultSliceImage

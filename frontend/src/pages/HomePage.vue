@@ -1,6 +1,6 @@
 <template>
   <q-page>
-    <spinner-loader :result="wallPlyData">
+    <ArrayBufferSpinnerLoader :result="wallPlyData">
       <template #default="{ value }">
         <microstructure-view
           :ply-data="value"
@@ -8,11 +8,11 @@
           :width="Math.min(400, q.screen.width)"
           :height="400"
           sliceable
-          :wall-size="wallSize.unwrapOrNull() || 100"
+          :wall-dimensions="wallDimensions.unwrapOrNull()"
           class="microstructure-container"
         />
       </template>
-    </spinner-loader>
+    </ArrayBufferSpinnerLoader>
 
     <donut-charts class="q-mt-lg"/>
 
@@ -22,7 +22,7 @@
       <q-card-section>
         <div class="text-h6">{{ t('citation_text') }}</div>
         <citation-item
-          v-for="item in Object.values(citationItems)"
+          v-for="item in items"
           :key="item.title"
           v-bind="item"
           class="q-mt-xs q-mb-xs"
@@ -41,7 +41,7 @@ import ParallelCategoriesDiagram from 'src/components/ParallelCategoriesDiagram.
 import citationItems from 'src/assets/citation_items.json';
 import { useWallsStore } from 'src/stores/walls';
 import { usePropertiesStore } from 'src/stores/properties';
-import { SpinnerLoader } from 'src/components/utils/presets';
+import { ArrayBufferSpinnerLoader } from 'src/components/utils/presets';
 import { useReactiveChain } from 'unwrapped/vue';
 
 const q = useQuasar();
@@ -49,8 +49,9 @@ const wallsStore = useWallsStore();
 const propertiesStore = usePropertiesStore();
 const wallID = "OC01";
 const wallPlyData = wallsStore.getWall(true, wallID);
-const wallSize = useReactiveChain(() => wallID, (id) => propertiesStore.getWallMaxSize(id), { immediate: true });
+const wallDimensions = useReactiveChain(() => wallID, (id) => propertiesStore.getWallDimensions(id), { immediate: true });
 const wallOrientation = useReactiveChain(() => wallID, (id) => propertiesStore.getWallProperty(id, "Orientation (Up and Front)"), { immediate: true });
+const items = computed(() => Object.values(citationItems));
 
 const { t } = useI18n();
 </script>
