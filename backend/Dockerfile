@@ -1,7 +1,6 @@
 FROM python:3.13.6-bookworm
-ENV UV_VERSION=0.8.9
+ENV UV_VERSION=0.9.13
 
-RUN apt-get update && apt-get install -y git-lfs && git lfs install && rm -rf /var/lib/apt/lists/*
 RUN pip install "uv==$UV_VERSION"
 
 WORKDIR /app
@@ -9,6 +8,7 @@ WORKDIR /app
 COPY uv.lock pyproject.toml /app/
 COPY start.sh /app/
 COPY api /app/api
+COPY ../data /data
 
 RUN uv pip install --system --no-cache-dir -e /app
 

@@ -1,17 +1,16 @@
 import json
 import mimetypes
-import multiprocessing
 import os
 import shutil
 import subprocess
 from datetime import datetime
-from functools import cache as functools_cache
+from functools import cache
 from logging import getLogger
 from pathlib import Path
 
 from api.config import config
 from api.models.files import Contribution, FileInfo, UploadInfo
-from fastapi import UploadFile
+from fastapi import HTTPException, UploadFile
 
 logger = getLogger("uvicorn.error")
 
@@ -21,132 +20,44 @@ ALLOWED_UPLOAD_SUFFIXES = [
 ]
 
 
-def cleanup_git_lock(repo_path: str):
-    """Kill other git processes and remove .git/index.lock if exists."""
+@cache
+def get_local_file_lfs_id(file_path: Path) -> str | None:
+    """Check if a local file is a Git LFS pointer file."""
+    if not file_path.exists():
+        return None
+
     try:
-        subprocess.run(["pkill", "-f", "git"], check=False)
+        with open(file_path, "r") as f:
+            first_line = f.readline().strip()
+            if first_line != "version https://git-lfs.github.com/spec/v1":
+                return None
+
+            second_line = f.readline().strip()
+            if not second_line.startswith("oid sha256:"):
+                return None
+
+            return second_line.split(":")[1]
+
     except Exception:
-        pass
-
-    git_lock = Path(repo_path) / ".git" / "index.lock"
-    if git_lock.exists():
-        try:
-            git_lock.unlink()
-            logger.info(f"Removed git lock file: {git_lock}")
-        except Exception as e:
-            logger.warning(f"Failed to remove git lock file: {e}")
+        return None
 
 
-def cmd(command: str, working_directory: str | None = None) -> bytes:
-    """Run a shell command with real-time logging."""
+@cache
+def get_lfs_url(oid: str) -> str:
+    """Get the download URL for a Git LFS object ID."""
+    if not config.LFS_USERNAME or not config.LFS_PASSWORD:
+        raise HTTPException(
+            status_code=401, detail="LFS credentials are not configured"
+        )
 
-    logger.info(f"Running command: {command}")
-
-    process = subprocess.Popen(
-        command.split(),
-        stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE,
-        cwd=working_directory,
-        text=True,
-        bufsize=1,
-        universal_newlines=True,
-    )
-
-    stdout_lines = []
-    stderr_lines = []
-
-    while True:
-        stdout_line = process.stdout.readline() if process.stdout else None
-        stderr_line = process.stderr.readline() if process.stderr else None
-
-        if stdout_line:
-            logger.info(f"STDOUT: {stdout_line.rstrip()}")
-            stdout_lines.append(stdout_line)
-
-        if stderr_line:
-            logger.error(f"STDERR: {stderr_line.rstrip()}")
-            stderr_lines.append(stderr_line)
-
-        if process.poll() is not None:
-            break
-
-    remaining_stdout, remaining_stderr = process.communicate()
-    if remaining_stdout:
-        for line in remaining_stdout.splitlines():
-            if line.strip():
-                logger.info(f"STDOUT: {line}")
-                stdout_lines.append(line + "\n")
-
-    if remaining_stderr:
-        for line in remaining_stderr.splitlines():
-            if line.strip():
-                logger.error(f"STDERR: {line}")
-                stderr_lines.append(line + "\n")
-
-    return_code = process.returncode
-
-    if return_code != 0:
-        stderr_output = "".join(stderr_lines)
-        raise Exception(f"Command failed: {command}\n{stderr_output}")
-
-    stdout_output = "".join(stdout_lines)
-    return stdout_output.strip().encode("utf-8")
-
-
-def init_lfs_data():
-    """Initialize LFS data by cloning the repository if not already done and checking out the specified git ref."""
-
-    if not config.LFS_GIT_REF:
-        logger.info("LFS_GIT_REF is not set. Using local data.")
-        return
-
-    lfs_server_url = config.LFS_SERVER_URL.replace(
+    url = config.LFS_SERVER_URL.replace(
         "https://", f"https://{config.LFS_USERNAME}:{config.LFS_PASSWORD}@"
     )
-    credentials_line = f"{lfs_server_url}\n"
-    git_credentials_path = Path.home() / ".git-credentials"
-    with open(git_credentials_path, "a") as f:
-        f.write(credentials_line)
-    cmd("git config --global credential.helper store")
 
-    if not os.path.exists(config.LFS_CLONED_REPO_PATH):
-        logger.info("Creating parent directories for LFS repository clone...")
-        os.makedirs(config.LFS_CLONED_REPO_PATH, exist_ok=True)
-        logger.info("Cloning LFS repository...")
-        cmd(f"git clone {config.LFS_REPO_URL} {config.LFS_CLONED_REPO_PATH}")
-        cmd(
-            f"git checkout {config.LFS_GIT_REF}",
-            working_directory=config.LFS_CLONED_REPO_PATH,
-        )
-        cmd("git lfs pull", working_directory=config.LFS_CLONED_REPO_PATH)
-
-    else:
-        logger.info(
-            "LFS repository already cloned. Checking out the specified git ref and pulling..."
-        )
-        cmd("git reset --hard", working_directory=config.LFS_CLONED_REPO_PATH)
-        cmd("git clean -fdx", working_directory=config.LFS_CLONED_REPO_PATH)
-        cmd(
-            f"git checkout {config.LFS_GIT_REF}",
-            working_directory=config.LFS_CLONED_REPO_PATH,
-        )
-        cmd("git pull", working_directory=config.LFS_CLONED_REPO_PATH)
-        cmd("git lfs pull", working_directory=config.LFS_CLONED_REPO_PATH)
-
-    logger.info("LFS data initialized.")
+    return f"{url}/object/{oid}"
 
 
-def _init_lfs_data_wrapper():
-    try:
-        init_lfs_data()
-    except Exception as e:
-        logger.error(f"Failed to initialize LFS data (subprocess): {e}")
-        logger.warning("Continuing without up to date LFS data (subprocess).")
-    finally:
-        cleanup_git_lock(config.LFS_CLONED_REPO_PATH)
-
-
-@functools_cache
+@cache
 def get_local_file_content(file_path: Path) -> tuple[bytes | None, str | None]:
     """Read file content and determine MIME type."""
     if not file_path.exists():
@@ -314,8 +225,3 @@ def update_local_upload_info_state(relative_path: str, state: str) -> None:
         raise ValueError(f"Failed to update state in info file: {e}")
 
     return
-
-
-multiprocessing.set_start_method("fork", force=True)
-p = multiprocessing.Process(target=_init_lfs_data_wrapper)
-p.start()

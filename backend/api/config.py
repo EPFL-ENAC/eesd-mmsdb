@@ -1,3 +1,4 @@
+import os
 from functools import lru_cache
 
 from pydantic_settings import BaseSettings
@@ -10,9 +11,8 @@ class Config(BaseSettings):
     LFS_USERNAME: str = ""
     LFS_PASSWORD: str = ""
     LFS_REPO_URL: str = "https://github.com/EPFL-ENAC/eesd-mmsdb.git"
-    LFS_SERVER_URL: str = ""
-    LFS_GIT_REF: str = ""
-    LFS_CLONED_REPO_PATH: str = ".."
+    LFS_SERVER_URL: str = "https://enac-it-git-lfs.epfl.ch/api/epfl-enac/eesd-mmsdb"
+    DATA_PATH: str = os.path.join("..", "data")
 
     UPLOAD_FILES_PATH: str = "/tmp/mmsdb_upload"
     UPLOAD_FILES_SUFFIX: str = ".ply,.obj,.stl"

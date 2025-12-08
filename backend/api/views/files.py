@@ -11,14 +11,10 @@ from pathlib import Path
 from urllib.parse import unquote
 from uuid import uuid4
 
-from api.models.files import StonesResponse, extract_stone_number
-from fastapi import APIRouter, HTTPException, Form, Depends, BackgroundTasks
-from fastapi.responses import Response, StreamingResponse
-from fastapi_cache.decorator import cache
-from fastapi.datastructures import UploadFile
-from fastapi.param_functions import File
-
+import httpx
+from api.auth import get_admin_user
 from api.config import config
+from api.models.auth import User
 from api.models.files import (
     Contribution,
     StonesResponse,
@@ -27,18 +23,20 @@ from api.models.files import (
     extract_stone_number,
 )
 from api.services.files import (
-    cleanup_git_lock,
     delete_local_upload_folder,
+    get_lfs_url,
     get_local_file_content,
-    init_lfs_data,
+    get_local_file_lfs_id,
     list_local_files,
     update_local_upload_info_state,
     upload_local_files,
 )
 from api.services.mailer import Mailer
-from api.models.files import UploadInfo, Contribution, UploadInfoState
-from api.auth import get_admin_user
-from api.models.auth import User
+from fastapi import APIRouter, BackgroundTasks, Depends, Form, HTTPException
+from fastapi.datastructures import UploadFile
+from fastapi.param_functions import File
+from fastapi.responses import Response, StreamingResponse
+from fastapi_cache.decorator import cache
 
 router = APIRouter()
 
@@ -46,13 +44,13 @@ router = APIRouter()
 @router.get(
     "/get/{file_path:path}",
     status_code=200,
-    description="Download any assets from local LFS repository",
+    description="Download any assets from data directory",
 )
 # FastAPI in-memory cache does not support binary responses
 async def get_file(
     file_path: str,
 ):
-    base_path = Path(config.LFS_CLONED_REPO_PATH) / "data"
+    base_path = Path(config.DATA_PATH)
     full_file_path = (base_path / file_path).resolve()
 
     try:
@@ -63,6 +61,30 @@ async def get_file(
         )
 
     try:
+        lfs_id = get_local_file_lfs_id(full_file_path)
+        if lfs_id:
+            url = get_lfs_url(lfs_id)
+
+            async def stream_lfs_file():
+                async with httpx.AsyncClient() as client:
+                    async with client.stream("GET", url) as response:
+                        if response.status_code != 200:
+                            raise HTTPException(
+                                status_code=500,
+                                detail=f"Error fetching LFS file from remote server: {response.status_code}",
+                            )
+                        async for chunk in response.aiter_bytes(chunk_size=8192):
+                            yield chunk
+
+            headers = {
+                "Content-Disposition": content_disposition(f"{Path(file_path).name}")
+            }
+            return StreamingResponse(
+                stream_lfs_file(),
+                media_type="application/octet-stream",
+                headers=headers,
+            )
+
         body, content_type = get_local_file_content(full_file_path)
         if body is not None:
             headers = {
@@ -72,21 +94,20 @@ async def get_file(
         else:
             raise HTTPException(status_code=404, detail="File not found")
     except Exception as e:
-        raise HTTPException(
-            status_code=500, detail=f"Error reading file: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Error reading file: {str(e)}")
 
 
 @router.get(
     "/list/{directory_path:path}",
     status_code=200,
-    description="List files in a given directory path in local LFS repository",
+    description="List files in a given directory path in data directory",
 )
 @cache()
 async def list_files(
     directory_path: str,
 ):
     try:
-        base_path = Path(config.LFS_CLONED_REPO_PATH) / "data"
+        base_path = Path(config.DATA_PATH)
         full_directory_path = (base_path / directory_path).resolve()
 
         try:
@@ -117,8 +138,7 @@ async def get_wall_path(
     wall_id: str,
 ) -> str | None:
     wall_paths = (await list_files("downscaled/01_Microstructures_data"))["files"]
-    wall_paths = [
-        p for p in wall_paths if "02_Wall_data" in p and wall_id in p]
+    wall_paths = [p for p in wall_paths if "02_Wall_data" in p and wall_id in p]
 
     if not wall_paths:
         return None
@@ -201,15 +221,13 @@ async def upload_file(
     try:
         # Upload to folder path based on uuid4
         folder = str(uuid4())
-        info = upload_local_files(
-            folder, files=files, contribution=contribution_obj)
+        info = upload_local_files(folder, files=files, contribution=contribution_obj)
 
         background_tasks.add_task(send_data_uploaded_email, info)
 
         return info
     except Exception as e:
-        raise HTTPException(
-            status_code=500, detail=f"Error uploading file: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Error uploading file: {str(e)}")
 
 
 @router.delete(
@@ -245,8 +263,7 @@ async def delete_upload_folder(folder: str):
         delete_local_upload_folder(folder)
         return {"detail": "Folder deleted successfully"}
     except Exception as e:
-        raise HTTPException(
-            status_code=500, detail=f"Error deleting folder: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Error deleting folder: {str(e)}")
 
 
 @router.get(
@@ -309,8 +326,7 @@ async def download_upload_file(path: str):
             for f_path in file_path.rglob("*"):
                 if f_path.is_file():
                     # Write file into zip, maintaining relative path
-                    zip_file.write(
-                        f_path, arcname=f_path.relative_to(file_path))
+                    zip_file.write(f_path, arcname=f_path.relative_to(file_path))
         # Move cursor back to start of buffer
         zip_buffer.seek(0)
 
@@ -391,8 +407,7 @@ async def get_upload_folder_info(
 
     info_file_path = folder_path / "info.json"
     if not info_file_path.exists() or not info_file_path.is_file():
-        raise HTTPException(
-            status_code=404, detail="Info file not found in folder")
+        raise HTTPException(status_code=404, detail="Info file not found in folder")
 
     try:
         with info_file_path.open("r", encoding="utf-8") as f:
@@ -485,17 +500,3 @@ async def send_data_uploaded_email(info: UploadInfo):
     except Exception as e:
         # Log error but do not block upload
         logging.error(f"Failed to send upload notification email: {e}")
-
-
-@router.post("/refresh-lfs")
-async def refresh_lfs_data(
-    user: User = Depends(get_admin_user),
-) -> None:
-    """Refresh the local LFS data by pulling the latest changes from the remote repository."""
-    try:
-        cleanup_git_lock(config.LFS_CLONED_REPO_PATH)
-        init_lfs_data()
-    except Exception as e:
-        logging.error(f"Failed to refresh LFS data (subprocess): {e}")
-    finally:
-        cleanup_git_lock(config.LFS_CLONED_REPO_PATH)

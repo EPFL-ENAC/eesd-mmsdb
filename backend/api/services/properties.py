@@ -20,9 +20,7 @@ class Properties:
         if self._data is not None:
             return self._data
 
-        properties_full_path = (
-            Path(config.LFS_CLONED_REPO_PATH) / "data" / config.PROPERTIES_PATH
-        )
+        properties_full_path = Path(config.DATA_PATH) / config.PROPERTIES_PATH
         body, _ = get_local_file_content(properties_full_path)
         if body is None:
             raise HTTPException(
@@ -38,10 +36,7 @@ class Properties:
             return self._stone_data[wall_id]
 
         properties_full_path = (
-            Path(config.LFS_CLONED_REPO_PATH)
-            / "data"
-            / config.STONE_PROPERTIES_DIR_PATH
-            / f"{wall_id}.csv"
+            Path(config.DATA_PATH) / config.STONE_PROPERTIES_DIR_PATH / f"{wall_id}.csv"
         )
         body, _ = get_local_file_content(properties_full_path)
         if body is None:

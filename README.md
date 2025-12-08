@@ -4,15 +4,31 @@ _Masonry MicroStructure Database_
 
 ## Requirements
 
-- Git LFS
 - [uv](https://docs.astral.sh/uv/getting-started/installation/) Python package and project manager
 - [npm](https://docs.npmjs.com/) Node.js package manager
+- Git LFS
 - Make
 
 
-## Getting the data
+## Cloning the repository
 
-After cloning the repository, make sure that you have Git LFS installed and that you have pulled the large files:
+### Without large files
+
+To clone the repository without getting the large files, run:
+
+```bash
+export GIT_LFS_SKIP_SMUDGE=1
+git clone <repository_url>
+```
+
+When running subsequent git commands (`checkout`, `pull`, ...), make sure to keep the `GIT_LFS_SKIP_SMUDGE` variable set to `1` in your shell environment to prevent large files from getting downloaded.
+
+
+### With large files
+
+You need to pull large files if you intend to contribute new wall microstructure data.
+Make sure that you have Git LFS installed. Large files will be downloaded when cloning the repository.
+If you have already cloned the repository and want to fetch the large files, run:
 
 ```bash
 git config --global credential.helper store
@@ -81,7 +97,12 @@ Once the changes have been validated on the development server, they can be merg
 
 ## Deploying the website locally
 
-Running the MMS Database website locally is a great way to test changes before pushing them to the main repository. Setup your environment by running:
+Running the MMS Database website locally is a great way to test changes before pushing them to the main repository. This can also work if large files weren't cloned locally, in which case they will be downloaded on demand when running the backend.
+
+> [!NOTE]
+> If LFS data was not cloned, you need to set the variables `LFS_USERNAME` and `LFS_PASSWORD` in a `.env` file in the root directory of the repository.
+
+Setup your environment by running:
 
 ```bash
 make install
