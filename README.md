@@ -52,23 +52,23 @@ git checkout -b feat/new-wall-data
 
 ### Add new data
 
-1. New wall microstructure data should be added to the `data/original/01_Microstructures_data/` directory, following the existing directory structure. Currently supported file formats are:
+1. New wall microstructure data should be added to the `backend/data/original/01_Microstructures_data/` directory, following the existing directory structure. Currently supported file formats are:
   - `.ply`
-2. A matching rendered picture should be put in `data/original/02_Rendered_walls_photos/`.
-3. Stone metadata should be added to `data/original/03_Stones_geometric_properties/` in `.csv` format, following the same structure as existing files.
-4. The added walls should be registered in the `data/original/04_StoneMasonryMicrostructureDatabase.csv` table for them to appear in the database.
+2. A matching rendered picture should be put in `backend/data/original/02_Rendered_walls_photos/`.
+3. Stone metadata should be added to `backend/data/original/03_Stones_geometric_properties/` in `.csv` format, following the same structure as existing files.
+4. The added walls should be registered in the `backend/data/original/04_StoneMasonryMicrostructureDatabase.csv` table for them to appear in the database.
 4b. If you need to add new citations, please add them to `frontend/src/assets/wall_citation_items.json` and use the corresponding keys in the CSV table.
 
 
 ### Generate downscaled data
 
-After adding new data to the `data/original` directory, run the following command to generate downscaled versions of the 3D models, for presentation in the website:
+After adding new data to the `backend/data/original` directory, run the following command to generate downscaled versions of the 3D models, for presentation in the website:
 
 ```bash
 make generate-low-quality-models
 ```
 
-This will create new files in the `data/downscaled` directory.
+This will create new files in the `backend/data/downscaled` directory.
 At this point, you will be able to preview the changes locally by running the backend and frontend as described above.
 
 

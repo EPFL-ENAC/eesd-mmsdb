@@ -12,7 +12,7 @@ class Config(BaseSettings):
     LFS_PASSWORD: str = ""
     LFS_REPO_URL: str = "https://github.com/EPFL-ENAC/eesd-mmsdb.git"
     LFS_SERVER_URL: str = "https://enac-it-git-lfs.epfl.ch/api/epfl-enac/eesd-mmsdb"
-    DATA_PATH: str = os.path.join("..", "data")
+    DATA_PATH: str = "data"
 
     UPLOAD_FILES_PATH: str = "/tmp/mmsdb_upload"
     UPLOAD_FILES_SUFFIX: str = ".ply,.obj,.stl"
