@@ -41,5 +41,8 @@ test = [
     "pytest>=8.4.1",
 ]
 
+[tool.setuptools]
+packages = ["api"]
+
 [tool.codespell]
 skip = 'uv.lock'
