@@ -58,6 +58,18 @@
               :uploadedImage="uploadedImage"
               :traces="traces.getAllSuccessValues()"
             />
+            <div :class="['overlay', 'loading-overlay', { active: traces.anyLoading() }]">
+              <div class="centered">
+                <q-spinner size="80px" color="primary" />
+                <div class="q-mt-sm">This may take a few seconds...</div>
+              </div>
+            </div>
+            <div :class="['overlay', 'error-overlay', { active: !!overlayError }]">
+              <div class="centered">
+                <q-avatar size="80px" color="primary" icon="error" />
+                <div class="q-mt-sm">{{ overlayError }}</div>
+              </div>
+            </div>
           </div>
           <div class="text-h6 q-mb-md">Parameters</div>
           <div class="row q-col-gutter-md">
@@ -165,32 +177,37 @@
                   <q-item-section>
                     <q-item-label>{{ entry[0] }}</q-item-label>
                     <q-item-label caption>
-                      <div>
-                        <strong>Length:</strong> {{ value.result.total_length ? value.result.total_length.toFixed(2) + ' cm' : 'N/A' }}
-                      </div>
-                      <div>
-                        <strong>Type:</strong> {{
-                          analysisTypeOptions.find(option => option.value === value.params.analysisType)?.label
-                        }}
-                      </div>
-                      <div>
-                        <strong>LMP Type:</strong> {{ value.result.lmp_type || 'N/A' }}
-                      </div>
-                      <div>
-                        <strong>LMT Result:</strong> {{ value.result.lmt_result || 'N/A' }}
-                      </div>
-                      <div>
-                        <strong>LMT Vertical:</strong> {{ (value.result.total_length && sliceStore.sliceData.wallDimensions.height) ? 
-                          (value.result.total_length / sliceStore.sliceData.wallDimensions.height).toFixed(2) : 'N/A' }}
-                      </div>
-                      <div>
-                        <strong>LMT Horizontal:</strong> {{ (value.result.total_length && sliceStore.sliceData.wallDimensions.length) ? 
-                          (value.result.total_length / sliceStore.sliceData.wallDimensions.length).toFixed(2) : 'N/A' }}
-                      </div>
-                      <div>
-                        <strong>LMT Wall-Leaf:</strong> {{ (value.result.total_length && sliceStore.sliceData.wallDimensions.width) ? 
-                          (value.result.total_length / sliceStore.sliceData.wallDimensions.width).toFixed(2) : 'N/A' }}
-                      </div>
+                      <template v-if="value.result.success">
+                        <div>
+                          <strong>Length:</strong> {{ value.result.total_length ? value.result.total_length.toFixed(2) + ' cm' : 'N/A' }}
+                        </div>
+                        <div>
+                          <strong>Type:</strong> {{
+                            analysisTypeOptions.find(option => option.value === value.params.analysisType)?.label
+                          }}
+                        </div>
+                        <div>
+                          <strong>LMP Type:</strong> {{ value.result.lmp_type || 'N/A' }}
+                        </div>
+                        <div>
+                          <strong>LMT Result:</strong> {{ value.result.lmt_result || 'N/A' }}
+                        </div>
+                        <div>
+                          <strong>LMT Vertical:</strong> {{ (value.result.total_length && sliceStore.sliceData.wallDimensions.height) ? 
+                            (value.result.total_length / sliceStore.sliceData.wallDimensions.height).toFixed(2) : 'N/A' }}
+                        </div>
+                        <div>
+                          <strong>LMT Horizontal:</strong> {{ (value.result.total_length && sliceStore.sliceData.wallDimensions.length) ? 
+                            (value.result.total_length / sliceStore.sliceData.wallDimensions.length).toFixed(2) : 'N/A' }}
+                        </div>
+                        <div>
+                          <strong>LMT Wall-Leaf:</strong> {{ (value.result.total_length && sliceStore.sliceData.wallDimensions.width) ? 
+                            (value.result.total_length / sliceStore.sliceData.wallDimensions.width).toFixed(2) : 'N/A' }}
+                        </div>
+                      </template>
+                      <template v-else>
+                        <strong>Error:</strong> {{ value.result.error || 'Unknown error' }}
+                      </template>
                     </q-item-label>
                   </q-item-section>
                   <q-item-section side>
@@ -212,19 +229,28 @@ import { useLineStore } from '../stores/line';
 import { useSliceStore } from '../stores/slice';
 import { type AsyncResult, Result } from 'unwrapped/core';
 import LmtCanvas from 'src/components/LmtCanvas.vue';
-import { useAsyncResultList } from 'unwrapped/vue';
+import { useAsyncResultCollection } from 'unwrapped/vue';
 import { LmtComputeTraceSpinnerLoader } from 'src/components/utils/presets';
 
 const lineStore = useLineStore();
 const sliceStore = useSliceStore();
 
-const traces = useAsyncResultList<LineComputeTrace>();
+const traces = useAsyncResultCollection<LineComputeTrace>();
 
 const uploadedImage = ref<File | null>(null);
 const imageLoaded = ref(false);
 const imageWidth = ref(0);
 const imageHeight = ref(0);
 const tracesCount = ref(0);
+const overlayError = ref('');
+
+function setOverlayError(str: string) {
+  overlayError.value = str;
+
+  setTimeout(() => {
+    overlayError.value = '';
+  }, 5000);
+}
 
 const lineInputCoords = ref<LineComputeInputLineCoords>({
   startX: 0,
@@ -310,7 +336,15 @@ function computeLine() {
       color: `hsl(${Math.floor(Math.random() * 360)}, 70%, 50%)`,
     })),
     false
-  );
+  ).listenUntilSettled((r) => {
+    if (r.isError()) {
+      setOverlayError('A network or API error occurred.');
+    }
+    const res = r.unwrapOrNull();
+    if (res && !res.result.success) {
+      setOverlayError(res.result.error || 'Unknown error during line computation.');
+    }
+  })
 };
 
 onMounted(() => {
@@ -362,5 +396,41 @@ watch(() => sliceStore.sliceData.sliceImageData, (newData) => {
 .computation-result {
   border-left: 6px solid var(--border-color);
   padding-left: 8px;
+}
+
+.overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  backdrop-filter: blur(5px);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.5s ease;
+}
+.loading-overlay {
+  background: rgba(255, 255, 255, 0.8);
+}
+.error-overlay {
+  background: rgba(255, 0, 0, 0.8);
+}
+.overlay.active {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.error-overlay div {
+  color: white;
+  text-shadow: 0 0 1rem rgba(0, 0, 0, 0.5);
+  font-weight: bold;
+  font-size: 1.2rem;
+}
+
+.centered {
+  text-align: center;
 }
 </style>
