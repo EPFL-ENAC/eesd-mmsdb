@@ -1,6 +1,6 @@
 <template>
   <q-page class="q-pa-md">
-    <div class="text-h4">Line of minimum trace</div>
+    <h4 class="text-h4 q-mt-sm">Line of minimum trace</h4>
     <div class="grid">
       <div class="left-part">
         <q-card-section>

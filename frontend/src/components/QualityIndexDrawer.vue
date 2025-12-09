@@ -2,7 +2,7 @@
   <div class="correlations-drawer-content">
     <div class="text-h6 q-mb-md">Tools</div>
 
-    <q-tabs vertical inline-label :align="'left'">
+    <q-tabs vertical inline-label :align="'left'" active-color="primary">
       <q-route-tab
         to="/quality-index/line-of-minimum-trace"
         icon="line_axis"

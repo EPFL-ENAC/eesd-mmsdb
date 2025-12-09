@@ -17,6 +17,11 @@
       hide-bottom
     />
 
+    <div class="formula">
+      <div>Results given by the {{ squaredOrBrickwork ? 'special squared or brickwork' : 'base' }} formula :</div>
+      <img :src="squaredOrBrickwork ? '/MQI_computation_brickwork.webp' : '/MQI_computation.webp'" alt="MQI computation formula">
+    </div>
+
     <hr />
     
     <h4>Computation summary</h4>
@@ -26,14 +31,17 @@
       title="Base classifications"
       :columns="[
         { name: 'parameter', label: 'Parameter', field: 'parameter', align: 'left' },
-        { name: 'classification', label: 'Classification', field: 'classification', align: 'right' }
+        { name: 'classification', label: 'Classification', field: 'classification', align: 'right' },
+        { name: 'v_v', label: 'Picked Value (V)', field: 'v_v', align: 'right' },
+        { name: 'v_i', label: 'Picked Value (I)', field: 'v_i', align: 'right' },
+        { name: 'v_o', label: 'Picked Value (O)', field: 'v_o', align: 'right' }
       ]"
       :rows="[
-        { parameter: 'SM', classification: smClassification || 'N/A' },
-        { parameter: 'MM', classification: mmClassification || 'N/A' },
-        { parameter: 'SS', classification: ssClassification || 'N/A' },
-        { parameter: 'SD', classification: sdClassification || 'N/A' },
-        { parameter: 'HJ', classification: hjClassification || 'N/A' }
+        { parameter: 'SM', classification: smClassification || 'N/A', v_v: smClassification ? MQI_table['SM']['V'][smClassification] ?? 'N/A' : 'N/A', v_i: smClassification ? MQI_table['SM']['I'][smClassification] ?? 'N/A' : 'N/A', v_o: smClassification ? MQI_table['SM']['O'][smClassification] ?? 'N/A' : 'N/A' },
+        { parameter: 'MM', classification: mmClassification || 'N/A', v_v: mmClassification ? MQI_table['MM']['V'][mmClassification] ?? 'N/A' : 'N/A', v_i: mmClassification ? MQI_table['MM']['I'][mmClassification] ?? 'N/A' : 'N/A', v_o: mmClassification ? MQI_table['MM']['O'][mmClassification] ?? 'N/A' : 'N/A' },
+        { parameter: 'SS', classification: ssClassification || 'N/A', v_v: ssClassification ? MQI_table['SS']['V'][ssClassification] ?? 'N/A' : 'N/A', v_i: ssClassification ? MQI_table['SS']['I'][ssClassification] ?? 'N/A' : 'N/A', v_o: ssClassification ? MQI_table['SS']['O'][ssClassification] ?? 'N/A' : 'N/A' },
+        { parameter: 'SD', classification: sdClassification || 'N/A', v_v: sdClassification ? MQI_table['SD']['V'][sdClassification] ?? 'N/A' : 'N/A', v_i: sdClassification ? MQI_table['SD']['I'][sdClassification] ?? 'N/A' : 'N/A', v_o: sdClassification ? MQI_table['SD']['O'][sdClassification] ?? 'N/A' : 'N/A' },
+        { parameter: 'HJ', classification: hjClassification || 'N/A', v_v: hjClassification ? MQI_table['HJ']['V'][hjClassification] ?? 'N/A' : 'N/A', v_i: hjClassification ? MQI_table['HJ']['I'][hjClassification] ?? 'N/A' : 'N/A', v_o: hjClassification ? MQI_table['HJ']['O'][hjClassification] ?? 'N/A' : 'N/A' }
       ]"
       row-key="parameter"
       flat
@@ -53,21 +61,19 @@
       bordered
       hide-bottom
     />
-    <section class="q-mt-md">
-      <q-table
-        title="Vertical Joint Staggering (VJ) classifications"
-        :columns="[
-          { name: 'parameter', label: 'Parameter', field: 'parameter', align: 'left' },
-          { name: 'value', label: 'Value', field: 'value', align: 'right' }
-        ]"
-        :rows="vjTableRows"
-        row-key="parameter"
-        flat
-        bordered
-        hide-bottom
-      />
-      <img src="/Vertical_joints_classification.webp" alt="Vertical Joint Staggering Classification Diagram" />
-    </section>
+    <q-table
+      class="q-mt-md"
+      title="Vertical Joint Staggering (VJ) classifications"
+      :columns="[
+        { name: 'parameter', label: 'Parameter', field: 'parameter', align: 'left' },
+        { name: 'value', label: 'Value', field: 'value', align: 'right' }
+      ]"
+      :rows="vjTableRows"
+      row-key="parameter"
+      flat
+      bordered
+      hide-bottom
+    />
     <q-table
       class="q-mt-md"
       title="Factors"
@@ -76,8 +82,9 @@
         { name: 'value', label: 'MQI Value', field: 'value', align: 'right' }
       ]"
       :rows="[
-        { name: 'm', value: mFactor.toFixed(2) },
-        { name: 'g', value: gFactor.toFixed(2) },
+        { name: 'm (0.7 for small compressive strengths, otherwise 1)', value: mFactor.toFixed(2) },
+        { name: 'Compressive strength small', value: compressiveStrengthSmall.toString() },
+        { name: 'g (0.7 if squared or brickwork, otherwise 1)', value: gFactor.toFixed(2) },
         { name: 'Squared or brickwork', value: squaredOrBrickwork.toString() }
       ]"
       row-key="name"
@@ -223,7 +230,10 @@ const wcTableRows = computed(() => {
   if (!props.wcQuantitative) {
     return [
       { parameter: 'Analysis type', value: 'Qualitative' },
-      { parameter: 'Classification', value: wcQualitativeClassification.value ?? 'N/A' }
+      { parameter: 'Classification', value: wcQualitativeClassification.value ?? 'N/A' },
+      { parameter: 'Picked value (V)', value: wcQualitativeClassification.value ? MQI_table["WC"]["V"][wcQualitativeClassification.value] : 'N/A' },
+      { parameter: 'Picked value (I)', value: wcQualitativeClassification.value ? MQI_table["WC"]["I"][wcQualitativeClassification.value] : 'N/A' },
+      { parameter: 'Picked value (O)', value: wcQualitativeClassification.value ? MQI_table["WC"]["O"][wcQualitativeClassification.value] : 'N/A' },
     ];
   }
 
@@ -232,7 +242,10 @@ const wcTableRows = computed(() => {
       { parameter: 'Analysis type', value: 'Quantitative' },
       { parameter: 'Leaf count', value: 'Single' },
       { parameter: 'Ml', value: props.wcSingleMl ?? 'N/A' },
-      { parameter: 'Classification', value: wcQuantitativeClassification.value ?? 'N/A' }
+      { parameter: 'Classification', value: wcQuantitativeClassification.value ?? 'N/A' },
+      { parameter: 'Picked value (V)', value: wcQuantitativeClassification.value ? MQI_table["WC"]["V"][wcQuantitativeClassification.value] : 'N/A' },
+      { parameter: 'Picked value (I)', value: wcQuantitativeClassification.value ? MQI_table["WC"]["I"][wcQuantitativeClassification.value] : 'N/A' },
+      { parameter: 'Picked value (O)', value: wcQuantitativeClassification.value ? MQI_table["WC"]["O"][wcQuantitativeClassification.value] : 'N/A' },
     ];
   } else if (props.wcLeafType === 'double') {
     return [
@@ -240,7 +253,10 @@ const wcTableRows = computed(() => {
       { parameter: 'Leaf count', value: 'Double' },
       { parameter: 'Leaf 1 Ml', value: props.wcDoubleMl1 ?? 'N/A' },
       { parameter: 'Leaf 2 Ml', value: props.wcDoubleMl2 ?? 'N/A' },
-      { parameter: 'Classification', value: wcQuantitativeClassification.value ?? 'N/A' }
+      { parameter: 'Classification', value: wcQuantitativeClassification.value ?? 'N/A' },
+      { parameter: 'Picked value (V)', value: wcQuantitativeClassification.value ? MQI_table["WC"]["V"][wcQuantitativeClassification.value] : 'N/A' },
+      { parameter: 'Picked value (I)', value: wcQuantitativeClassification.value ? MQI_table["WC"]["I"][wcQuantitativeClassification.value] : 'N/A' },
+      { parameter: 'Picked value (O)', value: wcQuantitativeClassification.value ? MQI_table["WC"]["O"][wcQuantitativeClassification.value] : 'N/A' },
     ];
   }
 
@@ -251,7 +267,10 @@ const vjTableRows = computed(() => {
   if (!props.vjQuantitative) {
     return [
       { parameter: 'Analysis type', value: 'Qualitative' },
-      { parameter: 'Classification', value: vjQualitativeClassification.value ?? 'N/A' }
+      { parameter: 'Classification', value: vjQualitativeClassification.value ?? 'N/A' },
+      { parameter: 'Picked value (V)', value: vjQualitativeClassification.value ? MQI_table["VJ"]["V"][vjQualitativeClassification.value] : 'N/A' },
+      { parameter: 'Picked value (I)', value: vjQualitativeClassification.value ? MQI_table["VJ"]["I"][vjQualitativeClassification.value] : 'N/A' },
+      { parameter: 'Picked value (O)', value: vjQualitativeClassification.value ? MQI_table["VJ"]["O"][vjQualitativeClassification.value] : 'N/A' },
     ];
   }
 
@@ -260,7 +279,10 @@ const vjTableRows = computed(() => {
       { parameter: 'Analysis type', value: 'Quantitative' },
       { parameter: 'Leaf count', value: 'Single' },
       { parameter: 'Ml', value: props.vjSingleMl ?? 'N/A' },
-      { parameter: 'Classification', value: vjQuantitativeClassification.value ?? 'N/A' }
+      { parameter: 'Classification', value: vjQuantitativeClassification.value ?? 'N/A' },
+      { parameter: 'Picked value (V)', value: vjQuantitativeClassification.value ? MQI_table["VJ"]["V"][vjQuantitativeClassification.value] : 'N/A' },
+      { parameter: 'Picked value (I)', value: vjQuantitativeClassification.value ? MQI_table["VJ"]["I"][vjQuantitativeClassification.value] : 'N/A' },
+      { parameter: 'Picked value (O)', value: vjQuantitativeClassification.value ? MQI_table["VJ"]["O"][vjQuantitativeClassification.value] : 'N/A' },
     ];
   } else if (props.vjLeafType === 'double') {
     return [
@@ -268,7 +290,10 @@ const vjTableRows = computed(() => {
       { parameter: 'Leaf count', value: 'Double' },
       { parameter: 'Leaf 1 Ml', value: props.vjDoubleMl1 ?? 'N/A' },
       { parameter: 'Leaf 2 Ml', value: props.vjDoubleMl2 ?? 'N/A' },
-      { parameter: 'Classification', value: vjQuantitativeClassification.value ?? 'N/A' }
+      { parameter: 'Classification', value: vjQuantitativeClassification.value ?? 'N/A' },
+      { parameter: 'Picked value (V)', value: vjQuantitativeClassification.value ? MQI_table["VJ"]["V"][vjQuantitativeClassification.value] : 'N/A' },
+      { parameter: 'Picked value (I)', value: vjQuantitativeClassification.value ? MQI_table["VJ"]["I"][vjQuantitativeClassification.value] : 'N/A' },
+      { parameter: 'Picked value (O)', value: vjQuantitativeClassification.value ? MQI_table["VJ"]["O"][vjQuantitativeClassification.value] : 'N/A' },
     ];
   }
 
@@ -305,6 +330,17 @@ section img {
   width: 100%;
   object-fit: contain;
   grid-area: explainer-image;
+}
+
+.formula {
+  margin: 1rem 0 1rem 0;
+}
+
+.formula img {
+  display: block;
+  width: 500px;
+  max-width: 100%;
+  margin: auto;
 }
 
 </style>

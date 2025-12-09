@@ -4,7 +4,7 @@
       <q-select v-model="masonryType" :options="masonryTypologiesSelectOptions" label="Select the basic masonry typology" filled />
 
       <q-stepper-navigation>
-        <q-btn @click="step++" color="primary" label="Continue" />
+        <q-btn @click="step++" :disable="!masonryType" color="primary" label="Continue" />
       </q-stepper-navigation>
     </q-step>
 
@@ -17,7 +17,7 @@
       </div>
 
       <div class="q-mb-md">
-        <q-toggle v-model="wcQuantitative" label="Vertical section accessible for quantitative analysis?" />
+        <q-toggle v-model="wcQuantitative" label="Wall leaf connections accessible for quantitative analysis?" />
         <div v-if="wcQuantitative" class="q-mt-md">
           <q-select v-model="wcLeafType" :options="['single', 'double']" label="Single-leaf or Double-leaf wall?"
             filled />
@@ -35,27 +35,30 @@
         </div>
       </div>
 
-      <div class="q-mb-md">
-        <q-toggle v-model="vjQuantitative" label="Vertical section accessible for quantitative analysis?" />
-        <div v-if="vjQuantitative" class="q-mt-md">
-          <q-select v-model="vjLeafType" :options="['single', 'double']" label="Single-leaf or Double-leaf wall?"
-            filled />
-          <div v-if="vjLeafType === 'single'" class="q-mt-md">
-            <q-input v-model.number="vjSingleMl" label="Enter Ml value" type="number" filled />
+      <div class="q-mb-md with-explainer">
+        <div>
+          <q-toggle v-model="vjQuantitative" label="Vertical section accessible for quantitative analysis?" />
+          <div v-if="vjQuantitative" class="q-mt-md">
+            <q-select v-model="vjLeafType" :options="['single', 'double']" label="Single-leaf or Double-leaf wall?"
+              filled />
+            <div v-if="vjLeafType === 'single'" class="q-mt-md">
+              <q-input v-model.number="vjSingleMl" label="Enter Ml value" type="number" filled />
+            </div>
+            <div v-else-if="vjLeafType === 'double'" class="q-mt-md">
+              <q-input v-model.number="vjDoubleMl1" label="Enter Ml for leaf 1" type="number" filled />
+              <q-input v-model.number="vjDoubleMl2" label="Enter Ml for leaf 2" type="number" filled class="q-mt-sm" />
+            </div>
           </div>
-          <div v-else-if="vjLeafType === 'double'" class="q-mt-md">
-            <q-input v-model.number="vjDoubleMl1" label="Enter Ml for leaf 1" type="number" filled />
-            <q-input v-model.number="vjDoubleMl2" label="Enter Ml for leaf 2" type="number" filled class="q-mt-sm" />
+          <div v-else class="q-mt-md">
+            <q-select v-model="selections['VJ_qual']" :options="parametersTextSelectOptions['VJ_qual']" label="Qualitative description"
+              filled />
           </div>
         </div>
-        <div v-else class="q-mt-md">
-          <q-select v-model="selections['VJ_qual']" :options="parametersTextSelectOptions['VJ_qual']" label="Qualitative description"
-            filled />
-        </div>
+        <img src="/Vertical_joints_classification.webp" alt="Vertical Joint Staggering Classification Diagram" />
       </div>
 
       <q-stepper-navigation>
-        <q-btn @click="step++" color="primary" label="Continue" />
+        <q-btn @click="step++" :disable="!isStep2Complete" color="primary" label="Continue" />
         <q-btn flat @click="step--" color="primary" label="Back" class="q-ml-sm" />
       </q-stepper-navigation>
     </q-step>
@@ -136,6 +139,27 @@ const isMortarNF = computed(() => {
   if (!selections.value.MM) return false;
   return classifyMM(selections.value.MM?.value) === "NF";
 });
+
+const isStep2Complete = computed(() => {
+  for (const key of textParametersKeys) {
+    if (!selections.value[key]) return false;
+  }
+  if (wcQuantitative.value) {
+    if (wcLeafType.value === null) return false;
+    if (wcLeafType.value === "single" && wcSingleMl.value === null) return false;
+    if (wcLeafType.value === "double" && (wcDoubleMl1.value === null || wcDoubleMl2.value === null)) return false;
+  } else {
+    if (!selections.value["WC_qual"]) return false;
+  }
+  if (vjQuantitative.value) {
+    if (vjLeafType.value === null) return false;
+    if (vjLeafType.value === "single" && vjSingleMl.value === null) return false;
+    if (vjLeafType.value === "double" && (vjDoubleMl1.value === null || vjDoubleMl2.value === null)) return false;
+  } else {
+    if (!selections.value["VJ_qual"]) return false;
+  }
+  return true;
+})
 
 </script>
 
