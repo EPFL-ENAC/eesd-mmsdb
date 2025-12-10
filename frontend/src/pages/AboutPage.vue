@@ -31,6 +31,10 @@
         </q-list>
       </div>
 
+      <p class="q-mt-md">
+        If you have any suggestions or encounter issues, please provide your feedback using <a href="https://github.com/EPFL-ENAC/eesd-mmsdb/issues" target="_blank" rel="noopener">GitHub Issues</a>.
+      </p>
+
       <div class="q-mt-lg">
         <h4>Scientific Information</h4>
         <div class="scientific-info q-mt-md">
