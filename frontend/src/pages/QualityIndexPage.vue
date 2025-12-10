@@ -58,6 +58,7 @@
 
         <section class="references">
           <div class="text-h5 q-mt-md q-mb-sm">References</div>
+          <p>For more information, please refer to the original publications below.</p>
           <ul>
             <li>
               Regione dell’Umbria (2003).

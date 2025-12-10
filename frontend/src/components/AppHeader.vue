@@ -79,7 +79,7 @@ const numberOfSources = useAsyncResultRef(propertiesStore.getColumnValues("Refer
   align-items: center;
   flex-wrap: wrap;
 
-  background-image: linear-gradient(to right, rgba(0, 0, 0, 1) 4rem, rgba(0, 0, 0, 0.6) 10rem, rgba(0, 0, 0, 0.9)), url("/banner_bg.png");
+  background-image: linear-gradient(to right, rgba(0, 0, 0, 1) 4rem, rgba(0, 0, 0, 0.6) 10rem, rgba(0, 0, 0, 0.9)), url("/banner_bg.webp");
   background-size: cover;
   background-position: left center;
 
@@ -88,7 +88,7 @@ const numberOfSources = useAsyncResultRef(propertiesStore.getColumnValues("Refer
 
 .secondary-header.home {
   --header-height: 8rem;
-  background-image: linear-gradient(to right, rgba(0, 0, 0, 1) var(--header-height), rgba(0, 0, 0, 0.45) calc(var(--header-height) + 6rem), rgba(0, 0, 0, 0.7) 60rem, rgba(0, 0, 0, 0.9)), url("/banner_bg.png");
+  background-image: linear-gradient(to right, rgba(0, 0, 0, 1) var(--header-height), rgba(0, 0, 0, 0.45) calc(var(--header-height) + 6rem), rgba(0, 0, 0, 0.7) 60rem, rgba(0, 0, 0, 0.9)), url("/banner_bg.webp");
 }
 
 .logo {

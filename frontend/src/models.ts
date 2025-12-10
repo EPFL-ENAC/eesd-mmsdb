@@ -59,7 +59,7 @@ export interface LineComputeParams {
 export interface LineComputeResult {
   "success": boolean,
   "error"?: string,
-  "lmp_type": string,
+  "lmt_type": string,
   "lmt_result": number,
   "total_length": number,
   "path_coordinates": {
