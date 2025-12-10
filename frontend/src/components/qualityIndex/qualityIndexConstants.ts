@@ -293,7 +293,7 @@ export function classifyVJ_quantitative(singleLeafMl?: number, doubleLeafMl?: [n
   return "F";
 }
 
-type ClassificationParameter = "SM" | "MM" | "SS" | "SD" | "HJ" | "WC" | "VJ";
+export type ClassificationParameter = "SM" | "MM" | "SS" | "SD" | "HJ" | "WC" | "VJ";
 
 export const MQI_table: Record<ClassificationParameter, Record<MQILocation, Record<MQIClassification, number>>> = {
   "HJ": {

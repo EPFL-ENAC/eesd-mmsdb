@@ -21,33 +21,23 @@
           <div class="wall-dimensions q-mt-sm">
             <div>
               <div class="text-subtitle2 q-mb-xs">Wall length (in cm)</div>
-                <q-input
-                  v-model.number="sliceStore.sliceData.wallDimensions.length"
-                  :disable="sliceStore.sliceData.wallDimensions.provided"
-                  type="number"
-                  filled
-                  dense
-                />
-              </div>
-              <div>
-                <div class="text-subtitle2 q-mb-xs">Wall height (in cm)</div>
-                <q-input
-                  v-model.number="sliceStore.sliceData.wallDimensions.height"
-                  :disable="sliceStore.sliceData.wallDimensions.provided"
-                  type="number"
-                  filled
-                  dense
-                />
-              </div>
-              <div>
-                <div class="text-subtitle2 q-mb-xs">Wall width (in cm)</div>
-                <q-input
-                  v-model.number="sliceStore.sliceData.wallDimensions.width"
-                  :disable="sliceStore.sliceData.wallDimensions.provided"
-                  type="number"
-                  filled
-                  dense
-                />
+              <q-input
+                v-model.number="sliceStore.sliceData.wallDimensions.length"
+                :disable="sliceStore.sliceData.wallDimensions.provided"
+                type="number"
+                filled
+                dense
+              />
+            </div>
+            <div>
+              <div class="text-subtitle2 q-mb-xs">Wall height (in cm)</div>
+              <q-input
+                v-model.number="sliceStore.sliceData.wallDimensions.height"
+                :disable="sliceStore.sliceData.wallDimensions.provided"
+                type="number"
+                filled
+                dense
+              />
             </div>
           </div>
         </q-card-section>
@@ -187,22 +177,14 @@
                           }}
                         </div>
                         <div>
-                          <strong>LMP Type:</strong> {{ value.result.lmp_type || 'N/A' }}
-                        </div>
-                        <div>
-                          <strong>LMT Result:</strong> {{ value.result.lmt_result || 'N/A' }}
-                        </div>
-                        <div>
-                          <strong>LMT Vertical:</strong> {{ (value.result.total_length && sliceStore.sliceData.wallDimensions.height) ? 
-                            (value.result.total_length / sliceStore.sliceData.wallDimensions.height).toFixed(2) : 'N/A' }}
-                        </div>
-                        <div>
-                          <strong>LMT Horizontal:</strong> {{ (value.result.total_length && sliceStore.sliceData.wallDimensions.length) ? 
-                            (value.result.total_length / sliceStore.sliceData.wallDimensions.length).toFixed(2) : 'N/A' }}
-                        </div>
-                        <div>
-                          <strong>LMT Wall-Leaf:</strong> {{ (value.result.total_length && sliceStore.sliceData.wallDimensions.width) ? 
-                            (value.result.total_length / sliceStore.sliceData.wallDimensions.width).toFixed(2) : 'N/A' }}
+                          <template v-if="value.params.analysisType === 0">
+                            <strong>LMT Result (Vertical):</strong> {{ (value.result.total_length && sliceStore.sliceData.wallDimensions.height) ? 
+                              (value.result.total_length / sliceStore.sliceData.wallDimensions.height).toFixed(4) : 'N/A' }}
+                          </template>
+                          <template v-else>
+                            <strong>LMT Result (Horizontal):</strong> {{ (value.result.total_length && sliceStore.sliceData.wallDimensions.length) ? 
+                              (value.result.total_length / sliceStore.sliceData.wallDimensions.length).toFixed(4) : 'N/A' }}
+                          </template>
                         </div>
                       </template>
                       <template v-else>
@@ -262,7 +244,6 @@ const lineInputCoords = ref<LineComputeInputLineCoords>({
 const analysisTypeOptions = [
   { label: 'Vertical joints', value: 0 },
   { label: 'Horizontal bed joints', value: 1 },
-  { label: 'Wall leaf connections', value: 2 },
 ];
 const interfaceWeight = ref(1.0);
 const analysisType = ref(analysisTypeOptions[0]);
@@ -367,7 +348,7 @@ watch(() => sliceStore.sliceData.sliceImageData, (newData) => {
 <style scoped>
 .wall-dimensions {
   display: grid;
-  grid-template-columns: 1fr 1fr 1fr;
+  grid-template-columns: 1fr 1fr;
   gap: 1rem;
 }
 

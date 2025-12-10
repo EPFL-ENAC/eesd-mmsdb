@@ -4,12 +4,13 @@
       title="Masonry Quality Index (MQI) per location"
       :columns="[
         { name: 'location', label: 'Location', field: 'location', align: 'left' },
-        { name: 'value', label: 'MQI Value', field: 'value', align: 'right' }
+        { name: 'value', label: 'MQI Value', field: 'value', align: 'right' },
+        { name: 'category', label: 'Masonry Category', field: 'category', align: 'right' }
       ]"
       :rows="[
-        { location: 'Vertical (V)', value: VMQI ? VMQI.toFixed(2) : 'N/A' },
-        { location: 'In-plane (I)', value: IMQI ? IMQI.toFixed(2) : 'N/A' },
-        { location: 'Out-of-plane (O)', value: OMQI ? OMQI.toFixed(2) : 'N/A' }
+        { location: 'Vertical (V)', value: VMQI !== null ? VMQI.toFixed(2) : 'N/A', category: VMQI !== null ? getMasonryCategory('V') : 'N/A' },
+        { location: 'In-plane (I)', value: IMQI !== null ? IMQI.toFixed(2) : 'N/A', category: IMQI !== null ? getMasonryCategory('I') : 'N/A' },
+        { location: 'Out-of-plane (O)', value: OMQI !== null ? OMQI.toFixed(2) : 'N/A', category: OMQI !== null ? getMasonryCategory('O') : 'N/A' }
       ]"
       row-key="location"
       flat
@@ -17,9 +18,66 @@
       hide-bottom
     />
 
-    <div class="formula">
+    <div class="explanation q-pt-md">
       <div>Results given by the {{ squaredOrBrickwork ? 'special squared or brickwork' : 'base' }} formula :</div>
       <img :src="squaredOrBrickwork ? '/MQI_computation_brickwork.webp' : '/MQI_computation.webp'" alt="MQI computation formula">
+    </div>
+    
+    <div class="explanation">
+      <div>And the categories are given by this table :</div>
+      <img src="/MQI_categories.webp" alt="MQI categories table">
+
+      <div class="q-mt-md">
+        The categories can be understood as follow :
+        <ul class="q-mt-xs">
+          <li>A masonry wall in category A is very unlikely to fail;</li>
+          <li>A masonry wall in category B may crack, but its collapse is rare;</li>
+          <li>A masonry wall in category C will likely crack under the eﬀect of vertical loading.</li>
+        </ul>
+      </div>
+    </div>
+
+    <q-table
+      class="q-mt-xl"
+      title="Masonry Mechanical Properties estimation"
+      :columns="[
+        { name: 'property', label: 'Property', field: 'property', align: 'left' },
+        { name: 'min', label: 'min', field: 'min', align: 'right' },
+        { name: 'r_min', label: 'R² min', field: 'r_min', align: 'right' },
+        { name: 'mean', label: 'mean', field: 'mean', align: 'right' },
+        { name: 'r_mean', label: 'R² mean', field: 'r_mean', align: 'right' },
+        { name: 'max', label: 'max', field: 'max', align: 'right' },
+        { name: 'r_max', label: 'R² max', field: 'r_max', align: 'right' },
+      ]"
+      :rows="[
+        { property: 'Shear strength τ₀, failure mode I', min: (0.0004 * ((IMQI ?? 0) ** 2) + 0.0055 * (IMQI ?? 0) + 0.0173).toFixed(4), r_min: '0.825', mean: (0.0006 * ((IMQI ?? 0) ** 2) + 0.0075 * (IMQI ?? 0) + 0.0224).toFixed(4), r_mean: '0.913', max: (0.0008 * ((IMQI ?? 0) ** 2) + 0.0094 * (IMQI ?? 0) + 0.0275).toFixed(4), r_max: '0.843' },
+        { property: 'Young\'s modulus E', min: (608 * Math.exp(0.154 * (VMQI ?? 0))).toFixed(4), r_min: '0.709', mean: (742.1 * Math.exp(0.153 * (VMQI ?? 0))).toFixed(4), r_mean: '0.720', max: (876 * Math.exp(0.151 * (VMQI ?? 0))).toFixed(4), r_max:' 0.724' },
+        { property: 'Compressive strength f', min: (1.055 * Math.exp(0.193 * (VMQI ?? 0))).toFixed(4), r_min: '0.803', mean: (1.444 * Math.exp(0.182 * (VMQI ?? 0))).toFixed(4), r_mean: '0.824', max: (1.892 * Math.exp(0.175 * (VMQI ?? 0))).toFixed(4), r_max:' 0.828' },
+        { property: 'Shear modulus G', min: (201.4 * Math.exp(0.142 * (IMQI ?? 0))).toFixed(4), r_min: '0.652', mean: (254.6 * Math.exp(0.141 * (IMQI ?? 0))).toFixed(4), r_mean: '0.680', max: (298.7 * Math.exp(0.141 * (IMQI ?? 0))).toFixed(4), r_max:' 0.695' },
+        { property: 'Shear strength fᵥ₀, failure mode II (stepped or zig-zag failure mode)', min: (0.03 * Math.pow((IMQI ?? 0), 0.909)).toFixed(4), r_min: '0.893', mean: (0.0475 * Math.pow((IMQI ?? 0), 0.854)).toFixed(4), r_mean: '0.928', max: (0.0654 * Math.pow((IMQI ?? 0), 0.822)).toFixed(4), r_max:' 0.918' },
+      ]"
+      row-key="property"
+      :pagination="{ rowsPerPage: 10 }"
+      flat
+      bordered
+      hide-bottom
+    />
+
+    <div class="explanation q-pt-md">
+      <div>Formula for the estimation of the masonry shear strength τ₀, failure mode I:</div>
+      <img src="/MQI_shear_strength.webp" alt="MQI shear strength estimation (failure mode I)">
+
+      <div>Formula for the estimation of the masonry Young’s modulus E:</div>
+      <img src="/MQI_youngs_modulus.webp" alt="MQI Young's modulus estimation">
+
+      <div>Formula for the estimation of the masonry compressive strength f:</div>
+      <img src="/MQI_compressive_strength.webp" alt="MQI compressive strength estimation">
+
+      <div>Formula for the estimation of the masonry shear modulus G:</div>
+      <img src="/MQI_shear_modulus.webp" alt="MQI shear modulus estimation">
+
+      <div>Formula for the estimation of shear strength fᵥ₀, failure mode II (stepped or zig-zag failure mode):</div>
+      <img src="/MQI_shear_strength_2.webp" alt="MQI shear strength estimation (failure mode II)">
     </div>
 
     <hr />
@@ -32,44 +90,22 @@
       :columns="[
         { name: 'parameter', label: 'Parameter', field: 'parameter', align: 'left' },
         { name: 'classification', label: 'Classification', field: 'classification', align: 'right' },
+        { name: 'analysisType', label: 'Analysis type', field: 'analysisType', align: 'right' },
         { name: 'v_v', label: 'Picked Value (V)', field: 'v_v', align: 'right' },
         { name: 'v_i', label: 'Picked Value (I)', field: 'v_i', align: 'right' },
         { name: 'v_o', label: 'Picked Value (O)', field: 'v_o', align: 'right' }
       ]"
       :rows="[
-        { parameter: 'SM', classification: smClassification || 'N/A', v_v: smClassification ? MQI_table['SM']['V'][smClassification] ?? 'N/A' : 'N/A', v_i: smClassification ? MQI_table['SM']['I'][smClassification] ?? 'N/A' : 'N/A', v_o: smClassification ? MQI_table['SM']['O'][smClassification] ?? 'N/A' : 'N/A' },
-        { parameter: 'MM', classification: mmClassification || 'N/A', v_v: mmClassification ? MQI_table['MM']['V'][mmClassification] ?? 'N/A' : 'N/A', v_i: mmClassification ? MQI_table['MM']['I'][mmClassification] ?? 'N/A' : 'N/A', v_o: mmClassification ? MQI_table['MM']['O'][mmClassification] ?? 'N/A' : 'N/A' },
-        { parameter: 'SS', classification: ssClassification || 'N/A', v_v: ssClassification ? MQI_table['SS']['V'][ssClassification] ?? 'N/A' : 'N/A', v_i: ssClassification ? MQI_table['SS']['I'][ssClassification] ?? 'N/A' : 'N/A', v_o: ssClassification ? MQI_table['SS']['O'][ssClassification] ?? 'N/A' : 'N/A' },
-        { parameter: 'SD', classification: sdClassification || 'N/A', v_v: sdClassification ? MQI_table['SD']['V'][sdClassification] ?? 'N/A' : 'N/A', v_i: sdClassification ? MQI_table['SD']['I'][sdClassification] ?? 'N/A' : 'N/A', v_o: sdClassification ? MQI_table['SD']['O'][sdClassification] ?? 'N/A' : 'N/A' },
-        { parameter: 'HJ', classification: hjClassification || 'N/A', v_v: hjClassification ? MQI_table['HJ']['V'][hjClassification] ?? 'N/A' : 'N/A', v_i: hjClassification ? MQI_table['HJ']['I'][hjClassification] ?? 'N/A' : 'N/A', v_o: hjClassification ? MQI_table['HJ']['O'][hjClassification] ?? 'N/A' : 'N/A' }
+        { parameter: 'Stone/brick mechanical properties and conservation state (SM)', classification: smClassification || 'N/A', analysisType: 'Qualitative', v_v: getMQIValue('SM', 'V', smClassification) ?? 'N/A', v_i: getMQIValue('SM', 'I', smClassification) ?? 'N/A', v_o: getMQIValue('SM', 'O', smClassification) ?? 'N/A' },
+        { parameter: 'Mortar Properties (MM)', classification: mmClassification || 'N/A', analysisType: 'Qualitative', v_v: getMQIValue('MM', 'V', mmClassification) ?? 'N/A', v_i: getMQIValue('MM', 'I', mmClassification) ?? 'N/A', v_o: getMQIValue('MM', 'O', mmClassification) ?? 'N/A' },
+        { parameter: 'Stone/brick Shape (SS)', classification: ssClassification || 'N/A', analysisType: 'Qualitative', v_v: getMQIValue('SS', 'V', ssClassification) ?? 'N/A', v_i: getMQIValue('SS', 'I', ssClassification) ?? 'N/A', v_o: getMQIValue('SS', 'O', ssClassification) ?? 'N/A' },
+        { parameter: 'Stone/brick Dimension (SD)', classification: sdClassification || 'N/A', analysisType: 'Qualitative', v_v: getMQIValue('SD', 'V', sdClassification) ?? 'N/A', v_i: getMQIValue('SD', 'I', sdClassification) ?? 'N/A', v_o: getMQIValue('SD', 'O', sdClassification) ?? 'N/A' },
+        { parameter: 'Horizontality of Mortar Bed Joints (HJ)', classification: hjClassification || 'N/A', analysisType: 'Qualitative', v_v: getMQIValue('HJ', 'V', hjClassification) ?? 'N/A', v_i: getMQIValue('HJ', 'I', hjClassification) ?? 'N/A', v_o: getMQIValue('HJ', 'O', hjClassification) ?? 'N/A' },
+        { parameter: 'Wall Leaf Connections (WC)', classification: props.wcQuantitative ? (wcQuantitativeClassification || 'N/A') : (wcQualitativeClassification || 'N/A'), analysisType: props.wcQuantitative ? 'Quantitative' : 'Qualitative', v_v: getMQIValue('WC', 'V', props.wcQuantitative ? wcQuantitativeClassification : wcQualitativeClassification) ?? 'N/A', v_i: getMQIValue('WC', 'I', props.wcQuantitative ? wcQuantitativeClassification : wcQualitativeClassification) ?? 'N/A', v_o: getMQIValue('WC', 'O', props.wcQuantitative ? wcQuantitativeClassification : wcQualitativeClassification) ?? 'N/A' },
+        { parameter: 'Staggering of Vertical Mortar Joints (VJ)', classification: props.vjQuantitative ? (vjQuantitativeClassification || 'N/A') : (vjQualitativeClassification || 'N/A'), analysisType: props.vjQuantitative ? 'Quantitative' : 'Qualitative', v_v: getMQIValue('VJ', 'V', props.vjQuantitative ? vjQuantitativeClassification : vjQualitativeClassification) ?? 'N/A', v_i: getMQIValue('VJ', 'I', props.vjQuantitative ? vjQuantitativeClassification : vjQualitativeClassification) ?? 'N/A', v_o: getMQIValue('VJ', 'O', props.vjQuantitative ? vjQuantitativeClassification : vjQualitativeClassification) ?? 'N/A' }
       ]"
       row-key="parameter"
-      flat
-      bordered
-      hide-bottom
-    />
-    <q-table
-      class="q-mt-md"
-      title="Wall Leaf Connections (WC) classifications"
-      :columns="[
-        { name: 'parameter', label: 'Parameter', field: 'parameter', align: 'left' },
-        { name: 'value', label: 'Value', field: 'value', align: 'right' }
-      ]"
-      :rows="wcTableRows"
-      row-key="parameter"
-      flat
-      bordered
-      hide-bottom
-    />
-    <q-table
-      class="q-mt-md"
-      title="Vertical Joint Staggering (VJ) classifications"
-      :columns="[
-        { name: 'parameter', label: 'Parameter', field: 'parameter', align: 'left' },
-        { name: 'value', label: 'Value', field: 'value', align: 'right' }
-      ]"
-      :rows="vjTableRows"
-      row-key="parameter"
+      :pagination="{ rowsPerPage: 10 }"
       flat
       bordered
       hide-bottom
@@ -79,7 +115,7 @@
       title="Factors"
       :columns="[
         { name: 'name', label: 'Name', field: 'name', align: 'left' },
-        { name: 'value', label: 'MQI Value', field: 'value', align: 'right' }
+        { name: 'value', label: '', field: 'value', align: 'right' }
       ]"
       :rows="[
         { name: 'm (0.7 for small compressive strengths, otherwise 1)', value: mFactor.toFixed(2) },
@@ -93,8 +129,9 @@
       hide-bottom
     />
     <q-table
+      v-if="squaredOrBrickwork"
       class="q-mt-md"
-      title="R values per location"
+      title="R values"
       :columns="[
         { name: 'location', label: 'Location', field: 'location', align: 'left' },
         { name: 'value', label: 'MQI Value', field: 'value', align: 'right' }
@@ -124,7 +161,9 @@ import {
   r_table,
   MQI_table,
   type MQILocation,
-  type TextParameterSelection
+  type TextParameterSelection,
+  type ClassificationParameter,
+  type MQIClassification
 } from 'src/components/qualityIndex/qualityIndexConstants';
 import { computed } from 'vue'
 
@@ -151,6 +190,30 @@ const mmClassification = computed(() => props.selections.MM ? classifyMM(props.s
 const ssClassification = computed(() => props.selections.SS ? classifySS(props.selections.SS.value) : null);
 const sdClassification = computed(() => props.selections.SD ? classifySD(props.selections.SD.value) : null);
 const hjClassification = computed(() => props.selections.HJ ? classifyHJ(props.selections.HJ.value) : null);
+
+function getMasonryCategory(location: MQILocation): 'A' | 'B' | 'C' {
+  if (location === 'V') {
+    const v = VMQI.value ?? 0;
+    if (v < 2.5) return 'C';
+    else if (v < 5) return 'B';
+    return 'A';
+  } else if (location === 'I') {
+    const i = IMQI.value ?? 0;
+    if (i < 3) return 'C';
+    else if (i < 5) return 'B';
+    return 'A';
+  }
+  
+  const o = OMQI.value ?? 0;
+  if (o < 4) return 'C';
+  else if (o < 7) return 'B';
+  return 'A';
+}
+
+function getMQIValue(parameter: ClassificationParameter, location: MQILocation, classification: MQIClassification | null): number | null {
+  if (!classification) return null;
+  return MQI_table[parameter][location][classification] ?? null;
+}
 
 const wcQuantitativeClassification = computed(() => {
   if (!props.wcQuantitative) return null;
@@ -225,81 +288,6 @@ const VMQI = computed(() => computeLoadCondition("V"));
 const IMQI = computed(() => computeLoadCondition("I"));
 const OMQI = computed(() => computeLoadCondition("O"));
 
-
-const wcTableRows = computed(() => {
-  if (!props.wcQuantitative) {
-    return [
-      { parameter: 'Analysis type', value: 'Qualitative' },
-      { parameter: 'Classification', value: wcQualitativeClassification.value ?? 'N/A' },
-      { parameter: 'Picked value (V)', value: wcQualitativeClassification.value ? MQI_table["WC"]["V"][wcQualitativeClassification.value] : 'N/A' },
-      { parameter: 'Picked value (I)', value: wcQualitativeClassification.value ? MQI_table["WC"]["I"][wcQualitativeClassification.value] : 'N/A' },
-      { parameter: 'Picked value (O)', value: wcQualitativeClassification.value ? MQI_table["WC"]["O"][wcQualitativeClassification.value] : 'N/A' },
-    ];
-  }
-
-  if (props.wcLeafType === 'single') {
-    return [
-      { parameter: 'Analysis type', value: 'Quantitative' },
-      { parameter: 'Leaf count', value: 'Single' },
-      { parameter: 'Ml', value: props.wcSingleMl ?? 'N/A' },
-      { parameter: 'Classification', value: wcQuantitativeClassification.value ?? 'N/A' },
-      { parameter: 'Picked value (V)', value: wcQuantitativeClassification.value ? MQI_table["WC"]["V"][wcQuantitativeClassification.value] : 'N/A' },
-      { parameter: 'Picked value (I)', value: wcQuantitativeClassification.value ? MQI_table["WC"]["I"][wcQuantitativeClassification.value] : 'N/A' },
-      { parameter: 'Picked value (O)', value: wcQuantitativeClassification.value ? MQI_table["WC"]["O"][wcQuantitativeClassification.value] : 'N/A' },
-    ];
-  } else if (props.wcLeafType === 'double') {
-    return [
-      { parameter: 'Analysis type', value: 'Quantitative' },
-      { parameter: 'Leaf count', value: 'Double' },
-      { parameter: 'Leaf 1 Ml', value: props.wcDoubleMl1 ?? 'N/A' },
-      { parameter: 'Leaf 2 Ml', value: props.wcDoubleMl2 ?? 'N/A' },
-      { parameter: 'Classification', value: wcQuantitativeClassification.value ?? 'N/A' },
-      { parameter: 'Picked value (V)', value: wcQuantitativeClassification.value ? MQI_table["WC"]["V"][wcQuantitativeClassification.value] : 'N/A' },
-      { parameter: 'Picked value (I)', value: wcQuantitativeClassification.value ? MQI_table["WC"]["I"][wcQuantitativeClassification.value] : 'N/A' },
-      { parameter: 'Picked value (O)', value: wcQuantitativeClassification.value ? MQI_table["WC"]["O"][wcQuantitativeClassification.value] : 'N/A' },
-    ];
-  }
-
-  return [];
-});
-
-const vjTableRows = computed(() => {
-  if (!props.vjQuantitative) {
-    return [
-      { parameter: 'Analysis type', value: 'Qualitative' },
-      { parameter: 'Classification', value: vjQualitativeClassification.value ?? 'N/A' },
-      { parameter: 'Picked value (V)', value: vjQualitativeClassification.value ? MQI_table["VJ"]["V"][vjQualitativeClassification.value] : 'N/A' },
-      { parameter: 'Picked value (I)', value: vjQualitativeClassification.value ? MQI_table["VJ"]["I"][vjQualitativeClassification.value] : 'N/A' },
-      { parameter: 'Picked value (O)', value: vjQualitativeClassification.value ? MQI_table["VJ"]["O"][vjQualitativeClassification.value] : 'N/A' },
-    ];
-  }
-
-  if (props.vjLeafType === 'single') {
-    return [
-      { parameter: 'Analysis type', value: 'Quantitative' },
-      { parameter: 'Leaf count', value: 'Single' },
-      { parameter: 'Ml', value: props.vjSingleMl ?? 'N/A' },
-      { parameter: 'Classification', value: vjQuantitativeClassification.value ?? 'N/A' },
-      { parameter: 'Picked value (V)', value: vjQuantitativeClassification.value ? MQI_table["VJ"]["V"][vjQuantitativeClassification.value] : 'N/A' },
-      { parameter: 'Picked value (I)', value: vjQuantitativeClassification.value ? MQI_table["VJ"]["I"][vjQuantitativeClassification.value] : 'N/A' },
-      { parameter: 'Picked value (O)', value: vjQuantitativeClassification.value ? MQI_table["VJ"]["O"][vjQuantitativeClassification.value] : 'N/A' },
-    ];
-  } else if (props.vjLeafType === 'double') {
-    return [
-      { parameter: 'Analysis type', value: 'Quantitative' },
-      { parameter: 'Leaf count', value: 'Double' },
-      { parameter: 'Leaf 1 Ml', value: props.vjDoubleMl1 ?? 'N/A' },
-      { parameter: 'Leaf 2 Ml', value: props.vjDoubleMl2 ?? 'N/A' },
-      { parameter: 'Classification', value: vjQuantitativeClassification.value ?? 'N/A' },
-      { parameter: 'Picked value (V)', value: vjQuantitativeClassification.value ? MQI_table["VJ"]["V"][vjQuantitativeClassification.value] : 'N/A' },
-      { parameter: 'Picked value (I)', value: vjQuantitativeClassification.value ? MQI_table["VJ"]["I"][vjQuantitativeClassification.value] : 'N/A' },
-      { parameter: 'Picked value (O)', value: vjQuantitativeClassification.value ? MQI_table["VJ"]["O"][vjQuantitativeClassification.value] : 'N/A' },
-    ];
-  }
-
-  return [];
-});
-
 </script>
 
 <style scoped>
@@ -332,15 +320,19 @@ section img {
   grid-area: explainer-image;
 }
 
-.formula {
+.explanation {
   margin: 1rem 0 1rem 0;
 }
 
-.formula img {
+.explanation img {
   display: block;
-  width: 500px;
+  width: 600px;
   max-width: 100%;
   margin: auto;
+}
+
+:deep(.q-table th:first-child) {
+  width: 100%;
 }
 
 </style>
