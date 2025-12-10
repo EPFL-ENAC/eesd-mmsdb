@@ -14,7 +14,7 @@ _Masonry MicroStructure Database_
 
 ### Without large files
 
-To clone the repository without getting the large files, run:
+If you don't intend to contribute new wall microstructure data, you can clone the repository without getting the large files by running:
 
 ```bash
 export GIT_LFS_SKIP_SMUDGE=1
@@ -26,17 +26,16 @@ When running subsequent git commands (`checkout`, `pull`, ...), make sure to kee
 
 ### With large files
 
-You need to pull large files if you intend to contribute new wall microstructure data.
+You need to pull large files if you want to contribute new wall microstructure data.
 Make sure that you have Git LFS installed. Large files will be downloaded when cloning the repository.
 If you have already cloned the repository and want to fetch the large files, run:
 
 ```bash
-git config --global credential.helper store
 git lfs install
 git lfs pull
 ```
 
-You must be on EPFL's network to be able to pull the data. You will be prompted for credentials.
+You must be on EPFL's network to be able to pull the data. You will be prompted for credentials. Reach out to the ENAC-IT4R team for instructions on how to get access.
 
 
 ## Contributing new wall microstructure data
@@ -58,6 +57,9 @@ git checkout -b feat/new-wall-data
 3. Stone metadata should be added to `backend/data/original/03_Stones_geometric_properties/` in `.csv` format, following the same structure as existing files.
 4. The added walls should be registered in the `backend/data/original/04_StoneMasonryMicrostructureDatabase.csv` table for them to appear in the database.
 4b. If you need to add new citations, please add them to `frontend/src/assets/wall_citation_items.json` and use the corresponding keys in the CSV table.
+
+> [!IMPORTANT]
+> Failing to follow the existing structures will lead to errors when generating downscaled data and running the website.
 
 
 ### Generate downscaled data

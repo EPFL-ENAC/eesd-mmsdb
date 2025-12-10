@@ -18,10 +18,10 @@ test:
 	cd backend && make test
 
 generate-low-quality-models:
-	cd scripts && uv venv --allow-existing && uv run python decrease_quality.py ../data/original ../data/downscaled
+	cd scripts && uv venv --allow-existing && uv run python decrease_quality.py ../backend/data/original ../backend/data/downscaled
 
 fix-walls-shift:
-	cd scripts && uv venv --allow-existing && uv run python fix_wall_shift.py ../data/downscaled
+	cd scripts && uv venv --allow-existing && uv run python fix_wall_shift.py ../backend/data/downscaled
 
 build-walls-from-stones:
-	cd scripts && uv venv --allow-existing && uv run python build_walls_from_stones.py ../data/original
+	cd scripts && uv venv --allow-existing && uv run python build_walls_from_stones.py ../backend/data/original
