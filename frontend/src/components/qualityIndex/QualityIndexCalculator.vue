@@ -32,7 +32,7 @@
         <ul class="q-mt-xs">
           <li>A masonry wall in category A is very unlikely to fail;</li>
           <li>A masonry wall in category B may crack, but its collapse is rare;</li>
-          <li>A masonry wall in category C will likely crack under the eﬀect of vertical loading.</li>
+          <li>A masonry wall in category C will likely crack under the effect of vertical loading.</li>
         </ul>
       </div>
     </div>
@@ -51,10 +51,10 @@
       ]"
       :rows="[
         { property: 'Shear strength τ₀, failure mode I', min: (0.0004 * ((IMQI ?? 0) ** 2) + 0.0055 * (IMQI ?? 0) + 0.0173).toFixed(4), r_min: '0.825', mean: (0.0006 * ((IMQI ?? 0) ** 2) + 0.0075 * (IMQI ?? 0) + 0.0224).toFixed(4), r_mean: '0.913', max: (0.0008 * ((IMQI ?? 0) ** 2) + 0.0094 * (IMQI ?? 0) + 0.0275).toFixed(4), r_max: '0.843' },
-        { property: 'Young\'s modulus E', min: (608 * Math.exp(0.154 * (VMQI ?? 0))).toFixed(4), r_min: '0.709', mean: (742.1 * Math.exp(0.153 * (VMQI ?? 0))).toFixed(4), r_mean: '0.720', max: (876 * Math.exp(0.151 * (VMQI ?? 0))).toFixed(4), r_max:' 0.724' },
-        { property: 'Compressive strength f', min: (1.055 * Math.exp(0.193 * (VMQI ?? 0))).toFixed(4), r_min: '0.803', mean: (1.444 * Math.exp(0.182 * (VMQI ?? 0))).toFixed(4), r_mean: '0.824', max: (1.892 * Math.exp(0.175 * (VMQI ?? 0))).toFixed(4), r_max:' 0.828' },
-        { property: 'Shear modulus G', min: (201.4 * Math.exp(0.142 * (IMQI ?? 0))).toFixed(4), r_min: '0.652', mean: (254.6 * Math.exp(0.141 * (IMQI ?? 0))).toFixed(4), r_mean: '0.680', max: (298.7 * Math.exp(0.141 * (IMQI ?? 0))).toFixed(4), r_max:' 0.695' },
-        { property: 'Shear strength fᵥ₀, failure mode II (stepped or zig-zag failure mode)', min: (0.03 * Math.pow((IMQI ?? 0), 0.909)).toFixed(4), r_min: '0.893', mean: (0.0475 * Math.pow((IMQI ?? 0), 0.854)).toFixed(4), r_mean: '0.928', max: (0.0654 * Math.pow((IMQI ?? 0), 0.822)).toFixed(4), r_max:' 0.918' },
+        { property: 'Young\'s modulus E', min: (608 * Math.exp(0.154 * (VMQI ?? 0))).toFixed(4), r_min: '0.709', mean: (742.1 * Math.exp(0.153 * (VMQI ?? 0))).toFixed(4), r_mean: '0.720', max: (876 * Math.exp(0.151 * (VMQI ?? 0))).toFixed(4), r_max: '0.724' },
+        { property: 'Compressive strength f', min: (1.055 * Math.exp(0.193 * (VMQI ?? 0))).toFixed(4), r_min: '0.803', mean: (1.444 * Math.exp(0.182 * (VMQI ?? 0))).toFixed(4), r_mean: '0.824', max: (1.892 * Math.exp(0.175 * (VMQI ?? 0))).toFixed(4), r_max: '0.828' },
+        { property: 'Shear modulus G', min: (201.4 * Math.exp(0.142 * (IMQI ?? 0))).toFixed(4), r_min: '0.652', mean: (254.6 * Math.exp(0.141 * (IMQI ?? 0))).toFixed(4), r_mean: '0.680', max: (298.7 * Math.exp(0.141 * (IMQI ?? 0))).toFixed(4), r_max: '0.695' },
+        { property: 'Shear strength fᵥ₀, failure mode II (stepped or zig-zag failure mode)', min: (0.03 * Math.pow((IMQI ?? 0), 0.909)).toFixed(4), r_min: '0.893', mean: (0.0475 * Math.pow((IMQI ?? 0), 0.854)).toFixed(4), r_mean: '0.928', max: (0.0654 * Math.pow((IMQI ?? 0), 0.822)).toFixed(4), r_max: '0.918' },
       ]"
       row-key="property"
       :pagination="{ rowsPerPage: 10 }"

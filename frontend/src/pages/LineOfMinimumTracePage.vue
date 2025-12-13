@@ -177,14 +177,7 @@
                           }}
                         </div>
                         <div>
-                          <template v-if="value.params.analysisType === 0">
-                            <strong>LMT Result (Vertical):</strong> {{ (value.result.total_length && sliceStore.sliceData.wallDimensions.height) ? 
-                              (value.result.total_length / sliceStore.sliceData.wallDimensions.height).toFixed(4) : 'N/A' }}
-                          </template>
-                          <template v-else>
-                            <strong>LMT Result (Horizontal):</strong> {{ (value.result.total_length && sliceStore.sliceData.wallDimensions.length) ? 
-                              (value.result.total_length / sliceStore.sliceData.wallDimensions.length).toFixed(4) : 'N/A' }}
-                          </template>
+                          <strong>LMT Result ({{ value.params.analysisType === 0 ? 'Vertical' : 'Horizontal' }}):</strong> {{ computeLMTResult(value)?.toFixed(4) ?? 'N/A' }}
                         </div>
                       </template>
                       <template v-else>
@@ -232,6 +225,14 @@ function setOverlayError(str: string) {
   setTimeout(() => {
     overlayError.value = '';
   }, 5000);
+}
+
+function computeLMTResult(trace: LineComputeTrace): number | null {
+  if (!trace.result.total_length) return null;
+  const divider = trace.params.analysisType === 0 ? sliceStore.sliceData.wallDimensions.height : sliceStore.sliceData.wallDimensions.length;
+  if (!divider) return null;
+
+  return trace.result.total_length / divider;
 }
 
 const lineInputCoords = ref<LineComputeInputLineCoords>({
