@@ -30,9 +30,9 @@
       <div class="q-mt-md">
         The categories can be understood as follow :
         <ul class="q-mt-xs">
-          <li>A masonry wall in category A is very unlikely to fail;</li>
-          <li>A masonry wall in category B may crack, but its collapse is rare;</li>
-          <li>A masonry wall in category C will likely crack under the effect of vertical loading.</li>
+          <li>Category A, good behavior of masonry</li>
+          <li>Category B, behavior of average quality masonry</li>
+          <li>Category C, inadequate behavior of masonry</li>
         </ul>
       </div>
     </div>
