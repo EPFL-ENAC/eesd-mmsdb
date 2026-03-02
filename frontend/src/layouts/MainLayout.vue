@@ -9,6 +9,7 @@
     </left-drawer>
 
     <q-page-container>
+      <app-header />
       <router-view />
     </q-page-container>
   </q-layout>
@@ -17,6 +18,7 @@
 <script setup lang="ts">
 import { useQuasar } from 'quasar';
 import AppToolbar from 'src/components/AppToolbar.vue';
+import AppHeader from 'src/components/AppHeader.vue';
 import LeftDrawer from 'src/components/LeftDrawer.vue';
 
 const $q = useQuasar();

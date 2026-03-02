@@ -38,13 +38,10 @@
       />
     </a>
   </q-toolbar>
-
-  <app-header/>
 </template>
 
 <script setup lang="ts">
 import { useQuasar } from 'quasar';
-import AppHeader from 'src/components/AppHeader.vue';
 
 interface Props {
   hasDrawer?: boolean;

@@ -18,13 +18,15 @@ const inputLine = defineModel<LineComputeInputLineCoords>('inputLine', {
 
 defineExpose({
   redrawCanvas,
+  imageDataURL,
+  cleanImageDataURL,
 });
 
 watch(() => props.uploadedImage, () => {
   initCanvas();
 });
 watch([() => props.traces, inputLine.value], () => {
-  redrawCanvas();
+  void redrawCanvas();
 });
 
 const canvasRef = useTemplateRef<HTMLCanvasElement>('canvasRef');
@@ -45,7 +47,7 @@ function initCanvas() {
     }
 
     ctx.value = canvasRef.value?.getContext('2d') || null;
-    redrawCanvas();
+    await redrawCanvas();
   };
   img.src = URL.createObjectURL(props.uploadedImage);
 };
@@ -90,19 +92,26 @@ function onCanvasMouseUp() {
   isDrawing.value = false;
 };
 
-function redrawCanvas() {
-  if (!canvasRef.value || !ctx.value || !props.uploadedImage) return;
+function redrawCanvas(withLines: boolean = true) {
+  return new Promise<void>((resolve) => {
+    if (!canvasRef.value || !ctx.value || !props.uploadedImage) return;
 
-  const img = new Image();
-  img.onload = () => {
-    if (ctx.value) {
-      ctx.value.clearRect(0, 0, canvasRef.value!.width, canvasRef.value!.height);
-      ctx.value.drawImage(img, 0, 0);
-      drawLine();
-      drawResults();
-    }
-  };
-  img.src = URL.createObjectURL(props.uploadedImage);
+    const img = new Image();
+    img.onload = () => {
+      if (ctx.value) {
+        ctx.value.clearRect(0, 0, canvasRef.value!.width, canvasRef.value!.height);
+        ctx.value.drawImage(img, 0, 0);
+
+        if (withLines) {
+          drawLine();
+        }
+        drawResults();
+      }
+
+      resolve();
+    };
+    img.src = URL.createObjectURL(props.uploadedImage);
+  });
 };
 
 function drawLine() {
@@ -148,6 +157,22 @@ function drawResults() {
     ctx.value.stroke();
   }
 };
+
+function imageDataURL() {
+  if (!canvasRef.value) return null;
+  const dataUrl = canvasRef.value.toDataURL('image/png');
+  return dataUrl;
+}
+
+async function cleanImageDataURL() {
+  if (!canvasRef.value) return null;
+
+  // Redraw canvas without lines to get a clean image
+  await redrawCanvas(false);
+  const dataUrl = canvasRef.value.toDataURL('image/png');
+  await redrawCanvas(true); // Redraw with lines again
+  return dataUrl;
+}
 
 </script>
 

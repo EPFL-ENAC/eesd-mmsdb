@@ -44,6 +44,7 @@
         <q-card-section v-show="imageLoaded">
           <div class="canvas-container q-mb-md">
             <lmt-canvas
+              ref="lmtCanvas"
               v-model:input-line="lineInputCoords"
               :uploadedImage="uploadedImage"
               :traces="traces.getAllSuccessValues()"
@@ -62,7 +63,7 @@
             </div>
           </div>
           <div class="text-h6 q-mb-md">Parameters</div>
-          <div class="row q-col-gutter-md">
+          <div class="row q-col-gutter-md q-mb-sm">
             <div class="col-md-3 col-sm-6 col-xs-12">
               <div class="text-subtitle2 q-mb-xs">Start X</div>
               <q-slider
@@ -70,7 +71,14 @@
                 :min="0"
                 :max="imageWidth - 1"
                 :step="1"
-                label
+              />
+              <q-input
+                v-model.number="lineInputCoords.startX"
+                :min="0"
+                :max="imageWidth - 1"
+                type="number"
+                filled
+                dense
               />
             </div>
             <div class="col-md-3 col-sm-6 col-xs-12">
@@ -82,6 +90,14 @@
                 :step="1"
                 label
               />
+              <q-input
+                v-model.number="lineInputCoords.startY"
+                :min="0"
+                :max="imageHeight - 1"
+                type="number"
+                filled
+                dense
+              />
             </div>
             <div class="col-md-3 col-sm-6 col-xs-12">
               <div class="text-subtitle2 q-mb-xs">End X</div>
@@ -92,6 +108,14 @@
                 :step="1"
                 label
               />
+              <q-input
+                v-model.number="lineInputCoords.endX"
+                :min="0"
+                :max="imageWidth - 1"
+                type="number"
+                filled
+                dense
+              />
             </div>
             <div class="col-md-3 col-sm-6 col-xs-12">
               <div class="text-subtitle2 q-mb-xs">End Y</div>
@@ -101,6 +125,14 @@
                 :max="imageHeight - 1"
                 :step="1"
                 label
+              />
+              <q-input
+                v-model.number="lineInputCoords.endY"
+                :min="0"
+                :max="imageHeight - 1"
+                type="number"
+                filled
+                dense
               />
             </div>
           </div>
@@ -155,43 +187,50 @@
         </q-card-section>
       </div>
       <div class="right-part">
-        <q-list padding>
+        <q-list class="history" padding>
           <q-item-label class="text-h6">Computation History</q-item-label>
           <q-separator />
-          <template v-for="entry in traces.entries" :key="entry[0]">
-            <LmtComputeTraceSpinnerLoader :result="(entry[1] as AsyncResult<LineComputeTrace>)">
-              <template #default="{ value }">
-                <q-item
-                  class="computation-result" :style="`--border-color: ${value.color};`"
-                >
-                  <q-item-section>
-                    <q-item-label>{{ entry[0] }}</q-item-label>
-                    <q-item-label caption>
-                      <template v-if="value.result.success">
-                        <div>
-                          <strong>Length:</strong> {{ value.result.total_length ? value.result.total_length.toFixed(2) + ' cm' : 'N/A' }}
-                        </div>
-                        <div>
-                          <strong>Type:</strong> {{
-                            analysisTypeOptions.find(option => option.value === value.params.analysisType)?.label
-                          }}
-                        </div>
-                        <div>
-                          <strong>LMT Result ({{ value.params.analysisType === 0 ? 'Vertical' : 'Horizontal' }}):</strong> {{ computeLMTResult(value)?.toFixed(4) ?? 'N/A' }}
-                        </div>
-                      </template>
-                      <template v-else>
-                        <strong>Error:</strong> {{ value.result.error || 'Unknown error' }}
-                      </template>
-                    </q-item-label>
-                  </q-item-section>
-                  <q-item-section side>
-                    <q-btn round color="primary" icon="delete" @click="traces.remove(entry[0])" />
-                  </q-item-section>
-                </q-item>
-              </template>
-            </LmtComputeTraceSpinnerLoader>
-          </template>
+          <div class="history-body">
+            <template v-for="entry in traces.entries" :key="entry[0]">
+              <LmtComputeTraceSpinnerLoader :result="(entry[1] as AsyncResult<LineComputeTrace>)">
+                <template #default="{ value }">
+                  <q-item
+                    class="computation-result" :style="`--border-color: ${value.color};`"
+                  >
+                    <q-item-section>
+                      <q-item-label>{{ entry[0] }}</q-item-label>
+                      <q-item-label caption>
+                        <template v-if="value.result.success">
+                          <div>
+                            <strong>Length:</strong> {{ value.result.total_length ? value.result.total_length.toFixed(2) + ' cm' : 'N/A' }}
+                          </div>
+                          <div>
+                            <strong>Type:</strong> {{
+                              analysisTypeOptions.find(option => option.value === value.params.analysisType)?.label
+                            }}
+                          </div>
+                          <div>
+                            <strong>LMT Result ({{ value.params.analysisType === 0 ? 'Vertical' : 'Horizontal' }}):</strong> {{ computeLMTResult(value)?.toFixed(4) ?? 'N/A' }}
+                          </div>
+                        </template>
+                        <template v-else>
+                          <strong>Error:</strong> {{ value.result.error || 'Unknown error' }}
+                        </template>
+                      </q-item-label>
+                    </q-item-section>
+                    <q-item-section side>
+                      <q-btn round color="primary" icon="delete" @click="traces.remove(entry[0])" />
+                    </q-item-section>
+                  </q-item>
+                </template>
+              </LmtComputeTraceSpinnerLoader>
+            </template>
+          </div>
+
+          <q-separator />
+          <q-btn :disable="traces.length < 1" color="primary" label="Download (CSV)" @click="downloadResults" class="full-width q-mt-sm" />
+          <q-btn :disable="traces.length < 1" color="primary" outline label="Download (PDF)" @click="downloadResultsAsPDF" class="full-width q-mt-sm" />
+          <q-btn :disable="traces.length < 1" color="primary" outline label="Clear History" @click="traces.clear()" class="full-width q-mt-sm" />
         </q-list>
       </div>
     </div>
@@ -203,12 +242,17 @@ import type { LineComputeInputLineCoords, LineComputeParams, LineComputeTrace } 
 import { useLineStore } from '../stores/line';
 import { useSliceStore } from '../stores/slice';
 import { type AsyncResult, Result } from 'unwrapped/core';
+// eslint-disable-next-line @typescript-eslint/consistent-type-imports
 import LmtCanvas from 'src/components/LmtCanvas.vue';
 import { useAsyncResultCollection } from 'unwrapped/vue';
 import { LmtComputeTraceSpinnerLoader } from 'src/components/utils/presets';
+import { downloadStringAsFile } from 'src/utils/download';
+import { lineComputeTracesToCSV, lineComputeTracesToPDF } from 'src/utils/export';
 
 const lineStore = useLineStore();
 const sliceStore = useSliceStore();
+
+const lmtCanvas = useTemplateRef<InstanceType<typeof LmtCanvas>>('lmtCanvas');
 
 const traces = useAsyncResultCollection<LineComputeTrace>();
 
@@ -233,6 +277,18 @@ function computeLMTResult(trace: LineComputeTrace): number | null {
   if (!divider) return null;
 
   return trace.result.total_length / divider;
+}
+
+function downloadResults() {
+  const data = traces.value.getAllSuccessValues();
+  downloadStringAsFile(lineComputeTracesToCSV(data), `line_compute_results_${new Date().toISOString()}.csv`, 'text/csv');
+}
+
+async function downloadResultsAsPDF() {
+  const data = traces.value.getAllSuccessValues();
+
+  const dataUrl = (await lmtCanvas.value?.cleanImageDataURL()) || null;
+  void lineComputeTracesToPDF(dataUrl, data, computeLMTResult);
 }
 
 const lineInputCoords = ref<LineComputeInputLineCoords>({
@@ -415,4 +471,17 @@ watch(() => sliceStore.sliceData.sliceImageData, (newData) => {
 .centered {
   text-align: center;
 }
+
+.history {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+}
+
+.history-body {
+  flex: 1;
+  overflow-y: auto;
+}
+
 </style>
