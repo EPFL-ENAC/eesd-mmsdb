@@ -10,6 +10,7 @@
 
     <q-page-container>
       <app-header />
+      <welcome-dialog />
       <router-view />
     </q-page-container>
   </q-layout>
@@ -20,6 +21,7 @@ import { useQuasar } from 'quasar';
 import AppToolbar from 'src/components/AppToolbar.vue';
 import AppHeader from 'src/components/AppHeader.vue';
 import LeftDrawer from 'src/components/LeftDrawer.vue';
+import WelcomeDialog from 'src/components/WelcomeDialog.vue';
 
 const $q = useQuasar();
 const route = useRoute();

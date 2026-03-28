@@ -14,7 +14,7 @@ export const useSettingsStore = defineStore('settings', () => {
   function initSettings(): Settings {
     if (settings.value != undefined) return settings.value;
     let settingsData: Settings = {
-      intro_shown: false,
+      intro_shown: true,
       theme: 'light',
     };
     const settingsSaved = LocalStorage.getItem(APP_STORAGE_NAME);

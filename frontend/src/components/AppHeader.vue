@@ -4,17 +4,46 @@
 
     <div class="title-group">
       <h1 class="title q-ml-sm">{{ t("title") }}</h1>
-      <div class="subtitle" v-if="isHome">Regrouping {{ totalWalls.unwrapOrNull() ?? 0 }} walls across {{ numberOfSources.unwrapOrNull() ?? 0 }} sources</div>
+      <div class="subtitle" v-if="isHome">
+        A curated dataset of {{ totalWalls.unwrapOrNull() ?? 0 }} irregular stone masonry walls.
+      </div>
     </div>
 
     <q-space />
 
     <div class="side-toolbar">
-      <q-btn icon="format_quote" class="icons" flat round :title="t('citation')" @click="showCitation = true"></q-btn>
-      <q-btn icon="mail" class="icons" flat round :title="t('contact')" @click="showContact = true"></q-btn>
-      <q-btn icon="cloud_upload" class="icons" flat round :title="t('upload')" to="/contribute"></q-btn>
-      <q-btn icon="handshake" class="icons" flat round :title="t('acknowledgements')"
-        @click="showAcknowledgements = true"></q-btn>
+      <q-btn
+        icon="format_quote"
+        class="icons"
+        flat
+        round
+        :title="t('citation')"
+        @click="showCitation = true"
+      />
+      <q-btn
+        icon="mail"
+        class="icons"
+        flat
+        round
+        :title="t('contact')"
+        @click="showContact = true"
+      />
+      <q-btn
+        icon="cloud_upload"
+        class="icons"
+        flat
+        round
+        :title="t('upload')"
+        to="/contribute"
+      />
+      <q-btn
+        icon="handshake"
+        class="icons"
+        flat
+        round
+        :title="t('acknowledgements')"
+        @click="showAcknowledgements = true"
+      />
     </div>
   </div>
 
@@ -36,10 +65,10 @@
   <simple-dialog v-model="showAcknowledgements" :title="t('acknowledgements')">
     <div>
       <p>
-      Thanks to <a href="https://www.epfl.ch/schools/enac/about/data-at-enac/enac-it4research/">ENAC-IT4R</a> for developing the web-based interfaces, visualization features and search capabilities.
+        Thanks to <a href="https://www.epfl.ch/schools/enac/about/data-at-enac/enac-it4research/">ENAC-IT4R</a> for developing the web-based interfaces, visualization features and search capabilities.
       </p>
       <p>
-      This work was financed by <a href="https://www.snf.ch/fr">Swiss National Science Foundation (SNSF)</a> grant as part of the ETH Domain’s ORD program.
+        This work was financed by <a href="https://www.snf.ch/fr">Swiss National Science Foundation (SNSF)</a> grant as part of the ETH Domain’s ORD program.
       </p>
     </div>
   </simple-dialog>
@@ -65,7 +94,6 @@ const showAcknowledgements = ref(false);
 
 const propertiesStore = usePropertiesStore()
 const totalWalls = useAsyncResultRef(propertiesStore.getColumnValues("Wall ID").chain(values => Result.ok(values.length)));
-const numberOfSources = useAsyncResultRef(propertiesStore.getColumnValues("Reference").chain(values => Result.ok(new Set(values).size)));
 
 </script>
 
