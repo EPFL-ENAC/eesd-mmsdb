@@ -58,7 +58,7 @@ class Properties:
 
         for col in data.columns:
             column = Column(
-                name=str(col).strip(), values=data[col].astype(str).tolist()
+                name=str(col).strip(), values=data[col].fillna("").astype(str).tolist()
             )
             columns.append(column)
 
