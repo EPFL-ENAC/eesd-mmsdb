@@ -94,7 +94,10 @@ function onCanvasMouseUp() {
 
 function redrawCanvas(withLines: boolean = true) {
   return new Promise<void>((resolve) => {
-    if (!canvasRef.value || !ctx.value || !props.uploadedImage) return;
+    if (!canvasRef.value || !ctx.value || !props.uploadedImage) {
+      resolve();
+      return;
+    }
 
     const img = new Image();
     img.onload = () => {

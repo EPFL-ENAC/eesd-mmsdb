@@ -4,7 +4,7 @@ import { LocalStorage } from 'quasar';
 const APP_STORAGE_NAME = 'mmsdb_settings';
 
 export type Settings = {
-  intro_shown: boolean;
+  must_show_intro: boolean;
   theme?: string;
 };
 
@@ -14,7 +14,7 @@ export const useSettingsStore = defineStore('settings', () => {
   function initSettings(): Settings {
     if (settings.value != undefined) return settings.value;
     let settingsData: Settings = {
-      intro_shown: true,
+      must_show_intro: true,
       theme: 'light',
     };
     const settingsSaved = LocalStorage.getItem(APP_STORAGE_NAME);

@@ -281,7 +281,8 @@ function computeLMTResult(trace: LineComputeTrace): number | null {
 
 function downloadResults() {
   const data = traces.value.getAllSuccessValues();
-  downloadStringAsFile(lineComputeTracesToCSV(data), `line_compute_results_${new Date().toISOString()}.csv`, 'text/csv');
+  const timestamp = new Date().toISOString().replace(/:/g, '-');
+  downloadStringAsFile(lineComputeTracesToCSV(data), `line_compute_results_${timestamp}.csv`, 'text/csv');
 }
 
 async function downloadResultsAsPDF() {

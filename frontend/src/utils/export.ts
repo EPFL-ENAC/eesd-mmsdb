@@ -25,7 +25,7 @@ export function lineComputeTracesToCSV(lines: LineComputeTrace[]) {
         end_point_used_y: line.result.end_point_used[1],
         path: line.result.path_coordinates.pixel_coordinates.map(coord => `${coord[0]}_${coord[1]}`).join("|"),
     }));
-    
+
     return Papa.unparse(data, {
         header: true,
     });
@@ -65,8 +65,9 @@ export function lineComputeTracesToPDF(imageDataUrl: string | null, lines: LineC
         yPosition += 5;
         const result = extractResult(line);
         doc.text(`LMT Result: ${result !== null ? result.toFixed(2) : 'N/A'}`, indentedXOffset, yPosition);
-        
+
     });
 
-    return doc.save(`line_compute_results_${new Date().toISOString()}.pdf`);
+    const timestamp = new Date().toISOString().replace(/:/g, '-');
+    return doc.save(`line_compute_results_${timestamp}.pdf`);
 }
