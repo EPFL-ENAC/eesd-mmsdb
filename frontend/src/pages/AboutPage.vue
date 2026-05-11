@@ -66,13 +66,100 @@
           />
         </div>
       </div>
+
+      <div class="q-mt-lg">
+        <h4>Frequently Asked Questions</h4>
+        <div class="faq-section q-mt-md">
+          <q-expansion-item
+            group="faq"
+            header-class="text-weight-medium"
+            expand-separator
+            label="What is the difference between GMQI and MQI?"
+            icon="help_outline"
+          >
+            <p>
+              <b>GMQI (Geometric Masonry Quality Index)</b> is a metric computed from the 3D microstructure data of each wall. It considers only geometric parameters such as stone shape, dimension, arrangement, and joint staggering. GMQI values are pre-computed and displayed for every wall in the database.
+            </p>
+            <p>
+              <b>MQI (Masonry Quality Index)</b> is a broader assessment method (Borri &amp; De Maria, 2002) that combines both geometric and mechanical parameters. The platform offers an <a :href="router.resolve('/quality-index/mqi-calculator').href">MQI Calculator</a> where you can evaluate the quality of <i>your own</i> masonry wall using the full MQI methodology, including mortar properties, stone mechanical strength, and other non-geometric factors.
+            </p>
+          </q-expansion-item>
+
+          <q-expansion-item
+            group="faq"
+            header-class="text-weight-medium"
+            expand-separator
+            label="What do &quot;Real&quot; and &quot;Virtual&quot; microstructure types mean?"
+            icon="layers"
+          >
+            <p>
+              <b>Real</b> walls are physical masonry walls that were built in laboratory settings and digitized through 3D scanning (e.g., photogrammetry or CT scanning). They represent actual constructed specimens.
+            </p>
+            <p>
+              <b>Virtual</b> walls are generated computationally using digital masonry microstructure generators described in the literature. They are synthetic models that follow the geometric rules of specific masonry typologies but were never physically built.
+            </p>
+          </q-expansion-item>
+
+          <q-expansion-item
+            group="faq"
+            header-class="text-weight-medium"
+            expand-separator
+            label="How can I contribute data to the database?"
+            icon="upload"
+          >
+            <p>
+              Use the <a :href="router.resolve('/contribute').href">Contribute page</a> (upload icon in the header toolbar). You will need to authenticate using a GitHub account. Once authenticated, you can upload 3D model files (<code>.ply</code>, <code>.obj</code>, <code>.stl</code>) or a <code>.zip</code> archive, along with metadata such as microstructure type, acquisition method, and a reference publication.
+            </p>
+          </q-expansion-item>
+
+          <q-expansion-item
+            group="faq"
+            header-class="text-weight-medium"
+            expand-separator
+            label="What happens after I upload my data?"
+            icon="cloud_upload"
+          >
+            <p>
+              Uploaded files are stored and associated with your account. The upload is visible on the <a :href="router.resolve('/contribute').href">Contribute page</a> under "My uploads." A review process will be applied before data is integrated into the publicly browsable database. You can view comments on your contributions and track their status through the same page.
+            </p>
+          </q-expansion-item>
+
+          <q-expansion-item
+            group="faq"
+            header-class="text-weight-medium"
+            expand-separator
+            label="Add a question or report an issue"
+            icon="chat_bubble_outline"
+          >
+            <p>
+              If your question is not covered, please open an <a href="https://github.com/EPFL-ENAC/eesd-mmsdb/issues" target="_blank" rel="noopener">Issue</a>. We aim to keep this FAQ updated based on user feedback.
+            </p>
+          </q-expansion-item>
+        </div>
+      </div>
     </div>
   </q-page>
 </template>
 
 <script setup lang="ts">
+import { useRouter } from 'vue-router';
 import CitationItem from 'src/components/CitationItem.vue';
 import EssentialLink from 'src/components/EssentialLink.vue';
 import citationItems from 'src/assets/citation_items.json';
+
+const router = useRouter();
 // const { t } = useI18n();
 </script>
+
+<style scoped>
+.faq-section p {
+  margin-bottom: 0.5rem;
+}
+
+.faq-section code {
+  background-color: #f5f5f5;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 0.9em;
+}
+</style>
