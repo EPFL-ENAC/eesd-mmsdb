@@ -16,7 +16,7 @@
 
     <donut-charts class="q-mt-lg"/>
 
-    <parallel-categories-diagram/>
+    <parallel-categories-diagram class="q-mt-lg"/>
 
     <q-card class="q-ma-lg q-mt-xl max-width">
       <q-card-section>
