@@ -1,5 +1,5 @@
 <template>
-  <q-dialog v-model="showDataProtectionNotice">
+  <q-dialog v-model="showDataProtectionNotice" class="welcome-dialog">
     <q-card>
       <q-card-section>
         <div class="text-h6">Masonry Microstructure Database</div>
@@ -42,3 +42,9 @@ function onClose() {
 }
 
 </script>
+
+<style scoped>
+.welcome-dialog .q-card {
+  max-width: 400px;
+}
+</style>
