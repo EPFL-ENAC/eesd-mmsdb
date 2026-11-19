@@ -29,6 +29,7 @@ dependencies = [
     "cachetools>=6.2.1",
     "python-jose[cryptography]>=3.5.0",
     "httpx>=0.28.1",
+    "enacit4r-contrib",
 ]
 
 [project.optional-dependencies]
@@ -46,3 +47,11 @@ packages = ["api"]
 
 [tool.codespell]
 skip = 'uv.lock'
+
+[tool.uv.sources]
+enacit4r-contrib = { git = "https://github.com/EPFL-ENAC/enacit4r-contrib", rev = "0.3.1" }
+
+[dependency-groups]
+dev = [
+    "pytest>=8.4.1",
+]

@@ -11,6 +11,7 @@ from pydantic import BaseModel
 from api.config import config
 from api.views.auth import router as auth_router
 from api.views.compute import router as compute_router
+from api.views.contributions import router as contributions_router
 from api.views.files import router as files_router
 from api.views.properties import router as properties_router
 
@@ -83,4 +84,10 @@ app.include_router(
     properties_router,
     prefix="/properties",
     tags=["Properties"],
+)
+
+app.include_router(
+    contributions_router,
+    prefix="/contributions",
+    tags=["Contributions"],
 )
