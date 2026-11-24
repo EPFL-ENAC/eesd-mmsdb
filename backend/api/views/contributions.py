@@ -94,6 +94,7 @@ router.include_router(
         contributor=Contributor,
         public_state=sink.state,
         ignore_case=True,
+        unexpected="Not a 3D model: only .ply, .obj and .stl files are taken",
     )
 )
 router.include_router(
