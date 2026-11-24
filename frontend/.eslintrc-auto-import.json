@@ -111,6 +111,8 @@
     "useStonePropertiesStore": true,
     "useCorrelationsFiltersStore": true,
     "useLineStore": true,
-    "useSliceStore": true
+    "useSliceStore": true,
+    "errorMessages": true,
+    "stateColor": true
   }
 }
