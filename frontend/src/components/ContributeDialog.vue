@@ -13,7 +13,7 @@
             <div class="row q-col-gutter-md">
               <div class="col">
                 <q-input
-                  v-model="contribution.name"
+                  v-model="contributor.name"
                   :label="t('contribute.name') + ' *'"
                   :hint="t('contribute.name_hint')"
                   type="text"
@@ -22,7 +22,7 @@
                   class="q-mb-md"
                 />
                 <q-input
-                  v-model="contribution.email"
+                  v-model="contributor.email"
                   :label="t('contribute.email') + ' *'"
                   :hint="t('contribute.email_hint')"
                   type="text"
@@ -32,7 +32,7 @@
                   class="q-mb-md"
                 />
                 <q-input
-                  v-model="contribution.affiliation"
+                  v-model="contributor.affiliation"
                   :label="t('contribute.affiliation')"
                   :hint="t('contribute.affiliation_hint')"
                   type="text"
@@ -42,7 +42,7 @@
               </div>
               <div class="col">
                 <q-select
-                  v-model="contribution.type"
+                  v-model="contributor.type"
                   :options="typeOptions"
                   :label="t('contribute.type')"
                   :hint="t('contribute.type_hint')"
@@ -52,7 +52,7 @@
                   class="q-mb-md"
                 />
                 <q-input
-                  v-model="contribution.method"
+                  v-model="contributor.method"
                   :label="t('contribute.method')"
                   :hint="t('contribute.method_hint')"
                   type="text"
@@ -60,7 +60,7 @@
                   class="q-mb-md"
                 />
                 <q-input
-                  v-model="contribution.reference"
+                  v-model="contributor.reference"
                   :label="t('contribute.reference')"
                   :hint="t('contribute.reference_hint')"
                   type="text"
@@ -70,7 +70,7 @@
               </div>
             </div>
             <q-input
-              v-model="contribution.comments"
+              v-model="contributor.comments"
               :label="t('contribute.comments')"
               type="textarea"
               autogrow
@@ -93,6 +93,12 @@
               </template>
             </q-file>
           </q-form>
+          <q-banner v-if="errors.length" class="bg-red-1 text-negative q-mt-md">
+            <div class="text-bold">{{ t('contribute.upload_error') }}</div>
+            <ul class="q-my-sm">
+              <li v-for="(msg, idx) in errors" :key="idx">{{ msg }}</li>
+            </ul>
+          </q-banner>
         </div>
       </q-card-section>
       <q-card-actions v-if="$q.screen.gt.xs" align="right">
@@ -106,11 +112,11 @@
 
 <script setup lang="ts">
 import { QForm, useQuasar } from 'quasar';
-import type { UploadInfo, Contribution } from 'src/models';
+import type { Contributor } from 'src/models';
+import { errorMessages } from 'src/stores/contribute';
 
 interface Props {
   modelValue: boolean;
-  info?: UploadInfo | undefined;
   size?: string;
 }
 const props = defineProps<Props>();
@@ -123,7 +129,8 @@ const contributeStore = useContributeStore();
 const uploading = ref(false);
 const form = ref<QForm>();
 const showDialog = ref(props.modelValue);
-const contribution = ref<Contribution>({} as Contribution);
+const contributor = ref<Contributor>({} as Contributor);
+const errors = ref<string[]>([]);
 const files = ref<File[]>([]);
 
 const typeOptions = computed(() => [
@@ -137,8 +144,9 @@ watch(
     showDialog.value = value;
     if (value) {
       // Reset form if needed
-      contribution.value = JSON.parse(JSON.stringify(props.info?.contribution || { name: contributeStore.userInfo?.full_name || '', email: contributeStore.userInfo?.email || '', type: 'real' })) as Contribution;
+      contributor.value = { name: contributeStore.userInfo?.full_name || '', email: contributeStore.userInfo?.email || '', type: 'real' };
       files.value = [];
+      errors.value = [];
       form.value?.resetValidation();
     }
   },
@@ -157,12 +165,13 @@ async function onUpload() {
   // Handle the file upload and form submission
   try {
     uploading.value = true;
-    await contributeStore.upload(files.value, contribution.value);
+    errors.value = [];
+    await contributeStore.submit(files.value, contributor.value);
     $q.notify({ type: 'positive', message: t('contribute.upload_success') });
     emit('update:modelValue', false);
   } catch (error) {
     console.error('Upload error:', error);
-    $q.notify({ type: 'negative', message: t('contribute.upload_error') });
+    errors.value = errorMessages(error);
   } finally {
     uploading.value = false;
   }

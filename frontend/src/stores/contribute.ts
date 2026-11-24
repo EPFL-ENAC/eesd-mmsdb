@@ -2,15 +2,15 @@ import { AxiosError } from 'axios';
 import { defineStore } from 'pinia';
 import { LocalStorage } from 'quasar';
 import { api } from 'src/boot/api';
-import type { UploadInfo, Contribution, UploadInfoState, User } from 'src/models';
+import type { Contributor, Draft, DraftState, Issue, MyContribution, User } from 'src/models';
 
 const CONTRIB_STORAGE_NAME = 'mms_contrib';
 
 export const useContributeStore = defineStore('contribute', () => {
 
   const userInfo = ref<User>();
-  const uploadInfos = ref<UploadInfo[]>([]);
-  const allUploadInfos = ref<UploadInfo[]>([]);
+  const myContributions = ref<MyContribution[]>([]);
+  const drafts = ref<Draft[]>([]);
 
   /**
    * Initiate GitHub login by redirecting to the authentication URL.
@@ -58,164 +58,134 @@ export const useContributeStore = defineStore('contribute', () => {
   }
 
   /**
-   * Initialize the user's upload infos from local storage and verify their state from the server.
-   * If the upload is no longer accessible, it is removed from the list.
-   *
-   * @returns Promise<UploadInfo[]>
+   * Load the contributions saved in this browser and refresh their state from the server.
+   * Entries saved by the old upload API (no `id`) are dropped: the new API does not know them.
    */
-  async function initMyUploadInfos(): Promise<UploadInfo[]> {
-    const uploadInfosSaved = LocalStorage.getItem(CONTRIB_STORAGE_NAME);
-    let parsed: UploadInfo[] = [];
-    if (uploadInfosSaved !== null) {
-      if (typeof uploadInfosSaved === 'string') {
-        parsed = JSON.parse(uploadInfosSaved);
-      } else if (typeof uploadInfosSaved === 'object') {
-        parsed = uploadInfosSaved as UploadInfo[];
+  async function initMyContributions(): Promise<MyContribution[]> {
+    const saved = LocalStorage.getItem(CONTRIB_STORAGE_NAME);
+    let parsed: Partial<MyContribution>[] = [];
+    if (typeof saved === 'string') {
+      parsed = JSON.parse(saved);
+    } else if (Array.isArray(saved)) {
+      parsed = saved as Partial<MyContribution>[];
+    }
+    const kept = parsed.filter((c): c is MyContribution => typeof c.id === 'string');
+    myContributions.value = await Promise.all(kept.map(async (c) => {
+      try {
+        const response = await api.get(`/contributions/${encodeURIComponent(c.id)}/state`);
+        return { ...c, state: response.data.state as DraftState };
+      } catch (error) {
+        // 404: the server does not know this id; other errors: keep the last known state
+        const notFound = error instanceof AxiosError && error.response?.status === 404;
+        return notFound ? { ...c, state: 'unknown' as const } : c;
       }
-      return Promise.all(parsed.map(async (info) => {
-        return api.get(`/files/upload/${encodeURIComponent(info.path)}/_state`)
-        .then((response) => {
-          const state = response.data as UploadInfoState;
-          return { ...info, ...state };
-        }).catch(() => {
-          // either missing or not accessible anymore
-          return null;
-        });
-      })).then((results) => {
-        const filtered = results.filter((info): info is UploadInfo => info !== null);
-        uploadInfos.value = filtered;
-        // sort by most recent first
-        uploadInfos.value.sort(uploadInfoSorter);
-        LocalStorage.set(CONTRIB_STORAGE_NAME, JSON.stringify(uploadInfos.value));
-        return uploadInfos.value;
-      });
-    } else {
-      uploadInfos.value = parsed;
-    }
-    return Promise.resolve(uploadInfos.value);
+    }));
+    myContributions.value.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+    saveMyContributions();
+    return myContributions.value;
+  }
+
+  function saveMyContributions() {
+    LocalStorage.set(CONTRIB_STORAGE_NAME, JSON.stringify(myContributions.value));
   }
 
   /**
-   * Initialize all upload infos from the server (requires API key).
-   *
-   * @returns Promise<UploadInfo[]>
+   * Submit files with the contributor metadata. Throws the axios error on failure,
+   * use errorMessages() to show it.
    */
-  async function initUploadInfos(): Promise<UploadInfo[]> {
-    try {
-      const response = await api.get('/files/upload-info');
-      allUploadInfos.value = response.data as UploadInfo[];
-      // sort by most recent first
-      allUploadInfos.value.sort(uploadInfoSorter);
-      return allUploadInfos.value;
-    } catch (error) {
-      await handleErrorResponse(error);
-      return [];
-    }
-  }
-
-  /**
-   * Upload files with contribution metadata.
-   * @param files Array of files to upload.
-   * @param contribution Contribution metadata.
-   * @returns Promise<UploadInfo>
-   */
-  async function upload(files: File[], contribution: Contribution): Promise<UploadInfo> {
+  async function submit(files: File[], contributor: Contributor): Promise<MyContribution> {
     const formData = new FormData();
     files.forEach((file) => {
       formData.append('files', file);
     });
-    formData.append('contribution', JSON.stringify(contribution));
-    const response = await api.post('/files/upload', formData);
-    const result = response.data;
-    saveUploadInfo(result as UploadInfo);
-    return result as UploadInfo;
+    formData.append('contributor', JSON.stringify(contributor));
+    const response = await api.post('/contributions', formData);
+    const saved: MyContribution = {
+      id: response.data.id,
+      name: contributor.name,
+      date: new Date().toISOString(),
+      state: 'submitted',
+    };
+    myContributions.value.unshift(saved);
+    saveMyContributions();
+    return saved;
   }
 
   /**
-   * Delete an upload by its info.
-   * @param info UploadInfo to delete.
+   * Admin: list the drafts, optionally in one state.
    */
-  async function deleteUpload(info: UploadInfo): Promise<void> {
-    await api.delete(`/files/upload/${info.path}`);
-    deleteUploadInfo(info);
+  async function fetchDrafts(state?: DraftState): Promise<Draft[]> {
+    const response = await api.get('/contributions/drafts', { params: state ? { state } : {} });
+    drafts.value = response.data as Draft[];
+    return drafts.value;
   }
 
   /**
-   * Download an upload by its path.
-   * @param path Path of the upload to download.
+   * Admin: move a draft to a new state. Returns the updated draft.
    */
-  async function downloadUpload(path: string) {
-    const response = await api.get(`/files/upload/${encodeURIComponent(path)}`, {
-      responseType: 'blob'
+  async function decide(id: string, state: DraftState, comment?: string): Promise<Draft> {
+    const response = await api.post(`/contributions/drafts/${encodeURIComponent(id)}/decision`, { state, comment: comment || null });
+    const draft = response.data as Draft;
+    const index = drafts.value.findIndex((d) => d.id === id);
+    if (index !== -1) drafts.value[index] = draft;
+    return draft;
+  }
+
+  /**
+   * Admin: download one file of a draft.
+   */
+  async function downloadDraftFile(id: string, path: string) {
+    const encoded = path.split('/').map(encodeURIComponent).join('/');
+    const response = await api.get(`/contributions/drafts/${encodeURIComponent(id)}/files/${encoded}`, {
+      responseType: 'blob',
     });
-    const contentDisposition = response.headers['content-disposition'];
-    const filenameMatch = contentDisposition && contentDisposition.match(/filename="?([^"]+)"?/);
-    const filename = filenameMatch ? filenameMatch[1] : 'download.zip';
-    const blob = new Blob([response.data], { type: 'application/zip' });
-    const url = window.URL.createObjectURL(blob);
+    const url = window.URL.createObjectURL(response.data as Blob);
     const link = document.createElement('a');
     link.href = url;
-    link.setAttribute('download', filename);
+    link.setAttribute('download', path.split('/').pop() || 'download');
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
     window.URL.revokeObjectURL(url);
   }
 
-  /**
-   * Save or update an upload info in local storage.
-   * @param uploadInfoData UploadInfo to save.
-   */
-  function saveUploadInfo(uploadInfoData: UploadInfo) {
-    // update by name if already exists
-    const index = uploadInfos.value.findIndex((info) => info.path === uploadInfoData.path);
-    if (index !== -1) {
-      uploadInfos.value[index] = uploadInfoData;
-      LocalStorage.set(CONTRIB_STORAGE_NAME, JSON.stringify(uploadInfos.value));
-      return;
-    }
-    uploadInfos.value.push(uploadInfoData);
-    // sort by most recent first
-    uploadInfos.value.sort(uploadInfoSorter);
-    LocalStorage.set(CONTRIB_STORAGE_NAME, JSON.stringify(uploadInfos.value));
-  }
-
-  /**
-   * Delete an upload info from local storage.
-   * @param uploadInfoData UploadInfo to delete.
-   */
-  function deleteUploadInfo(uploadInfoData: UploadInfo) {
-    const index = uploadInfos.value.findIndex((info) => info.path === uploadInfoData.path);
-    if (index !== -1) {
-      uploadInfos.value.splice(index, 1);
-      LocalStorage.set(CONTRIB_STORAGE_NAME, JSON.stringify(uploadInfos.value));
-    }
-  }
-
-  /**
-   * Sorts upload information by date.
-   * @param a First upload info to compare.
-   * @param b Second upload info to compare.
-   * @returns A negative number if a is more recent than b, a positive number if b is more recent than a, and 0 if they are equal.
-   */
-  function uploadInfoSorter(a: UploadInfo, b: UploadInfo): number {
-    const dateA = new Date(a.date);
-    const dateB = new Date(b.date);
-    return dateB.getTime() - dateA.getTime();
-  }
-
   return {
-    uploadInfos,
-    allUploadInfos,
+    myContributions,
+    drafts,
     userInfo,
     login,
     logout,
     fetchUserInfo,
-    initMyUploadInfos,
-    initUploadInfos,
-    saveUploadInfo,
-    upload,
-    deleteUpload,
-    downloadUpload,
+    initMyContributions,
+    submit,
+    fetchDrafts,
+    decide,
+    downloadDraftFile,
   };
 });
+
+/**
+ * The messages to show for a failed contribution request:
+ * the issues of a 422 report ("file: message"), or the `detail` of the error.
+ */
+export function errorMessages(error: unknown): string[] {
+  if (!(error instanceof AxiosError) || !error.response?.data) {
+    return [error instanceof Error ? error.message : String(error)];
+  }
+  const data = error.response.data as { issues?: Issue[]; detail?: unknown };
+  if (Array.isArray(data.issues) && data.issues.length > 0) {
+    return data.issues.map((i) => (i.file ? `${i.file}: ${i.message}` : i.message));
+  }
+  if (typeof data.detail === 'string') return [data.detail];
+  if (Array.isArray(data.detail)) {
+    // pydantic validation errors of the contributor field
+    return data.detail.map((d: { loc?: unknown[]; msg?: string }) => `${(d.loc || []).join('.')}: ${d.msg}`);
+  }
+  return [error.message];
+}
+
+/** The badge color of a contribution state. */
+export function stateColor(state: string): string {
+  const colors: Record<string, string> = { submitted: 'info', accepted: 'primary', rejected: 'negative', published: 'positive', withdrawn: 'warning' };
+  return colors[state] || 'grey';
+}

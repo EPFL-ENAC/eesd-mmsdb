@@ -90,12 +90,7 @@ export interface WallStonesList {
   files: string[];
 }
 
-export interface FileInfo {
-  name: string;
-  size: number;
-}
-
-export interface Contribution {
+export interface Contributor {
   name: string;
   email: string;
   affiliation?: string;
@@ -105,18 +100,39 @@ export interface Contribution {
   comments?: string;
 }
 
-export interface UploadInfo {
-  path: string;
+export type DraftState = 'submitted' | 'accepted' | 'rejected' | 'published' | 'withdrawn';
+
+/** A submission kept in the browser of the contributor. */
+export interface MyContribution {
+  id: string;
+  name: string;
   date: string;
-  files: FileInfo[];
-  total_size: number;
-  state: string;
-  contribution: Contribution | null;
+  state: DraftState | 'unknown';
 }
 
-export interface UploadInfoState {
-  path: string;
-  state: string;
+export interface Issue {
+  message: string;
+  file?: string | null;
+  row?: number | null;
+  column?: string | null;
+  value?: string | null;
+  severity: string;
+}
+
+export interface Decision {
+  state: DraftState;
+  by: string;
+  at: string;
+  comment?: string | null;
+}
+
+export interface Draft {
+  id: string;
+  state: DraftState;
+  contributor: Contributor;
+  report: { valid: boolean; issues: Issue[] };
+  files: string[];
+  history: Decision[];
 }
 
 export interface User {

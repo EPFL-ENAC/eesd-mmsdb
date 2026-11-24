@@ -16,6 +16,9 @@ class Config(BaseSettings):
 
     UPLOAD_FILES_PATH: str = "/tmp/mmsdb_upload"
     UPLOAD_FILES_SUFFIX: str = ".ply,.obj,.stl"
+    # Contributions: drafts/ and published/ live here, outside UPLOAD_FILES_PATH,
+    # so the old /files/upload routes cannot reach them.
+    CONTRIBUTION_DRAFTS_PATH: str = "/tmp/mmsdb_contributions"
 
     PROPERTIES_PATH: str = "original/04_StoneMasonryMicrostructureDatabase.csv"
     STONE_PROPERTIES_DIR_PATH: str = "original/03_Stones_geometric_properties"

@@ -14,15 +14,24 @@
       <div>{{ t('contribute.not_allowed_all_uploads') }}</div>
     </div>
     <div v-else>
+      <q-select
+        v-model="state"
+        :options="stateOptions"
+        :label="t('contribute.state_filter')"
+        emit-value
+        map-options
+        filled
+        dense
+        style="max-width: 300px;"
+        @update:model-value="onShowAll"
+      />
       <q-spinner v-if="loading" size="2rem" class="q-mt-md" />
-      <div v-else>
-        <div v-if="contributeStore.allUploadInfos.length === 0">
+      <div v-else class="q-mt-md">
+        <div v-if="contributeStore.drafts.length === 0">
           {{ t('contribute.no_files_uploaded') }}
         </div>
         <q-list v-else bordered separator style="max-width: 800px;">
-          <template v-for="uploadInfo in contributeStore.allUploadInfos" :key="uploadInfo.path">
-            <upload-info-item :upload-info="uploadInfo" @delete="onConfirmDelete" @comments="onShowComments" />
-          </template>
+          <draft-item v-for="draft in contributeStore.drafts" :key="draft.id" :draft="draft" />
         </q-list>
       </div>
     </div>
@@ -31,47 +40,42 @@
 
 <script setup lang="ts">
 import { useQuasar } from 'quasar';
-import UploadInfoItem from 'src/components/UploadInfoItem.vue';
-import type { UploadInfo } from 'src/models';
+import DraftItem from 'src/components/DraftItem.vue';
+import type { DraftState } from 'src/models';
+import { errorMessages } from 'src/stores/contribute';
 
 const { t } = useI18n();
 const $q = useQuasar();
 const contributeStore = useContributeStore();
 
-const props = defineProps<{
-  refresh: number;
-}>();
-const emit = defineEmits(['delete', 'comments']);
+const STATES: DraftState[] = ['submitted', 'accepted', 'rejected', 'published', 'withdrawn'];
 
 const loading = ref(false);
+const state = ref<DraftState | null>('submitted');
+const stateOptions = computed(() => [
+  { label: t('contribute.state_all'), value: null },
+  ...STATES.map((s) => ({ label: t(`contribute.state.${s}`), value: s })),
+]);
 
 onMounted(onInit);
 
-watch(() => props.refresh, () => {
+watch(() => contributeStore.userInfo, () => {
   onInit();
 });
 
 function onInit() {
-  if (!contributeStore.userInfo) return;
+  if (contributeStore.userInfo?.role !== 'admin') return;
   onShowAll();
 }
 
 function onShowAll() {
   loading.value = true;
-  contributeStore.initUploadInfos().catch((error) => {
-    console.error('Error fetching all upload infos:', error);
-    $q.notify({ type: 'negative', message: t('contribute.upload_info_fetch_error') });
+  contributeStore.fetchDrafts(state.value || undefined).catch((error) => {
+    console.error('Error fetching drafts:', error);
+    $q.notify({ type: 'negative', message: `${t('contribute.upload_info_fetch_error')} ${errorMessages(error).join(' ')}` });
   }).finally(() => {
     loading.value = false;
   });
-}
-
-function onConfirmDelete(uploadInfo: UploadInfo) {
-  emit('delete', uploadInfo);
-}
-
-function onShowComments(uploadInfo: UploadInfo) {
-  emit('comments', uploadInfo);
 }
 
 async function onLogin() {
