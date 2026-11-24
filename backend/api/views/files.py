@@ -235,7 +235,7 @@ async def upload_file(
     status_code=200,
     description="Delete an upload folder from the temporary upload directory",
 )
-async def delete_upload_folder(folder: str):
+async def delete_upload_folder(folder: str, user: User = Depends(get_admin_user)):
     """Delete an upload folder from the temporary upload directory.
 
     Args:
@@ -246,15 +246,13 @@ async def delete_upload_folder(folder: str):
     Returns:
         dict: Success message
     """
-    base_path = Path(config.UPLOAD_FILES_PATH)
+    # Only one upload folder: never the root itself, never a nested path.
+    if folder in ("", ".", "..") or any(c in folder for c in "/\\\x00"):
+        raise HTTPException(status_code=400, detail="Invalid upload folder name")
+    base_path = Path(config.UPLOAD_FILES_PATH).resolve()
     folder_path = (base_path / folder).resolve()
-
-    try:
-        folder_path.relative_to(base_path.resolve())
-    except ValueError:
-        raise HTTPException(
-            status_code=403, detail="Access denied: Path outside allowed directory"
-        )
+    if folder_path.parent != base_path:
+        raise HTTPException(status_code=400, detail="Invalid upload folder name")
 
     if not folder_path.exists() or not folder_path.is_dir():
         raise HTTPException(status_code=404, detail="Folder not found")
@@ -272,9 +270,9 @@ async def delete_upload_folder(folder: str):
     description="Get the state of an upload folder",
     response_model=UploadInfoState,
 )
-async def get_upload_folder_state(folder: str):
+async def get_upload_folder_state(folder: str, user: User = Depends(get_admin_user)):
     """Get the state of an upload folder in the temporary upload directory."""
-    info = await get_upload_folder_info(folder, None)
+    info = await get_upload_folder_info(folder, user)
     return UploadInfoState(path=info.path, state=info.state)
 
 
@@ -283,7 +281,7 @@ async def get_upload_folder_state(folder: str):
     status_code=200,
     description="Download an upload folder as a zip file or an upload file as a single file",
 )
-async def download_upload_file(path: str):
+async def download_upload_file(path: str, user: User = Depends(get_admin_user)):
     """Download an upload folder as a zip file or an upload file as a single file.
 
     Args:
@@ -436,7 +434,7 @@ async def delete_upload_folder_info(folder: str, user: User = Depends(get_admin_
         dict: Success message
     """
     # Note: for consistency with list and get, we keep the same endpoint
-    return delete_upload_folder(folder)
+    return await delete_upload_folder(folder, user)
 
 
 @router.put(

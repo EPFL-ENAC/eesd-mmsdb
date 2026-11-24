@@ -1,6 +1,8 @@
 import io
+import json
 import time
 import zipfile
+from pathlib import Path
 from unittest.mock import AsyncMock
 
 import pytest
@@ -13,15 +15,24 @@ from api.main import app
 from api.models.auth import User
 from api.views import contributions
 
-FORM = {"name": "Ada Example", "email": "ada@example.org", "institution": "EPFL"}
+PERSON = {
+    "name": "Ada Example",
+    "email": "ada@example.org",
+    "affiliation": "EPFL",
+    "type": "Real",
+    "method": "Photogrammetry",
+}
+FORM = {"contributor": json.dumps(PERSON)}
 
 
 @pytest.fixture
-def client(tmp_path, monkeypatch):
+def client(tmp_path, monkeypatch, request):
     monkeypatch.setattr(contributions.store, "root", tmp_path / "drafts")
+    monkeypatch.setattr(config, "UPLOAD_FILES_PATH", str(tmp_path / "upload"))
     mailer = AsyncMock()
     monkeypatch.setattr(contributions, "Mailer", lambda: mailer)
-    c = TestClient(app)
+    # The router rate-limits per client: give each test its own client key.
+    c = TestClient(app, headers={"x-forwarded-for": request.node.name})
     c.mailer = mailer
     c.tmp = tmp_path
     yield c
@@ -50,9 +61,7 @@ def zip_with(name: str, data: bytes) -> bytes:
 
 def upload(client, name="wall.zip", data=None):
     data = zip_with("walls/OC01/stone_1.ply", b"ply\n") if data is None else data
-    return client.post(
-        "/contributions/contributions", data=FORM, files=[("files", (name, data))]
-    )
+    return client.post("/contributions", data=FORM, files=[("files", (name, data))])
 
 
 def test_zip_with_one_ply_makes_a_submitted_draft(client):
@@ -61,8 +70,39 @@ def test_zip_with_one_ply_makes_a_submitted_draft(client):
     draft = (client.tmp / "drafts" / r.json()["id"] / "draft.json").read_text()
     assert '"state": "submitted"' in draft
     assert "OC01/stone_1.ply" in draft
+    assert '"method": "Photogrammetry"' in draft
     # The e-mail to the admins goes out at submission.
     client.mailer.send_data_uploaded_email.assert_awaited_once()
+    info = client.mailer.send_data_uploaded_email.await_args.args[0]
+    assert info.contribution.email == "ada@example.org"
+
+
+def test_upper_case_suffix_is_allowed(client):
+    r = upload(client, name="STONE.PLY", data=b"ply\n")
+    assert r.status_code == 201, r.text
+
+
+def test_blank_name_is_refused(client):
+    form = {"contributor": json.dumps({**PERSON, "name": " "})}
+    files = [("files", ("a.ply", b"ply\n"))]
+    r = client.post("/contributions", data=form, files=files)
+    assert r.status_code == 422, r.text
+
+
+def test_public_state_shows_only_the_state(client):
+    id_ = upload(client).json()["id"]
+    assert len(id_) >= 22
+    r = client.get(f"/contributions/{id_}/state")
+    assert r.status_code == 200, r.text
+    assert r.json() == {"id": id_, "state": "submitted"}
+    assert "ada@example.org" not in r.text
+    assert client.get("/contributions/nope/state").status_code == 404
+
+
+def test_drafts_live_outside_the_upload_folder():
+    assert not contributions.ROOT.resolve().is_relative_to(
+        Path(config.UPLOAD_FILES_PATH).resolve()
+    )
 
 
 def test_txt_only_is_refused(client):
@@ -96,3 +136,51 @@ def test_non_admin_is_refused(client):
     assert client.get("/contributions/drafts").status_code == 403
     client.cookies.set("token", token("admin"))
     assert client.get("/contributions/drafts").status_code == 200
+
+
+# The four code-scanning alerts on the old /files/upload routes.
+
+
+def test_anonymous_download_of_an_upload_is_refused(client):
+    (client.tmp / "upload" / "abc").mkdir(parents=True)
+    (client.tmp / "upload" / "abc" / "a.ply").write_bytes(b"ply\n")
+    assert client.get("/files/upload/abc/a.ply").status_code == 401
+    assert client.get("/files/upload/abc").status_code == 401
+    as_admin()
+    assert client.get("/files/upload/abc/a.ply").content == b"ply\n"
+
+
+def test_anonymous_delete_of_an_upload_is_refused(client):
+    (client.tmp / "upload" / "abc").mkdir(parents=True)
+    assert client.delete("/files/upload/abc").status_code == 401
+    assert (client.tmp / "upload" / "abc").exists()
+
+
+def test_admin_cannot_delete_the_upload_root(client):
+    (client.tmp / "upload" / "abc").mkdir(parents=True)
+    as_admin()
+    # A "/" in the name never reaches the route (it answers 405).
+    for folder in ("%2E", "%2E%2E", "%2E%00"):
+        for route in ("/files/upload/", "/files/upload-info/"):
+            r = client.delete(route + folder)
+            assert r.status_code == 400, (route, folder, r.text)
+            assert r.json()["detail"] == "Invalid upload folder name"
+    assert (client.tmp / "upload" / "abc").exists()
+    # A single upload folder (with its info.json) can still be deleted, on both routes.
+    for folder, route in (("abc", "/files/upload/"), ("def", "/files/upload-info/")):
+        (client.tmp / "upload" / folder).mkdir(exist_ok=True)
+        (client.tmp / "upload" / folder / "info.json").write_text("{}")
+        assert client.delete(route + folder).status_code == 200
+        assert not (client.tmp / "upload" / folder).exists()
+
+
+def test_anonymous_state_of_an_upload_is_refused(client):
+    folder = client.tmp / "upload" / "abc"
+    folder.mkdir(parents=True)
+    (folder / "info.json").write_text(
+        json.dumps({"path": "abc", "date": "d", "files": [], "total_size": 0})
+    )
+    assert client.get("/files/upload/abc/_state").status_code == 401
+    as_admin()
+    r = client.get("/files/upload/abc/_state")
+    assert r.json() == {"path": "abc", "state": "uploaded"}

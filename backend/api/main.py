@@ -86,8 +86,8 @@ app.include_router(
     tags=["Properties"],
 )
 
+# No prefix: the library routes already start with /contributions.
 app.include_router(
     contributions_router,
-    prefix="/contributions",
     tags=["Contributions"],
 )

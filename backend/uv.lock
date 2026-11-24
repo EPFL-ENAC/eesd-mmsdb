@@ -87,7 +87,7 @@ requires-dist = [
     { name = "aiosmtplib", specifier = ">=5.0.0" },
     { name = "cachetools", specifier = ">=6.2.1" },
     { name = "dotenv", marker = "extra == 'dev'", specifier = ">=0.9.9" },
-    { name = "enacit4r-contrib", git = "https://github.com/EPFL-ENAC/enacit4r-contrib?rev=0.3.1" },
+    { name = "enacit4r-contrib", git = "https://github.com/EPFL-ENAC/enacit4r-contrib?rev=b6d8cc02f8a54e8aa32e5309821e6d81eae07830" },
     { name = "fastapi", specifier = ">=0.115.14" },
     { name = "fastapi-cache2", specifier = ">=0.2.2" },
     { name = "httpx", specifier = ">=0.28.1" },
@@ -277,8 +277,8 @@ wheels = [
 
 [[package]]
 name = "enacit4r-contrib"
-version = "0.3.1"
-source = { git = "https://github.com/EPFL-ENAC/enacit4r-contrib?rev=0.3.1#b83fbac23fefcffbfd2e68169d97224e97a99ec6" }
+version = "0.5.0"
+source = { git = "https://github.com/EPFL-ENAC/enacit4r-contrib?rev=b6d8cc02f8a54e8aa32e5309821e6d81eae07830#b6d8cc02f8a54e8aa32e5309821e6d81eae07830" }
 dependencies = [
     { name = "fastapi" },
     { name = "pydantic" },

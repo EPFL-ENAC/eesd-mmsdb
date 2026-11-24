@@ -1,6 +1,7 @@
 # Does enacit4r-contrib pattern A fit the MMSDB upload?
 
 Spike on branch `spike/enacit4r-contrib-drafts`, library tag 0.3.1. Not for merge.
+See "Update: library 0.5.0" at the end for the version in use now.
 
 ## Short answer
 
@@ -106,3 +107,34 @@ Before production: put the drafts outside `UPLOAD_FILES_PATH`, or remove the old
 - Front end: not changed (out of scope).
 - Migration of the existing `<uuid>/info.json` uploads to drafts.
 - The decision e-mail uses the "Data uploaded" template. A decision template is needed.
+
+## Update: library 0.5.0
+
+The back end now uses enacit4r-contrib 0.5.0 (a commit pin on `feat/0.5.0`
+until the tag exists). Changes from the spike:
+
+- No `DraftSink` subclass. `DraftSink(store, on_submit=notify,
+  make_id=secret_id)` sends the upload e-mail (gap 3) and makes a 128-bit
+  random id with no name in it (gap 5).
+- The contributor model `Contributor` extends the MMSDB `Contribution`:
+  all its fields are kept, and `name` and `email` must not be blank. The
+  router and the store both use it (gap 1).
+- The browser sends one JSON form field. The field is now `contributor`,
+  not `contribution` (gap 2). The front end must rename it.
+- `GET /contributions/{id}/state` is public and returns only `{id, state}`
+  (gap 4).
+- `ignore_case=True`: `*.ply` matches `X.PLY` and `x.Ply` (gap 7). The
+  upper-case `ALLOW` list is gone.
+- No prefix on the router: the submit route is `POST /contributions`, the
+  admin routes are under `/contributions/drafts` (gap 8). `POST /validate`
+  is at the root.
+- The drafts live in `CONTRIBUTION_DRAFTS_PATH/drafts`, outside
+  `UPLOAD_FILES_PATH`. Publication copies to `CONTRIBUTION_DRAFTS_PATH/published`.
+  The old routes cannot reach them.
+- The old `/files/upload/...` routes: download, delete and `_state` now need
+  an admin. The delete refuses `.`, `..` and any name that is not one folder
+  of the upload root (the risk above, and code-scanning alerts 1 to 4).
+
+Still open: gap 6 (unknown files refuse the upload, the form must show the
+issues), a decision e-mail template (the decision still sends the "Data
+uploaded" e-mail), and the migration of the old uploads.
