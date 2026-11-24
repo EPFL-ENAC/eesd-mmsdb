@@ -14,10 +14,11 @@ env:
   IMAGE_NAME: ${{github.repository}}
 jobs:
   deploy:
-    uses: EPFL-ENAC/epfl-enac-build-push-deploy-action/.github/workflows/deploy.yml@v2.5.0
+    uses: EPFL-ENAC/epfl-enac-build-push-deploy-action/.github/workflows/deploy.yml@v4.2.0
     secrets:
       token: ${{ secrets.CD_TOKEN }}
     with:
+      skip_vulnerability_scan: false
       # Optional inputs can be passed here
       org: epfl-eesd
       repo: mmsdb
